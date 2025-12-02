@@ -1,4 +1,6 @@
 import ServiceCard from "./ServiceCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const services = [
   {
@@ -76,10 +78,15 @@ const services = [
 ];
 
 const ServicesList = () => {
+  const allServices = services;
+  const limpezaServices = services.filter(s => s.category === "Limpeza");
+  const fotografiaServices = services.filter(s => s.category === "Fotografia");
+  const mecanicaServices = services.filter(s => s.category === "Mecânica");
+
   return (
     <section className="py-12 md:py-16 bg-muted/30">
       <div className="container px-4">
-        <div className="flex items-center justify-between mb-8 md:mb-12">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 md:mb-12">
           <div>
             <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2">
               Serviços em Destaque
@@ -88,13 +95,59 @@ const ServicesList = () => {
               Profissionais avaliados e verificados
             </p>
           </div>
+          <Select defaultValue="relevance">
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relevance">Mais Relevantes</SelectItem>
+              <SelectItem value="rating">Melhor Avaliado</SelectItem>
+              <SelectItem value="price-low">Menor Preço</SelectItem>
+              <SelectItem value="price-high">Maior Preço</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {services.map((service) => (
-            <ServiceCard key={service.id} {...service} />
-          ))}
-        </div>
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="w-full sm:w-auto mb-6 flex-wrap h-auto">
+            <TabsTrigger value="all">Todos</TabsTrigger>
+            <TabsTrigger value="limpeza">Limpeza</TabsTrigger>
+            <TabsTrigger value="fotografia">Fotografia</TabsTrigger>
+            <TabsTrigger value="mecanica">Mecânica</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {allServices.map((service) => (
+                <ServiceCard key={service.id} {...service} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="limpeza" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {limpezaServices.map((service) => (
+                <ServiceCard key={service.id} {...service} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="fotografia" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {fotografiaServices.map((service) => (
+                <ServiceCard key={service.id} {...service} />
+              ))}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="mecanica" className="mt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {mecanicaServices.map((service) => (
+                <ServiceCard key={service.id} {...service} />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </section>
   );
