@@ -46,12 +46,12 @@ const ServiceCard = ({
         </Badge>
       </div>
 
-      <div className="p-5 space-y-3">
+      <div className="p-4 md:p-5 space-y-3">
         <div>
-          <h3 className="font-semibold text-lg mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
+          <h3 className="font-semibold text-base md:text-lg mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
             {title}
           </h3>
-          <p className="text-sm text-muted-foreground flex items-center gap-1">
+          <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-1">
             {provider}
             {verified && (
               <span className="text-primary">✓</span>
@@ -59,24 +59,24 @@ const ServiceCard = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm">
           <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <Star className="h-3.5 md:h-4 w-3.5 md:w-4 fill-yellow-400 text-yellow-400" />
             <span className="font-semibold">{rating}</span>
             <span className="text-muted-foreground">({reviews})</span>
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
-            <MapPin className="h-4 w-4" />
+            <MapPin className="h-3.5 md:h-4 w-3.5 md:w-4 flex-shrink-0" />
             <span className="line-clamp-1">{location}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t">
+        <div className="flex items-center justify-between pt-2 border-t gap-3">
           <div>
             <p className="text-xs text-muted-foreground">A partir de</p>
-            <p className="text-xl font-bold text-primary">{price}</p>
+            <p className="text-lg md:text-xl font-bold text-primary">{price}</p>
           </div>
-          <Button className="gradient-accent hover:brightness-110">
+          <Button className="gradient-accent hover:brightness-110 text-xs md:text-sm px-3 md:px-4">
             Ver Detalhes
           </Button>
         </div>

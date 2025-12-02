@@ -77,20 +77,20 @@ const services = [
 
 const ServicesList = () => {
   return (
-    <section className="py-16 bg-muted/30">
-      <div className="container">
-        <div className="flex items-center justify-between mb-12">
+    <section className="py-12 md:py-16 bg-muted/30">
+      <div className="container px-4">
+        <div className="flex items-center justify-between mb-8 md:mb-12">
           <div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-2">
+            <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2">
               Serviços em Destaque
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-sm md:text-base lg:text-lg">
               Profissionais avaliados e verificados
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {services.map((service) => (
             <ServiceCard key={service.id} {...service} />
           ))}
