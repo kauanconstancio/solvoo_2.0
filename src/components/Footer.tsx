@@ -3,17 +3,17 @@ import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 const Footer = () => {
   return (
     <footer className="border-t bg-muted/30">
-      <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          <div className="space-y-4">
+      <div className="container px-4 py-10 md:py-12 lg:py-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          <div className="space-y-4 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg gradient-primary" />
-              <span className="font-heading text-xl font-bold">ServicoPro</span>
+              <div className="h-7 md:h-8 w-7 md:w-8 rounded-lg gradient-primary" />
+              <span className="font-heading text-lg md:text-xl font-bold">ServicoPro</span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground max-w-xs">
               Conectando pessoas aos melhores profissionais desde 2024.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3">
               <a href="#" className="h-9 w-9 rounded-full bg-secondary hover:bg-secondary-hover flex items-center justify-center transition-smooth">
                 <Facebook className="h-4 w-4" />
               </a>
@@ -30,7 +30,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Para Clientes</h3>
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Para Clientes</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#" className="hover:text-foreground transition-smooth">Como Funciona</a></li>
               <li><a href="#" className="hover:text-foreground transition-smooth">Encontrar Serviços</a></li>
@@ -40,7 +40,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Para Profissionais</h3>
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Para Profissionais</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#" className="hover:text-foreground transition-smooth">Anunciar Serviço</a></li>
               <li><a href="#" className="hover:text-foreground transition-smooth">Como Vender</a></li>
@@ -49,8 +49,8 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
-            <h3 className="font-semibold mb-4">Empresa</h3>
+          <div className="sm:col-span-2 lg:col-span-1">
+            <h3 className="font-semibold mb-3 md:mb-4 text-sm md:text-base">Empresa</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="#" className="hover:text-foreground transition-smooth">Sobre Nós</a></li>
               <li><a href="#" className="hover:text-foreground transition-smooth">Termos de Uso</a></li>
@@ -60,7 +60,7 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="pt-8 border-t text-center text-sm text-muted-foreground">
+        <div className="pt-6 md:pt-8 border-t text-center text-xs md:text-sm text-muted-foreground">
           <p>© 2024 ServicoPro. Todos os direitos reservados.</p>
         </div>
       </div>
