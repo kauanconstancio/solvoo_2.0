@@ -1,6 +1,8 @@
-import { Search } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 const Hero = () => {
   return (
@@ -18,28 +20,45 @@ const Hero = () => {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
-              <Input 
-                placeholder="Que serviço você precisa?" 
-                className="pl-10 md:pl-12 h-12 md:h-14 text-sm md:text-base shadow-soft border-2 focus-visible:border-primary transition-smooth"
-              />
+          <div className="flex flex-col gap-3 max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground pointer-events-none" />
+                <Input 
+                  placeholder="Que serviço você precisa?" 
+                  className="pl-10 md:pl-12 h-12 md:h-14 text-sm md:text-base shadow-soft border-2 focus-visible:border-primary transition-smooth"
+                />
+              </div>
+              <Select>
+                <SelectTrigger className="w-full sm:w-[200px] h-12 md:h-14 text-sm md:text-base shadow-soft border-2">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Localização" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sp">São Paulo, SP</SelectItem>
+                  <SelectItem value="rj">Rio de Janeiro, RJ</SelectItem>
+                  <SelectItem value="mg">Belo Horizonte, MG</SelectItem>
+                  <SelectItem value="pr">Curitiba, PR</SelectItem>
+                  <SelectItem value="rs">Porto Alegre, RS</SelectItem>
+                  <SelectItem value="df">Brasília, DF</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Button size="lg" className="gradient-primary hover:brightness-110 h-12 md:h-14 px-6 md:px-8 shadow-soft transition-smooth text-sm md:text-base">
-              Buscar
+            <Button size="lg" className="gradient-primary hover:brightness-110 h-12 md:h-14 px-6 md:px-8 shadow-soft transition-smooth text-sm md:text-base w-full sm:w-auto sm:self-center">
+              Buscar Serviços
             </Button>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-2 text-xs md:text-sm text-muted-foreground px-4">
-            <span className="hidden sm:inline">Populares:</span>
+          <div className="flex flex-wrap justify-center gap-2 px-4">
+            <span className="hidden sm:inline text-xs md:text-sm text-muted-foreground">Populares:</span>
             {["Faxina", "Fotógrafo", "Mecânico", "Encanador", "Eletricista"].map((tag) => (
-              <button
+              <Badge
                 key={tag}
-                className="px-2.5 md:px-3 py-1 rounded-full bg-secondary hover:bg-secondary-hover transition-smooth"
+                variant="secondary"
+                className="cursor-pointer hover:bg-secondary-hover transition-smooth"
               >
                 {tag}
-              </button>
+              </Badge>
             ))}
           </div>
         </div>

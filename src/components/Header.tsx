@@ -1,10 +1,14 @@
-import { User, Heart, MessageSquare, Menu, X } from "lucide-react";
+import { User, Heart, MessageSquare, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const Header = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -42,42 +46,45 @@ const Header = () => {
             Anunciar
           </Button>
           
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="lg:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-lg gradient-primary" />
+                  ServicoPro
+                </SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 space-y-4">
+                <nav className="space-y-2">
+                  <a href="#categorias" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
+                    Categorias
+                  </a>
+                  <a href="#como-funciona" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
+                    Como Funciona
+                  </a>
+                  <a href="#profissionais" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
+                    Para Profissionais
+                  </a>
+                </nav>
+                <div className="pt-4 space-y-2 border-t">
+                  <Button variant="outline" className="w-full justify-start">
+                    <User className="h-4 w-4 mr-2" />
+                    Entrar
+                  </Button>
+                  <Button className="w-full gradient-accent hover:brightness-110 sm:hidden">
+                    Anunciar Serviço
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t bg-background">
-          <div className="container py-4 space-y-3">
-            <a href="#categorias" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
-              Categorias
-            </a>
-            <a href="#como-funciona" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
-              Como Funciona
-            </a>
-            <a href="#profissionais" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
-              Para Profissionais
-            </a>
-            <div className="pt-3 space-y-2 border-t">
-              <Button variant="outline" className="w-full justify-start">
-                <User className="h-4 w-4 mr-2" />
-                Entrar
-              </Button>
-              <Button className="w-full gradient-accent hover:brightness-110 sm:hidden">
-                Anunciar Serviço
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
