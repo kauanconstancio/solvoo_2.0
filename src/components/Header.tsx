@@ -70,8 +70,12 @@ const Header = () => {
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-lg gradient-primary" />
-                  ServicoPro
+                  <img
+                    src="/solvoo_favicon.png"
+                    alt="Logo"
+                    className="h-7 w-7 md:h-8 md:w-8 rounded-lg"
+                  />
+                  Solvoo
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">

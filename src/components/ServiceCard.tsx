@@ -1,4 +1,4 @@
-import { Star, MapPin, Heart } from "lucide-react";
+import { Star, MapPin, Heart, BadgeCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,9 +41,14 @@ const ServiceCard = ({
         >
           <Heart className="h-4 w-4" />
         </Button>
-        <Badge className="absolute bottom-3 left-3 bg-background/90 backdrop-blur text-foreground hover:bg-background/90">
-          {category}
-        </Badge>
+        <div className="absolute bottom-3 left-3 flex gap-2">
+          <Badge className="bg-background/80 backdrop-blur text-foreground hover:bg-background/90">
+            {category}
+          </Badge>
+          <Badge className="bg-primary/80 text-white backdrop-blur flex gap-1 items-center">
+            2 anos de experiência
+          </Badge>
+        </div>
       </div>
 
       <div className="p-4 md:p-5 space-y-3">
@@ -51,10 +56,12 @@ const ServiceCard = ({
           <h3 className="font-semibold text-base md:text-lg mb-1 line-clamp-1 group-hover:text-primary transition-smooth">
             {title}
           </h3>
-          <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-1">
+          <p className="text-xs md:text-sm text-muted-foreground flex gap-1">
             {provider}
             {verified && (
-              <span className="text-primary">✓</span>
+              <span className="text-primary">
+                <BadgeCheck className="h-4 w-4" />
+              </span>
             )}
           </p>
         </div>

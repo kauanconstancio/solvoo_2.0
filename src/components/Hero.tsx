@@ -9,6 +9,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 
 const Hero = () => {
   return (
@@ -27,35 +36,47 @@ const Hero = () => {
           </div>
 
           <div className="flex gap-3 items-center justify-center">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground pointer-events-none" />
-                <Input
-                  placeholder="Que serviço você precisa?"
-                  className="pl-10 md:pl-12 h-12 md:h-14 text-sm md:text-base shadow-soft border-2 focus-visible:border-primary transition-smooth"
-                />
-              </div>
-              <Select>
-                <SelectTrigger className="w-full sm:w-[200px] h-12 md:h-14 text-sm md:text-base shadow-soft border-2">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Localização" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sp">São Paulo, SP</SelectItem>
-                  <SelectItem value="rj">Rio de Janeiro, RJ</SelectItem>
-                  <SelectItem value="mg">Belo Horizonte, MG</SelectItem>
-                  <SelectItem value="pr">Curitiba, PR</SelectItem>
-                  <SelectItem value="rs">Porto Alegre, RS</SelectItem>
-                  <SelectItem value="df">Brasília, DF</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button
-              size="lg"
-              className="gradient-primary hover:brightness-110 md:h-14 shadow-soft transition-smooth text-sm md:text-base sm:w-auto sm:self-center rounded-full p-5"
-            >
-              <Search />
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="gradient-primary hover:brightness-110 md:h-14 shadow-soft transition-smooth text-sm md:text-base sm:w-auto sm:self-center rounded-full p-5">
+                  Procure o profissional que você precisa
+                  <Search />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[420px] w-[90%] md:w-[80%] lg:w-[60%] rounded-lg">
+                <DialogHeader className="flex flex-col gap-4">
+                  <DialogTitle>
+                    Procure o profissional que você precisa
+                  </DialogTitle>
+                  <DialogDescription className="flex flex-col gap-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground pointer-events-none" />
+                      <Input
+                        placeholder="Que serviço você precisa?"
+                        className="pl-10 md:pl-12 h-12 md:h-14 text-sm md:text-base shadow-soft border-2 focus-visible:border-primary transition-smooth"
+                      />
+                    </div>
+                    <Select>
+                      <SelectTrigger className="w-full h-12 md:h-14 text-sm md:text-base shadow-soft border-2">
+                        <MapPin className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Localização" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sp">São Paulo, SP</SelectItem>
+                        <SelectItem value="rj">Rio de Janeiro, RJ</SelectItem>
+                        <SelectItem value="mg">Belo Horizonte, MG</SelectItem>
+                        <SelectItem value="pr">Curitiba, PR</SelectItem>
+                        <SelectItem value="rs">Porto Alegre, RS</SelectItem>
+                        <SelectItem value="df">Brasília, DF</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex gap-3">
+                  <Button variant="default">Procurar</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 px-4">
@@ -63,11 +84,14 @@ const Hero = () => {
               Populares:
             </span>
             {[
-              "Faxina",
-              "Fotógrafo",
-              "Mecânico",
+              "Limpeza",
+              "Fotografia",
+              "Mecânica",
               "Encanador",
               "Eletricista",
+              "Pintura",
+              "TI & Suporte",
+              "Mudanças",
             ].map((tag) => (
               <Badge
                 key={tag}
