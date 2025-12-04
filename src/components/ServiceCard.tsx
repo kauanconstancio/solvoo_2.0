@@ -42,11 +42,8 @@ const ServiceCard = ({
           <Heart className="h-4 w-4" />
         </Button>
         <div className="absolute bottom-3 left-3 flex gap-2">
-          <Badge className="bg-background/80 backdrop-blur text-foreground hover:bg-background/90">
+          <Badge className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
             {category}
-          </Badge>
-          <Badge className="gradient-primary text-white backdrop-blur flex gap-1 items-center">
-            2 anos de experiência
           </Badge>
         </div>
       </div>
@@ -64,6 +61,9 @@ const ServiceCard = ({
               </span>
             )}
           </p>
+          <span className="font-semibold items-center text-[12px] text-muted-foreground">
+            2 anos de experiência
+          </span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm">

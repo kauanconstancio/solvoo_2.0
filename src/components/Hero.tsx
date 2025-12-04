@@ -1,23 +1,5 @@
 import { Search, MapPin, ChevronsUpDownIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
 import { Item, ItemContent, ItemDescription, ItemTitle } from "./ui/item";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
@@ -74,10 +56,7 @@ const Hero = () => {
             </p>
           </div>
 
-          <Item
-            variant="outline"
-            className="w-full max-w-5xl mx-auto p-4 md:p-6"
-          >
+          <Item className="w-full max-w-5xl mx-auto p-4 md:p-6 shadow-lg">
             <ItemDescription className="flex flex-col gap-3 w-full md:flex-row md:items-center">
               {/* Popover de Serviço */}
               <Popover open={openService} onOpenChange={setOpenService}>
@@ -200,30 +179,6 @@ const Hero = () => {
               </Button>
             </ItemDescription>
           </Item>
-
-          <div className="flex flex-wrap justify-center gap-2 px-4">
-            <span className="hidden sm:inline text-xs md:text-sm text-muted-foreground">
-              Populares:
-            </span>
-            {[
-              "Limpeza",
-              "Fotografia",
-              "Mecânica",
-              "Encanador",
-              "Eletricista",
-              "Pintura",
-              "TI & Suporte",
-              "Mudanças",
-            ].map((tag) => (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className="cursor-pointer hover:bg-secondary-hover transition-smooth"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
         </div>
       </div>
     </section>

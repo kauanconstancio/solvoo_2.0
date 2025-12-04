@@ -63,7 +63,7 @@ const categories = [
 
 const Categories = () => {
   return (
-    <section className="py-12 md:py-16">
+    <section className="py-8 md:py-12">
       <div className="container px-4">
         <div className="text-center mb-8 md:mb-12">
           <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">
