@@ -1,15 +1,64 @@
-import { Sparkles, Camera, Wrench, Droplet, Zap, Paintbrush, Laptop, Truck } from "lucide-react";
+import {
+  Sparkles,
+  Camera,
+  Wrench,
+  Droplet,
+  Zap,
+  Paintbrush,
+  Laptop,
+  Truck,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const categories = [
-  { icon: Sparkles, name: "Limpeza", count: "234 profissionais", color: "text-blue-500" },
-  { icon: Camera, name: "Fotografia", count: "189 profissionais", color: "text-purple-500" },
-  { icon: Wrench, name: "Mecânica", count: "156 profissionais", color: "text-orange-500" },
-  { icon: Droplet, name: "Encanador", count: "203 profissionais", color: "text-cyan-500" },
-  { icon: Zap, name: "Eletricista", count: "178 profissionais", color: "text-yellow-500" },
-  { icon: Paintbrush, name: "Pintura", count: "145 profissionais", color: "text-pink-500" },
-  { icon: Laptop, name: "TI & Suporte", count: "267 profissionais", color: "text-indigo-500" },
-  { icon: Truck, name: "Mudanças", count: "98 profissionais", color: "text-green-500" },
+  {
+    icon: Sparkles,
+    name: "Limpeza",
+    count: "234 profissionais",
+    color: "text-blue-500",
+  },
+  {
+    icon: Camera,
+    name: "Fotografia",
+    count: "189 profissionais",
+    color: "text-purple-500",
+  },
+  {
+    icon: Wrench,
+    name: "Mecânica",
+    count: "156 profissionais",
+    color: "text-orange-500",
+  },
+  {
+    icon: Droplet,
+    name: "Encanador",
+    count: "203 profissionais",
+    color: "text-cyan-500",
+  },
+  {
+    icon: Zap,
+    name: "Eletricista",
+    count: "178 profissionais",
+    color: "text-yellow-500",
+  },
+  {
+    icon: Paintbrush,
+    name: "Pintura",
+    count: "145 profissionais",
+    color: "text-pink-500",
+  },
+  {
+    icon: Laptop,
+    name: "TI & Suporte",
+    count: "267 profissionais",
+    color: "text-indigo-500",
+  },
+  {
+    icon: Truck,
+    name: "Mudanças",
+    count: "98 profissionais",
+    color: "text-green-500",
+  },
 ];
 
 const Categories = () => {
@@ -34,12 +83,18 @@ const Categories = () => {
                 className="p-4 md:p-6 cursor-pointer hover:shadow-soft-lg hover:bg-card-hover hover:-translate-y-1 transition-smooth border-2"
               >
                 <div className="flex flex-col items-center text-center gap-2 md:gap-3">
-                  <div className={`p-3 md:p-4 rounded-xl md:rounded-2xl bg-primary-light ${category.color}`}>
+                  <div
+                    className={`p-3 md:p-4 rounded-xl md:rounded-2xl bg-primary-light ${category.color}`}
+                  >
                     <Icon className="h-5 w-5 md:h-6 md:w-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm md:text-base mb-1">{category.name}</h3>
-                    <p className="text-xs text-muted-foreground hidden sm:block">{category.count}</p>
+                    <h3 className="font-semibold text-sm md:text-base mb-1">
+                      {category.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground sm:block">
+                      {category.count}
+                    </p>
                   </div>
                 </div>
               </Card>

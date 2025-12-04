@@ -116,17 +116,6 @@ const ServicesList = () => {
               Profissionais avaliados e verificados
             </p>
           </div>
-          <Select defaultValue="relevance">
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Ordenar por" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="relevance">Mais Relevantes</SelectItem>
-              <SelectItem value="rating">Melhor Avaliado</SelectItem>
-              <SelectItem value="price-low">Menor Preço</SelectItem>
-              <SelectItem value="price-high">Maior Preço</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <Tabs defaultValue="all" className="w-full">
