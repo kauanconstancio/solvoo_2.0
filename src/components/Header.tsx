@@ -14,18 +14,33 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-4 md:gap-8">
           <a href="/" className="flex items-center gap-2">
-            <div className="h-7 w-7 md:h-8 md:w-8 rounded-lg gradient-primary" />
-            <span className="font-heading text-lg md:text-xl font-bold">ServicoPro</span>
+            <img
+              src="/solvoo_favicon.png"
+              alt="Logo"
+              className="h-7 w-7 md:h-8 md:w-8 rounded-lg"
+            />
+            <span className="font-heading text-lg md:text-xl font-bold">
+              Solvoo
+            </span>
           </a>
-          
+
           <nav className="hidden lg:flex items-center gap-6">
-            <a href="#categorias" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
+            <a
+              href="#categorias"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+            >
               Categorias
             </a>
-            <a href="#como-funciona" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
+            <a
+              href="#como-funciona"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+            >
               Como Funciona
             </a>
-            <a href="#profissionais" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth">
+            <a
+              href="#profissionais"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+            >
               Para Profissionais
             </a>
           </nav>
@@ -45,7 +60,7 @@ const Header = () => {
           <Button className="hidden sm:flex gradient-accent hover:brightness-110 transition-smooth text-sm md:text-base">
             Anunciar
           </Button>
-          
+
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden">
@@ -61,13 +76,22 @@ const Header = () => {
               </SheetHeader>
               <div className="mt-6 space-y-4">
                 <nav className="space-y-2">
-                  <a href="#categorias" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
+                  <a
+                    href="#categorias"
+                    className="block py-2 text-sm font-medium hover:text-primary transition-smooth"
+                  >
                     Categorias
                   </a>
-                  <a href="#como-funciona" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
+                  <a
+                    href="#como-funciona"
+                    className="block py-2 text-sm font-medium hover:text-primary transition-smooth"
+                  >
                     Como Funciona
                   </a>
-                  <a href="#profissionais" className="block py-2 text-sm font-medium hover:text-primary transition-smooth">
+                  <a
+                    href="#profissionais"
+                    className="block py-2 text-sm font-medium hover:text-primary transition-smooth"
+                  >
                     Para Profissionais
                   </a>
                 </nav>

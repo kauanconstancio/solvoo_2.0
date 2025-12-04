@@ -1,7 +1,13 @@
 import { Search, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
 const Hero = () => {
@@ -15,17 +21,17 @@ const Hero = () => {
               <span className="block text-primary">Perfeito para Você</span>
             </h1>
             <p className="text-base md:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-              Conectamos você com os melhores prestadores de serviços da sua região. 
-              Rápido, seguro e confiável.
+              Conectamos você com os melhores prestadores de serviços da sua
+              região. Rápido, seguro e confiável.
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 max-w-2xl mx-auto">
+          <div className="flex gap-3 items-center justify-center">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground pointer-events-none" />
-                <Input 
-                  placeholder="Que serviço você precisa?" 
+                <Input
+                  placeholder="Que serviço você precisa?"
                   className="pl-10 md:pl-12 h-12 md:h-14 text-sm md:text-base shadow-soft border-2 focus-visible:border-primary transition-smooth"
                 />
               </div>
@@ -44,14 +50,25 @@ const Hero = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button size="lg" className="gradient-primary hover:brightness-110 h-12 md:h-14 px-6 md:px-8 shadow-soft transition-smooth text-sm md:text-base w-full sm:w-auto sm:self-center">
-              Buscar Serviços
+            <Button
+              size="lg"
+              className="gradient-primary hover:brightness-110 md:h-14 shadow-soft transition-smooth text-sm md:text-base sm:w-auto sm:self-center rounded-full p-5"
+            >
+              <Search />
             </Button>
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 px-4">
-            <span className="hidden sm:inline text-xs md:text-sm text-muted-foreground">Populares:</span>
-            {["Faxina", "Fotógrafo", "Mecânico", "Encanador", "Eletricista"].map((tag) => (
+            <span className="hidden sm:inline text-xs md:text-sm text-muted-foreground">
+              Populares:
+            </span>
+            {[
+              "Faxina",
+              "Fotógrafo",
+              "Mecânico",
+              "Encanador",
+              "Eletricista",
+            ].map((tag) => (
               <Badge
                 key={tag}
                 variant="secondary"
