@@ -47,23 +47,38 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="icon" className="hidden md:flex">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden md:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+          >
             <Heart className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:flex">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden md:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+          >
             <MessageSquare className="h-5 w-5" />
           </Button>
-          <Button variant="outline" className="hidden lg:flex">
+          <Button
+            variant="outline"
+            className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+          >
             <User className="h-4 w-4 mr-2" />
             Entrar
           </Button>
-          <Button className="hidden sm:flex gradient-accent hover:brightness-110 transition-smooth text-sm md:text-base">
+          <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
             Anunciar
           </Button>
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden hover:gradient-primary transition-smooth hover:text-white"
+              >
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -100,11 +115,14 @@ const Header = () => {
                   </a>
                 </nav>
                 <div className="pt-4 space-y-2 border-t">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                  >
                     <User className="h-4 w-4 mr-2" />
                     Entrar
                   </Button>
-                  <Button className="w-full gradient-accent hover:brightness-110 sm:hidden">
+                  <Button className="w-full hover:brightness-110 sm:hidden">
                     Anunciar Serviço
                   </Button>
                 </div>

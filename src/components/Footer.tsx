@@ -17,7 +17,7 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-sm text-muted-foreground max-w-xs">
-              Conectando pessoas aos melhores profissionais desde 2024.
+              Conectando pessoas aos melhores profissionais desde 2026.
             </p>
             <div className="flex gap-2 md:gap-3">
               <a
@@ -133,7 +133,7 @@ const Footer = () => {
         </div>
 
         <div className="pt-6 md:pt-8 border-t text-center text-xs md:text-sm text-muted-foreground">
-          <p>© 2025 Solvoo. Todos os direitos reservados.</p>
+          <p>© 2026 Solvoo. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

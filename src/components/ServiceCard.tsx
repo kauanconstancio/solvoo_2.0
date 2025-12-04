@@ -45,7 +45,7 @@ const ServiceCard = ({
           <Badge className="bg-background/80 backdrop-blur text-foreground hover:bg-background/90">
             {category}
           </Badge>
-          <Badge className="bg-primary/80 text-white backdrop-blur flex gap-1 items-center">
+          <Badge className="gradient-primary text-white backdrop-blur flex gap-1 items-center">
             2 anos de experiência
           </Badge>
         </div>
@@ -83,7 +83,7 @@ const ServiceCard = ({
             <p className="text-xs text-muted-foreground">A partir de</p>
             <p className="text-lg md:text-xl font-bold text-primary">{price}</p>
           </div>
-          <Button className="gradient-accent hover:brightness-110 text-xs md:text-sm px-3 md:px-4">
+          <Button className="hover:brightness-110 text-xs md:text-sm px-3 md:px-4 bg-primary text-primary-foreground">
             Ver Detalhes
           </Button>
         </div>
