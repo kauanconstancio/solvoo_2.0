@@ -26,13 +26,13 @@ const Header = () => {
 
           <nav className="hidden lg:flex items-center gap-6">
             <a
-              href="#categorias"
+              href="/categorias"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
             >
               Categorias
             </a>
             <a
-              href="#como-funciona"
+              href="/como-funciona"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
             >
               Como Funciona
@@ -94,15 +94,15 @@ const Header = () => {
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-                <nav className="space-y-2">
+              <nav className="space-y-2">
                   <a
-                    href="#categorias"
+                    href="/categorias"
                     className="block py-2 text-sm font-medium hover:text-primary transition-smooth"
                   >
                     Categorias
                   </a>
                   <a
-                    href="#como-funciona"
+                    href="/como-funciona"
                     className="block py-2 text-sm font-medium hover:text-primary transition-smooth"
                   >
                     Como Funciona
