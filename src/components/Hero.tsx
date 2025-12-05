@@ -1,6 +1,6 @@
 import { Search, MapPin, ChevronsUpDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Item, ItemContent, ItemDescription, ItemTitle } from "./ui/item";
+import { Item, ItemDescription } from "./ui/item";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
   Command,
@@ -174,7 +174,7 @@ const Hero = () => {
 
               {/* Botão de Buscar */}
               <Button className="w-full md:w-auto md:px-8 gradient-primary hover:brightness-110 transition-smooth">
-                <Search className="h-4 w-4 mr-2 md:hidden" />
+                <Search className="h-4 w-4 mr-2" />
                 Buscar
               </Button>
             </ItemDescription>
