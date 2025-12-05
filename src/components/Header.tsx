@@ -7,6 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   return (
@@ -69,7 +70,7 @@ const Header = () => {
             Entrar
           </Button>
           <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
-            Anunciar
+            <a href="/anunciar">Anunciar</a>
           </Button>
 
           <Sheet>
@@ -94,7 +95,7 @@ const Header = () => {
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-              <nav className="space-y-2">
+                <nav className="space-y-2">
                   <a
                     href="/categorias"
                     className="block py-2 text-sm font-medium hover:text-primary transition-smooth"

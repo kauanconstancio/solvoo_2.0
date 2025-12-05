@@ -5,22 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Camera, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
-  FileText, 
-  CheckCircle2, 
+import {
+  Camera,
+  MapPin,
+  DollarSign,
+  Clock,
+  FileText,
+  CheckCircle2,
   Upload,
   X,
   Info,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,13 +51,37 @@ const categories = [
   "Beleza e Estética",
   "Eventos",
   "Tecnologia",
-  "Outros"
+  "Outros",
 ];
 
 const states = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
-  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
-  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
 ];
 
 const AdvertiseService = () => {
@@ -62,7 +98,7 @@ const AdvertiseService = () => {
     "Materiais Inclusos",
     "Aceita Cartão",
     "Nota Fiscal",
-    "Desconto à Vista"
+    "Desconto à Vista",
   ];
 
   const handleImageUpload = () => {
@@ -77,7 +113,7 @@ const AdvertiseService = () => {
       toast({
         title: "Limite atingido",
         description: "Você pode adicionar no máximo 5 imagens.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -88,14 +124,14 @@ const AdvertiseService = () => {
 
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else if (selectedTags.length < 5) {
       setSelectedTags([...selectedTags, tag]);
     } else {
       toast({
         title: "Limite de tags",
         description: "Você pode selecionar no máximo 5 tags.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -106,20 +142,21 @@ const AdvertiseService = () => {
       toast({
         title: "Termos não aceitos",
         description: "Você precisa aceitar os termos de uso para continuar.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
     toast({
       title: "Serviço anunciado!",
-      description: "Seu anúncio foi enviado para revisão e será publicado em breve.",
+      description:
+        "Seu anúncio foi enviado para revisão e será publicado em breve.",
     });
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -127,11 +164,12 @@ const AdvertiseService = () => {
             <Sparkles className="w-3 h-3 mr-1" />
             Novo Anúncio
           </Badge>
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4 ">
             Anuncie seu Serviço
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Preencha as informações abaixo para criar seu anúncio e começar a receber clientes hoje mesmo.
+            Preencha as informações abaixo para criar seu anúncio e começar a
+            receber clientes hoje mesmo.
           </p>
         </div>
 
@@ -150,8 +188,8 @@ const AdvertiseService = () => {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="title">Título do Anúncio *</Label>
-                <Input 
-                  id="title" 
+                <Input
+                  id="title"
                   placeholder="Ex: Limpeza Residencial Completa com Produtos Inclusos"
                   required
                 />
@@ -178,14 +216,15 @@ const AdvertiseService = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Descrição do Serviço *</Label>
-                <Textarea 
-                  id="description" 
+                <Textarea
+                  id="description"
                   placeholder="Descreva detalhadamente o serviço que você oferece, sua experiência, diferenciais e o que está incluso..."
                   className="min-h-[150px]"
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Seja detalhista! Uma boa descrição aumenta suas chances de contratação.
+                  Seja detalhista! Uma boa descrição aumenta suas chances de
+                  contratação.
                 </p>
               </div>
 
@@ -198,7 +237,9 @@ const AdvertiseService = () => {
                   {suggestedTags.map((tag) => (
                     <Badge
                       key={tag}
-                      variant={selectedTags.includes(tag) ? "default" : "outline"}
+                      variant={
+                        selectedTags.includes(tag) ? "default" : "outline"
+                      }
                       className="cursor-pointer transition-colors"
                       onClick={() => toggleTag(tag)}
                     >
@@ -227,9 +268,12 @@ const AdvertiseService = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {images.map((image, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg border border-border overflow-hidden group">
-                    <img 
-                      src={image} 
+                  <div
+                    key={index}
+                    className="relative aspect-square rounded-lg border border-border overflow-hidden group"
+                  >
+                    <img
+                      src={image}
                       alt={`Foto ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
@@ -260,7 +304,8 @@ const AdvertiseService = () => {
               </div>
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Info className="w-3 h-3" />
-                Adicione até 5 fotos. A primeira será a foto principal do anúncio.
+                Adicione até 5 fotos. A primeira será a foto principal do
+                anúncio.
               </p>
             </CardContent>
           </Card>
@@ -280,9 +325,9 @@ const AdvertiseService = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="price">Preço Base (R$) *</Label>
-                  <Input 
-                    id="price" 
-                    type="number" 
+                  <Input
+                    id="price"
+                    type="number"
                     placeholder="0,00"
                     min="0"
                     step="0.01"
@@ -314,14 +359,19 @@ const AdvertiseService = () => {
                   Disponibilidade
                 </Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {["Segunda a Sexta", "Sábados", "Domingos", "Feriados"].map((day) => (
-                    <div key={day} className="flex items-center space-x-2">
-                      <Checkbox id={day} />
-                      <Label htmlFor={day} className="text-sm font-normal cursor-pointer">
-                        {day}
-                      </Label>
-                    </div>
-                  ))}
+                  {["Segunda a Sexta", "Sábados", "Domingos", "Feriados"].map(
+                    (day) => (
+                      <div key={day} className="flex items-center space-x-2">
+                        <Checkbox id={day} />
+                        <Label
+                          htmlFor={day}
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {day}
+                        </Label>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -411,26 +461,25 @@ const AdvertiseService = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone/WhatsApp *</Label>
-                  <Input 
-                    id="phone" 
-                    type="tel" 
+                  <Input
+                    id="phone"
+                    type="tel"
                     placeholder="(00) 00000-0000"
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="seu@email.com"
-                  />
+                  <Input id="email" type="email" placeholder="seu@email.com" />
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
                 <Checkbox id="showWhatsapp" defaultChecked />
-                <Label htmlFor="showWhatsapp" className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor="showWhatsapp"
+                  className="text-sm font-normal cursor-pointer"
+                >
                   Mostrar botão de WhatsApp no anúncio
                 </Label>
               </div>
@@ -441,12 +490,17 @@ const AdvertiseService = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-start space-x-3 mb-6">
-                <Checkbox 
-                  id="terms" 
+                <Checkbox
+                  id="terms"
                   checked={acceptTerms}
-                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setAcceptTerms(checked as boolean)
+                  }
                 />
-                <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
+                <Label
+                  htmlFor="terms"
+                  className="text-sm font-normal cursor-pointer leading-relaxed"
+                >
                   Li e aceito os{" "}
                   <a href="#" className="text-primary hover:underline">
                     Termos de Uso
@@ -455,12 +509,13 @@ const AdvertiseService = () => {
                   <a href="#" className="text-primary hover:underline">
                     Política de Privacidade
                   </a>{" "}
-                  da plataforma. Confirmo que as informações fornecidas são verdadeiras.
+                  da plataforma. Confirmo que as informações fornecidas são
+                  verdadeiras.
                 </Label>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button type="submit" size="lg" className="flex-1">
+                <Button type="submit" size="lg" className="flex-1 py-3">
                   <CheckCircle2 className="w-4 h-4 mr-2" />
                   Publicar Anúncio
                 </Button>
