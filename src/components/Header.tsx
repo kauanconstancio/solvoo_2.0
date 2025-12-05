@@ -38,7 +38,7 @@ const Header = () => {
               Como Funciona
             </a>
             <a
-              href="#profissionais"
+              href="/para-profissionais"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
             >
               Para Profissionais
@@ -108,7 +108,7 @@ const Header = () => {
                     Como Funciona
                   </a>
                   <a
-                    href="#profissionais"
+                    href="/para-profissionais"
                     className="block py-2 text-sm font-medium hover:text-primary transition-smooth"
                   >
                     Para Profissionais
