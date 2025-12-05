@@ -154,10 +154,10 @@ const AdvertiseService = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen ">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 ">
         {/* Header */}
         <div className="text-center mb-8">
           <Badge className="mb-4" variant="secondary">

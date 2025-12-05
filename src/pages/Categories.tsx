@@ -31,7 +31,14 @@ const allCategories = [
     description: "Pedreiros, pintores, eletricistas e encanadores",
     count: 2847,
     color: "bg-blue-500/10 text-blue-500",
-    subcategories: ["Pedreiro", "Pintor", "Eletricista", "Encanador", "Gesseiro", "Marceneiro"],
+    subcategories: [
+      "Pedreiro",
+      "Pintor",
+      "Eletricista",
+      "Encanador",
+      "Gesseiro",
+      "Marceneiro",
+    ],
   },
   {
     icon: Wrench,
@@ -39,7 +46,12 @@ const allCategories = [
     description: "Consertos e manutenção em geral",
     count: 1923,
     color: "bg-orange-500/10 text-orange-500",
-    subcategories: ["Eletrodomésticos", "Móveis", "Eletrônicos", "Ar Condicionado"],
+    subcategories: [
+      "Eletrodomésticos",
+      "Móveis",
+      "Eletrônicos",
+      "Ar Condicionado",
+    ],
   },
   {
     icon: Sparkles,
@@ -47,7 +59,12 @@ const allCategories = [
     description: "Diaristas, faxineiras e limpeza especializada",
     count: 3156,
     color: "bg-cyan-500/10 text-cyan-500",
-    subcategories: ["Diarista", "Limpeza Pós-Obra", "Limpeza de Estofados", "Vidraçaria"],
+    subcategories: [
+      "Diarista",
+      "Limpeza Pós-Obra",
+      "Limpeza de Estofados",
+      "Vidraçaria",
+    ],
   },
   {
     icon: Camera,
@@ -63,7 +80,13 @@ const allCategories = [
     description: "Cabeleireiros, manicures e estética",
     count: 2341,
     color: "bg-pink-500/10 text-pink-500",
-    subcategories: ["Cabeleireiro", "Manicure", "Maquiagem", "Estética", "Depilação"],
+    subcategories: [
+      "Cabeleireiro",
+      "Manicure",
+      "Maquiagem",
+      "Estética",
+      "Depilação",
+    ],
   },
   {
     icon: Car,
@@ -111,7 +134,12 @@ const allCategories = [
     description: "Cuidadores, enfermeiros e terapeutas",
     count: 945,
     color: "bg-rose-500/10 text-rose-500",
-    subcategories: ["Cuidador de Idosos", "Enfermagem", "Fisioterapia", "Nutrição"],
+    subcategories: [
+      "Cuidador de Idosos",
+      "Enfermagem",
+      "Fisioterapia",
+      "Nutrição",
+    ],
   },
   {
     icon: GraduationCap,
@@ -135,7 +163,12 @@ const allCategories = [
     description: "Chefs, confeiteiros e catering",
     count: 823,
     color: "bg-yellow-500/10 text-yellow-500",
-    subcategories: ["Chef Particular", "Confeitaria", "Catering", "Marmitas Fit"],
+    subcategories: [
+      "Chef Particular",
+      "Confeitaria",
+      "Catering",
+      "Marmitas Fit",
+    ],
   },
   {
     icon: Shield,
@@ -143,7 +176,12 @@ const allCategories = [
     description: "Vigilância, monitoramento e escoltas",
     count: 412,
     color: "bg-slate-500/10 text-slate-500",
-    subcategories: ["Vigilante", "Monitoramento", "Escolta", "Instalação de Câmeras"],
+    subcategories: [
+      "Vigilante",
+      "Monitoramento",
+      "Escolta",
+      "Instalação de Câmeras",
+    ],
   },
   {
     icon: Leaf,
@@ -181,7 +219,8 @@ const Categories = () => {
               </h1>
               <p className="text-base md:text-lg text-muted-foreground">
                 Explore todas as categorias de serviços disponíveis na nossa
-                plataforma. São mais de 20.000 profissionais prontos para atender você.
+                plataforma. São mais de 20.000 profissionais prontos para
+                atender você.
               </p>
 
               <div className="relative max-w-xl mx-auto">
@@ -189,7 +228,7 @@ const Categories = () => {
                 <Input
                   type="text"
                   placeholder="Buscar categoria ou serviço..."
-                  className="pl-12 h-12 text-base"
+                  className="pl-12 h-12 text-base shadow-lg border-none"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -225,7 +264,9 @@ const Categories = () => {
                           {category.count.toLocaleString("pt-BR")} profissionais
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg mt-3">{category.name}</CardTitle>
+                      <CardTitle className="text-lg mt-3">
+                        {category.name}
+                      </CardTitle>
                       <p className="text-sm text-muted-foreground">
                         {category.description}
                       </p>
@@ -260,25 +301,33 @@ const Categories = () => {
           <div className="container px-4 md:px-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
               <div className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-primary">16+</p>
+                <p className="text-3xl md:text-4xl font-bold text-primary">
+                  16+
+                </p>
                 <p className="text-sm md:text-base text-muted-foreground mt-1">
                   Categorias
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-primary">100+</p>
+                <p className="text-3xl md:text-4xl font-bold text-primary">
+                  100+
+                </p>
                 <p className="text-sm md:text-base text-muted-foreground mt-1">
                   Subcategorias
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-primary">20K+</p>
+                <p className="text-3xl md:text-4xl font-bold text-primary">
+                  20K+
+                </p>
                 <p className="text-sm md:text-base text-muted-foreground mt-1">
                   Profissionais
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-3xl md:text-4xl font-bold text-primary">50K+</p>
+                <p className="text-3xl md:text-4xl font-bold text-primary">
+                  50K+
+                </p>
                 <p className="text-sm md:text-base text-muted-foreground mt-1">
                   Serviços Realizados
                 </p>
