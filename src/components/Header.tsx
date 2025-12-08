@@ -26,11 +26,11 @@ const Header = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -47,9 +47,14 @@ const Header = () => {
 
   const getUserInitials = () => {
     if (user?.user_metadata?.name) {
-      return user.user_metadata.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+      return user.user_metadata.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
     }
-    return user?.email?.charAt(0).toUpperCase() || 'U';
+    return user?.email?.charAt(0).toUpperCase() || "U";
   };
 
   return (
@@ -104,13 +109,19 @@ const Header = () => {
           >
             <MessageSquare className="h-5 w-5" />
           </Button>
-          
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="hidden lg:flex relative h-10 w-10 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="hidden lg:flex relative h-10 w-10 rounded-full"
+                >
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.user_metadata?.avatar_url} alt="Avatar" />
+                    <AvatarImage
+                      src={user.user_metadata?.avatar_url}
+                      alt="Avatar"
+                    />
                     <AvatarFallback className="bg-primary text-primary-foreground">
                       {getUserInitials()}
                     </AvatarFallback>
@@ -125,7 +136,10 @@ const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>
@@ -142,7 +156,7 @@ const Header = () => {
               </Button>
             </Link>
           )}
-          
+
           <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
             <a href="/anunciar">Anunciar</a>
           </Button>
@@ -190,52 +204,63 @@ const Header = () => {
                   </a>
                 </nav>
                 <div className="pt-4 space-y-2 border-t">
-                  {user ? (
-                    <>
-                      <div className="flex items-center gap-3 py-2">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.user_metadata?.avatar_url} alt="Avatar" />
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {getUserInitials()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{user.user_metadata?.name || 'Usuário'}</span>
-                          <span className="text-xs text-muted-foreground">{user.email}</span>
-                        </div>
-                      </div>
-                      <Link to="/perfil">
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start"
-                        >
-                          <User className="h-4 w-4 mr-2" />
-                          Meu Perfil
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-destructive hover:text-destructive"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Sair
-                      </Button>
-                    </>
-                  ) : (
-                    <Link to="/auth">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Entrar
-                      </Button>
-                    </Link>
-                  )}
                   <Button className="w-full hover:brightness-110 sm:hidden">
                     Anunciar Serviço
                   </Button>
+                  <div>
+                    {user ? (
+                      <>
+                        <div className="flex items-center gap-3 py-2">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage
+                              src={user.user_metadata?.avatar_url}
+                              alt="Avatar"
+                            />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {getUserInitials()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {user.user_metadata?.name || "Usuário"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {user.email}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Link to="/perfil">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                            >
+                              <User className="h-4 w-4 mr-2" />
+                              Meu Perfil
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-destructive hover:bg-red-500 hover:text-white transition-smooth"
+                            onClick={handleLogout}
+                          >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Sair
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <Link to="/auth">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Entrar
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             </SheetContent>
