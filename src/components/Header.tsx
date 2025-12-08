@@ -1,4 +1,4 @@
-import { User, Heart, MessageSquare, Menu } from "lucide-react";
+import { User, Heart, MessageSquare, Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -7,9 +7,51 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 const Header = () => {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logout realizado com sucesso!");
+    navigate("/");
+  };
+
+  const getUserInitials = () => {
+    if (user?.user_metadata?.name) {
+      return user.user_metadata.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return user?.email?.charAt(0).toUpperCase() || 'U';
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -62,15 +104,45 @@ const Header = () => {
           >
             <MessageSquare className="h-5 w-5" />
           </Button>
-          <Link to="/auth">
-            <Button
-              variant="outline"
-              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Entrar
-            </Button>
-          </Link>
+          
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="hidden lg:flex relative h-10 w-10 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.user_metadata?.avatar_url} alt="Avatar" />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuItem asChild>
+                  <Link to="/perfil" className="flex items-center">
+                    <User className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth">
+              <Button
+                variant="outline"
+                className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Entrar
+              </Button>
+            </Link>
+          )}
+          
           <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
             <a href="/anunciar">Anunciar</a>
           </Button>
@@ -118,15 +190,49 @@ const Header = () => {
                   </a>
                 </nav>
                 <div className="pt-4 space-y-2 border-t">
-                  <Link to="/auth">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Entrar
-                    </Button>
-                  </Link>
+                  {user ? (
+                    <>
+                      <div className="flex items-center gap-3 py-2">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user.user_metadata?.avatar_url} alt="Avatar" />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{user.user_metadata?.name || 'Usuário'}</span>
+                          <span className="text-xs text-muted-foreground">{user.email}</span>
+                        </div>
+                      </div>
+                      <Link to="/perfil">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Meu Perfil
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-destructive hover:text-destructive"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sair
+                      </Button>
+                    </>
+                  ) : (
+                    <Link to="/auth">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Entrar
+                      </Button>
+                    </Link>
+                  )}
                   <Button className="w-full hover:brightness-110 sm:hidden">
                     Anunciar Serviço
                   </Button>
