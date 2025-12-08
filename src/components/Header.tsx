@@ -62,13 +62,15 @@ const Header = () => {
           >
             <MessageSquare className="h-5 w-5" />
           </Button>
-          <Button
-            variant="outline"
-            className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
-          >
-            <User className="h-4 w-4 mr-2" />
-            Entrar
-          </Button>
+          <Link to="/auth">
+            <Button
+              variant="outline"
+              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Entrar
+            </Button>
+          </Link>
           <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
             <a href="/anunciar">Anunciar</a>
           </Button>
@@ -116,13 +118,15 @@ const Header = () => {
                   </a>
                 </nav>
                 <div className="pt-4 space-y-2 border-t">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Entrar
-                  </Button>
+                  <Link to="/auth">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Entrar
+                    </Button>
+                  </Link>
                   <Button className="w-full hover:brightness-110 sm:hidden">
                     Anunciar Serviço
                   </Button>
