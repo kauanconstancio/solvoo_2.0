@@ -4,7 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
@@ -13,18 +19,28 @@ import { z } from "zod";
 
 const loginSchema = z.object({
   email: z.string().trim().email({ message: "Email inválido" }),
-  password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
+  password: z
+    .string()
+    .min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
 });
 
-const registerSchema = z.object({
-  name: z.string().trim().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }).max(100, { message: "Nome muito longo" }),
-  email: z.string().trim().email({ message: "Email inválido" }),
-  password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, { message: "Nome deve ter pelo menos 2 caracteres" })
+      .max(100, { message: "Nome muito longo" }),
+    email: z.string().trim().email({ message: "Email inválido" }),
+    password: z
+      .string()
+      .min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
+  });
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -44,7 +60,9 @@ const Auth = () => {
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         navigate("/");
       }
@@ -63,7 +81,10 @@ const Auth = () => {
     e.preventDefault();
     setErrors({});
 
-    const result = loginSchema.safeParse({ email: loginEmail, password: loginPassword });
+    const result = loginSchema.safeParse({
+      email: loginEmail,
+      password: loginPassword,
+    });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach((err) => {
@@ -150,7 +171,10 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" />
           Voltar para início
         </Link>
@@ -158,7 +182,9 @@ const Auth = () => {
         <Card className="border-border/50 shadow-xl">
           <CardHeader className="text-center pb-2">
             <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-primary-foreground font-bold text-xl">S</span>
+              <span className="text-primary-foreground font-bold text-xl">
+                S
+              </span>
             </div>
             <CardTitle className="text-2xl">Bem-vindo ao Solvoo</CardTitle>
             <CardDescription>
@@ -189,7 +215,9 @@ const Auth = () => {
                         disabled={isLoading}
                       />
                     </div>
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-sm text-destructive">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -204,16 +232,25 @@ const Auth = () => {
                         onChange={(e) => setLoginPassword(e.target.value)}
                         className="pl-10 pr-10"
                         disabled={isLoading}
+                        required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                    {errors.password && (
+                      <p className="text-sm text-destructive">
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
@@ -236,9 +273,12 @@ const Auth = () => {
                         onChange={(e) => setRegisterName(e.target.value)}
                         className="pl-10"
                         disabled={isLoading}
+                        required
                       />
                     </div>
-                    {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                    {errors.name && (
+                      <p className="text-sm text-destructive">{errors.name}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -253,9 +293,12 @@ const Auth = () => {
                         onChange={(e) => setRegisterEmail(e.target.value)}
                         className="pl-10"
                         disabled={isLoading}
+                        required
                       />
                     </div>
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-sm text-destructive">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -276,14 +319,24 @@ const Auth = () => {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                    {errors.password && (
+                      <p className="text-sm text-destructive">
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="register-confirm-password">Confirmar senha</Label>
+                    <Label htmlFor="register-confirm-password">
+                      Confirmar senha
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -291,19 +344,31 @@ const Auth = () => {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="••••••••"
                         value={registerConfirmPassword}
-                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                        onChange={(e) =>
+                          setRegisterConfirmPassword(e.target.value)
+                        }
                         className="pl-10 pr-10"
                         disabled={isLoading}
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
-                    {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                    {errors.confirmPassword && (
+                      <p className="text-sm text-destructive">
+                        {errors.confirmPassword}
+                      </p>
+                    )}
                   </div>
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
@@ -312,9 +377,13 @@ const Auth = () => {
 
                   <p className="text-xs text-center text-muted-foreground">
                     Ao se cadastrar, você concorda com nossos{" "}
-                    <a href="#" className="text-primary hover:underline">Termos de Uso</a>{" "}
+                    <a href="#" className="text-primary hover:underline">
+                      Termos de Uso
+                    </a>{" "}
                     e{" "}
-                    <a href="#" className="text-primary hover:underline">Política de Privacidade</a>
+                    <a href="#" className="text-primary hover:underline">
+                      Política de Privacidade
+                    </a>
                   </p>
                 </form>
               </TabsContent>
