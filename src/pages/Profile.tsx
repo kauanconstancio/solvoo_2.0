@@ -226,23 +226,7 @@ const Profile = () => {
                     />
                   </div>
                 </div>
-
-                {/* <div className="space-y-2">
-                  <Label htmlFor="account_type">Tipo de Conta</Label>
-                  <Select
-                    value={formData.account_type}
-                    onValueChange={(value) => setFormData({ ...formData, account_type: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de conta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cliente">Cliente</SelectItem>
-                      <SelectItem value="profissional">Profissional</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div> */}
-
+                
                 <div className="space-y-2">
                   <Label htmlFor="bio">Sobre você</Label>
                   <Textarea
