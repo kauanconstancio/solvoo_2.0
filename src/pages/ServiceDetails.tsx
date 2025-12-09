@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
+import ProviderProfileDialog from "@/components/ProviderProfileDialog";
 
 interface ProviderProfile {
   user_id: string;
@@ -58,6 +59,7 @@ const ServiceDetails = () => {
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -443,7 +445,7 @@ const ServiceDetails = () => {
                     <Button
                       variant="outline"
                       className="w-full"
-                      onClick={() => navigate(`/profissional/${service.user_id}`)}
+                      onClick={() => setIsProfileDialogOpen(true)}
                     >
                       Ver perfil completo
                     </Button>
@@ -454,6 +456,12 @@ const ServiceDetails = () => {
           </div>
         </section>
       </main>
+
+      <ProviderProfileDialog
+        userId={service?.user_id || null}
+        open={isProfileDialogOpen}
+        onOpenChange={setIsProfileDialogOpen}
+      />
 
       <Footer />
     </div>
