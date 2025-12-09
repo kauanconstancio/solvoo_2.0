@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
@@ -40,7 +39,11 @@ interface ProviderProfileDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const ProviderProfileDialog = ({ userId, open, onOpenChange }: ProviderProfileDialogProps) => {
+const ProviderProfileDialog = ({
+  userId,
+  open,
+  onOpenChange,
+}: ProviderProfileDialogProps) => {
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +57,9 @@ const ProviderProfileDialog = ({ userId, open, onOpenChange }: ProviderProfileDi
         // Fetch provider profile
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("user_id, full_name, city, state, avatar_url, bio, created_at")
+          .select(
+            "user_id, full_name, city, state, avatar_url, bio, created_at"
+          )
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -104,7 +109,7 @@ const ProviderProfileDialog = ({ userId, open, onOpenChange }: ProviderProfileDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
         <DialogHeader>
           <DialogTitle>Perfil do Profissional</DialogTitle>
         </DialogHeader>
@@ -171,8 +176,13 @@ const ProviderProfileDialog = ({ userId, open, onOpenChange }: ProviderProfileDi
                       title={service.title}
                       category={getServiceLabel(service.category)}
                       price={service.price}
-                      location={`${service.city}, ${service.state.toUpperCase()}`}
-                      image={service.images?.[0] || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"}
+                      location={`${
+                        service.city
+                      }, ${service.state.toUpperCase()}`}
+                      image={
+                        service.images?.[0] ||
+                        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
+                      }
                       provider={provider.full_name || "Profissional"}
                       verified={service.verified}
                     />
