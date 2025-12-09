@@ -87,19 +87,7 @@ const states = [
 const AdvertiseService = () => {
   const { toast } = useToast();
   const [images, setImages] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
-
-  const suggestedTags = [
-    "Atendimento 24h",
-    "Orçamento Grátis",
-    "Garantia",
-    "Experiência Comprovada",
-    "Materiais Inclusos",
-    "Aceita Cartão",
-    "Nota Fiscal",
-    "Desconto à Vista",
-  ];
 
   const handleImageUpload = () => {
     // Simula upload de imagem
@@ -120,20 +108,6 @@ const AdvertiseService = () => {
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
-  };
-
-  const toggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else if (selectedTags.length < 5) {
-      setSelectedTags([...selectedTags, tag]);
-    } else {
-      toast({
-        title: "Limite de tags",
-        description: "Você pode selecionar no máximo 5 tags.",
-        variant: "destructive",
-      });
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -227,30 +201,6 @@ const AdvertiseService = () => {
                   contratação.
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <Label>Tags (opcional)</Label>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Selecione até 5 tags que descrevem seu serviço
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {suggestedTags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant={
-                        selectedTags.includes(tag) ? "default" : "outline"
-                      }
-                      className="cursor-pointer transition-colors"
-                      onClick={() => toggleTag(tag)}
-                    >
-                      {tag}
-                      {selectedTags.includes(tag) && (
-                        <X className="w-3 h-3 ml-1" />
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -315,11 +265,9 @@ const AdvertiseService = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-primary" />
-                Preço e Disponibilidade
+                Preço
               </CardTitle>
-              <CardDescription>
-                Defina o valor e horários do seu serviço
-              </CardDescription>
+              <CardDescription>Defina o valor do seu serviço</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
@@ -348,41 +296,6 @@ const AdvertiseService = () => {
                       <SelectItem value="negotiable">A Combinar</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Disponibilidade
-                </Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {["Segunda a Sexta", "Sábados", "Domingos", "Feriados"].map(
-                    (day) => (
-                      <div key={day} className="flex items-center space-x-2">
-                        <Checkbox id={day} />
-                        <Label
-                          htmlFor={day}
-                          className="text-sm font-normal cursor-pointer"
-                        >
-                          {day}
-                        </Label>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="startTime">Horário Inicial</Label>
-                  <Input id="startTime" type="time" defaultValue="08:00" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endTime">Horário Final</Label>
-                  <Input id="endTime" type="time" defaultValue="18:00" />
                 </div>
               </div>
             </CardContent>
@@ -442,46 +355,6 @@ const AdvertiseService = () => {
                     <SelectItem value="state">Todo o estado</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contato */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-primary" />
-                Informações de Contato
-              </CardTitle>
-              <CardDescription>
-                Como os clientes podem entrar em contato
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone/WhatsApp *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(00) 00000-0000"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" placeholder="seu@email.com" />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox id="showWhatsapp" defaultChecked />
-                <Label
-                  htmlFor="showWhatsapp"
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  Mostrar botão de WhatsApp no anúncio
-                </Label>
               </div>
             </CardContent>
           </Card>
