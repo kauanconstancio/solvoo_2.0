@@ -42,6 +42,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { serviceCategories, serviceCategoryLabels } from "@/data/services";
+import { searchLocations, searchLocationLabels } from "@/data/searchLocations";
 
 // Dados de exemplo - futuramente virão do banco de dados
 const allServices = [
@@ -143,45 +145,6 @@ const allServices = [
   },
 ];
 
-const cities = [
-  { value: "sp", label: "São Paulo, SP" },
-  { value: "rj", label: "Rio de Janeiro, RJ" },
-  { value: "mg", label: "Belo Horizonte, MG" },
-  { value: "pr", label: "Curitiba, PR" },
-  { value: "rs", label: "Porto Alegre, RS" },
-  { value: "df", label: "Brasília, DF" },
-];
-
-const cityLabels: Record<string, string> = {
-  sp: "São Paulo, SP",
-  rj: "Rio de Janeiro, RJ",
-  mg: "Belo Horizonte, MG",
-  pr: "Curitiba, PR",
-  rs: "Porto Alegre, RS",
-  df: "Brasília, DF",
-};
-
-const services = [
-  { value: "limpeza", label: "Limpeza" },
-  { value: "fotografia", label: "Fotografia" },
-  { value: "mecanica", label: "Mecânica" },
-  { value: "encanador", label: "Encanador" },
-  { value: "eletricista", label: "Eletricista" },
-  { value: "pintura", label: "Pintura" },
-  { value: "ti", label: "TI & Suporte" },
-  { value: "mudancas", label: "Mudanças" },
-];
-
-const serviceLabels: Record<string, string> = {
-  limpeza: "Limpeza",
-  fotografia: "Fotografia",
-  mecanica: "Mecânica",
-  encanador: "Encanador",
-  eletricista: "Eletricista",
-  pintura: "Pintura",
-  ti: "TI & Suporte",
-  mudancas: "Mudanças",
-};
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -238,7 +201,7 @@ const SearchResults = () => {
       ? service.location
           .toLowerCase()
           .includes(
-            cityLabels[cityQuery]?.toLowerCase() || cityQuery.toLowerCase()
+            searchLocationLabels[cityQuery]?.toLowerCase() || cityQuery.toLowerCase()
           )
       : true;
 
@@ -258,9 +221,9 @@ const SearchResults = () => {
   });
 
   const serviceLabel = serviceQuery
-    ? serviceLabels[serviceQuery] || serviceQuery
+    ? serviceCategoryLabels[serviceQuery] || serviceQuery
     : "";
-  const cityLabel = cityQuery ? cityLabels[cityQuery] || cityQuery : "";
+  const cityLabel = cityQuery ? searchLocationLabels[cityQuery] || cityQuery : "";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -284,7 +247,7 @@ const SearchResults = () => {
                     >
                       <span className="truncate">
                         {valueService
-                          ? services.find((s) => s.value === valueService)
+                          ? serviceCategories.find((s) => s.value === valueService)
                               ?.label
                           : "Que serviço você precisa?"}
                       </span>
@@ -298,7 +261,7 @@ const SearchResults = () => {
                     <CommandList>
                       <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
                       <CommandGroup>
-                        {services.map((service) => (
+                        {serviceCategories.map((service) => (
                           <CommandItem
                             key={service.value}
                             value={service.value}
@@ -341,7 +304,7 @@ const SearchResults = () => {
                     >
                       <span className="truncate">
                         {valueCity
-                          ? cities.find((c) => c.value === valueCity)?.label
+                          ? searchLocations.find((l) => l.value === valueCity)?.label
                           : "Localização"}
                       </span>
                       <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -356,10 +319,10 @@ const SearchResults = () => {
                         Nenhuma localização encontrada.
                       </CommandEmpty>
                       <CommandGroup>
-                        {cities.map((city) => (
+                        {searchLocations.map((location) => (
                           <CommandItem
-                            key={city.value}
-                            value={city.value}
+                            key={location.value}
+                            value={location.value}
                             onSelect={(currentValue) => {
                               setValueCity(
                                 currentValue === valueCity ? "" : currentValue
@@ -370,12 +333,12 @@ const SearchResults = () => {
                             <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                valueCity === city.value
+                                valueCity === location.value
                                   ? "opacity-100"
                                   : "opacity-0"
                               )}
                             />
-                            {city.label}
+                            {location.label}
                           </CommandItem>
                         ))}
                       </CommandGroup>

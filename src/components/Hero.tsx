@@ -14,6 +14,8 @@ import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { serviceCategories } from "@/data/services";
+import { searchLocations } from "@/data/searchLocations";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -32,25 +34,6 @@ const Hero = () => {
     if (valueCity) params.set("cidade", valueCity);
     navigate(`/busca?${params.toString()}`);
   };
-
-  const city = [
-    { value: "sp", label: "São Paulo, SP" },
-    { value: "rj", label: "Rio de Janeiro, RJ" },
-    { value: "mg", label: "Belo Horizonte, MG" },
-    { value: "pr", label: "Curitiba, PR" },
-    { value: "rs", label: "Porto Alegre, RS" },
-    { value: "df", label: "Brasília, DF" },
-  ];
-  const service = [
-    { value: "limpeza", label: "Limpeza" },
-    { value: "fotografia", label: "Fotografia" },
-    { value: "mecanica", label: "Mecânica" },
-    { value: "encanador", label: "Encanador" },
-    { value: "eletricista", label: "Eletricista" },
-    { value: "pintura", label: "Pintura" },
-    { value: "ti", label: "TI & Suporte" },
-    { value: "mudancas", label: "Mudanças" },
-  ];
   return (
     <section className="gradient-hero py-12 md:py-20 lg:py-28">
       <div className="container px-4">
@@ -81,8 +64,8 @@ const Hero = () => {
                     >
                       <span className="truncate">
                         {valueService
-                          ? service.find(
-                              (service) => service.value === valueService
+                          ? serviceCategories.find(
+                              (s) => s.value === valueService
                             )?.label
                           : "Que serviço você precisa?"}
                       </span>
@@ -96,7 +79,7 @@ const Hero = () => {
                     <CommandList>
                       <CommandEmpty>Nenhum serviço encontrado.</CommandEmpty>
                       <CommandGroup>
-                        {service.map((service) => (
+                        {serviceCategories.map((service) => (
                           <CommandItem
                             key={service.value}
                             value={service.value}
@@ -139,7 +122,7 @@ const Hero = () => {
                     >
                       <span className="truncate">
                         {valueCity
-                          ? city.find((city) => city.value === valueCity)?.label
+                          ? searchLocations.find((l) => l.value === valueCity)?.label
                           : "Localização"}
                       </span>
                       <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -154,10 +137,10 @@ const Hero = () => {
                         Nenhuma localização encontrada.
                       </CommandEmpty>
                       <CommandGroup>
-                        {city.map((city) => (
+                        {searchLocations.map((location) => (
                           <CommandItem
-                            key={city.value}
-                            value={city.value}
+                            key={location.value}
+                            value={location.value}
                             onSelect={(currentValue) => {
                               setValueCity(
                                 currentValue === valueCity ? "" : currentValue
@@ -168,12 +151,12 @@ const Hero = () => {
                             <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                valueCity === city.value
+                                valueCity === location.value
                                   ? "opacity-100"
                                   : "opacity-0"
                               )}
                             />
-                            {city.label}
+                            {location.label}
                           </CommandItem>
                         ))}
                       </CommandGroup>

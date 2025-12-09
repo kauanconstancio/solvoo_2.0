@@ -2,16 +2,24 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { User, Phone, MapPin, FileText, Camera, Mail, Building2, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { states, getCitiesByState } from "@/data/locations";
 
 interface Profile {
   id: string;
@@ -243,35 +251,52 @@ const Profile = () => {
                   </h3>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="city" className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        Cidade
-                      </Label>
-                      <Input
-                        id="city"
-                        value={formData.city}
-                        onChange={(e) =>
-                          setFormData({ ...formData, city: e.target.value })
-                        }
-                        placeholder="Sua cidade"
-                        className="h-11"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
                       <Label htmlFor="state" className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         Estado
                       </Label>
-                      <Input
-                        id="state"
+                      <Select
                         value={formData.state}
-                        onChange={(e) =>
-                          setFormData({ ...formData, state: e.target.value })
-                        }
-                        placeholder="Seu estado"
-                        className="h-11"
-                      />
+                        onValueChange={(value) => {
+                          setFormData({ ...formData, state: value, city: "" });
+                        }}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Selecione o estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {states.map((state) => (
+                            <SelectItem key={state.value} value={state.value}>
+                              {state.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="city" className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        Cidade
+                      </Label>
+                      <Select
+                        value={formData.city}
+                        onValueChange={(value) => {
+                          setFormData({ ...formData, city: value });
+                        }}
+                        disabled={!formData.state}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder={formData.state ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getCitiesByState(formData.state).map((city) => (
+                            <SelectItem key={city.value} value={city.value}>
+                              {city.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
