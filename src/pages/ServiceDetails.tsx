@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Star,
   MapPin,
   Heart,
   Share2,
   BadgeCheck,
-  Clock,
   Shield,
   MessageSquare,
   Calendar,
-  Award,
-  ThumbsUp,
-  CheckCircle2,
+  Loader2,
+  ArrowLeft,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -21,85 +19,142 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
+import { getServiceLabel } from "@/data/services";
 
-// Mock data - In production, this would come from an API based on the service ID
-const serviceData = {
-  id: 1,
-  title: "Limpeza Residencial Completa",
-  description:
-    "Serviço completo de limpeza residencial com profissionais qualificados e produtos de alta qualidade. Realizamos limpeza de todos os ambientes, incluindo cozinha, banheiros, quartos, sala e áreas externas. Garantimos um ambiente limpo, organizado e higienizado.",
-  category: "Limpeza",
-  price: "R$ 150",
-  priceDetails: "por visita (até 100m²)",
-  rating: 4.9,
-  reviews: 127,
-  location: "São Paulo, SP, madureira",
-  verified: true,
-  images: [
-    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1585421514738-01798e348b17?w=800&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800&h=600&fit=crop",
-  ],
-  provider: {
-    name: "Maria Silva Limpeza",
-    avatar:
-      "https://ui-avatars.com/api/?name=Maria+Silva&background=3b82f6&color=fff&size=128",
-    verified: true,
-    memberSince: "2020",
-    responseTime: "2 horas",
-    completedJobs: 342,
-    rating: 4.9,
-    reviewCount: 127,
-    bio: "Profissional de limpeza com mais de 10 anos de experiência. Especializada em limpeza residencial e comercial, sempre buscando a excelência no atendimento e satisfação dos clientes.",
-    badges: ["Top Rated", "Verified Pro", "Quick Response"],
-  },
-  reviewsList: [
-    {
-      id: 1,
-      author: "Ana Costa",
-      avatar:
-        "https://ui-avatars.com/api/?name=Ana+Costa&background=10b981&color=fff&size=128",
-      rating: 5,
-      date: "Há 2 semanas",
-      comment:
-        "Excelente serviço! A Maria é muito profissional e deixou minha casa impecável. Super recomendo!",
-      helpful: 12,
-    },
-    {
-      id: 2,
-      author: "Carlos Mendes",
-      avatar:
-        "https://ui-avatars.com/api/?name=Carlos+Mendes&background=8b5cf6&color=fff&size=128",
-      rating: 5,
-      date: "Há 1 mês",
-      comment:
-        "Pontual, educada e faz um trabalho maravilhoso. Já contratei várias vezes e sempre fico satisfeito.",
-      helpful: 8,
-    },
-    {
-      id: 3,
-      author: "Juliana Santos",
-      avatar:
-        "https://ui-avatars.com/api/?name=Juliana+Santos&background=f59e0b&color=fff&size=128",
-      rating: 4,
-      date: "Há 2 meses",
-      comment:
-        "Muito bom o serviço. Apenas uma pequena observação sobre a limpeza dos vidros, mas no geral foi ótimo!",
-      helpful: 5,
-    },
-  ],
-};
+interface ServiceData {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: string;
+  price_type: string;
+  city: string;
+  state: string;
+  images: string[];
+  verified: boolean;
+  phone: string | null;
+  whatsapp: string | null;
+  created_at: string;
+  provider_name: string | null;
+}
 
 const ServiceDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [service, setService] = useState<ServiceData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    const fetchService = async () => {
+      if (!id) {
+        setError("ID do serviço não encontrado");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data: serviceData, error: serviceError } = await supabase
+          .from("services")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (serviceError) throw serviceError;
+
+        if (!serviceData) {
+          setError("Serviço não encontrado");
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch provider profile
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", serviceData.user_id)
+          .maybeSingle();
+
+        setService({
+          ...serviceData,
+          provider_name: profileData?.full_name || null,
+        });
+      } catch (err: any) {
+        console.error("Error fetching service:", err);
+        setError("Erro ao carregar o serviço");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchService();
+  }, [id]);
+
+  const getPriceTypeLabel = (priceType: string) => {
+    const types: Record<string, string> = {
+      fixed: "preço fixo",
+      hour: "por hora",
+      day: "por diária",
+      project: "por projeto",
+      negotiable: "a combinar",
+    };
+    return types[priceType] || priceType;
+  };
+
+  const getLocation = () => {
+    if (!service) return "";
+    return `${service.city}, ${service.state.toUpperCase()}`;
+  };
+
+  const getProviderInitials = () => {
+    if (!service?.provider_name) return "P";
+    return service.provider_name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const defaultImage = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
+  const displayImages = service?.images && service.images.length > 0 
+    ? service.images 
+    : [defaultImage];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !service) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex flex-col items-center justify-center gap-4">
+          <p className="text-muted-foreground">{error || "Serviço não encontrado"}</p>
+          <Button onClick={() => navigate("/")} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para a página inicial
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -121,7 +176,7 @@ const ServiceDetails = () => {
                 Categorias
               </a>
               <span>/</span>
-              <span className="text-foreground">{serviceData.category}</span>
+              <span className="text-foreground">{getServiceLabel(service.category)}</span>
             </div>
           </div>
         </section>
@@ -137,8 +192,8 @@ const ServiceDetails = () => {
                   <CardContent className="p-0">
                     <div className="relative aspect-[16/10] bg-muted">
                       <img
-                        src={serviceData.images[selectedImage]}
-                        alt={serviceData.title}
+                        src={displayImages[selectedImage]}
+                        alt={service.title}
                         className="object-cover w-full h-full"
                       />
                       <div className="absolute top-4 right-4 flex gap-2">
@@ -163,25 +218,27 @@ const ServiceDetails = () => {
                         </Button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-2 p-4">
-                      {serviceData.images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedImage(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImage === index
-                              ? "border-primary"
-                              : "border-transparent hover:border-muted-foreground"
-                          }`}
-                        >
-                          <img
-                            src={image}
-                            alt={`${serviceData.title} ${index + 1}`}
-                            className="object-cover w-full h-full"
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    {displayImages.length > 1 && (
+                      <div className="grid grid-cols-4 gap-2 p-4">
+                        {displayImages.map((image, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImage(index)}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                              selectedImage === index
+                                ? "border-primary"
+                                : "border-transparent hover:border-muted-foreground"
+                            }`}
+                          >
+                            <img
+                              src={image}
+                              alt={`${service.title} ${index + 1}`}
+                              className="object-cover w-full h-full"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -192,9 +249,9 @@ const ServiceDetails = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="secondary">
-                            {serviceData.category}
+                            {getServiceLabel(service.category)}
                           </Badge>
-                          {serviceData.verified && (
+                          {service.verified && (
                             <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
                               <BadgeCheck className="h-3 w-3 mr-1" />
                               Verificado
@@ -202,21 +259,12 @@ const ServiceDetails = () => {
                           )}
                         </div>
                         <CardTitle className="text-2xl md:text-3xl mb-2">
-                          {serviceData.title}
+                          {service.title}
                         </CardTitle>
                         <div className="flex flex-wrap items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-semibold">
-                              {serviceData.rating}
-                            </span>
-                            <span className="text-muted-foreground">
-                              ({serviceData.reviews} avaliações)
-                            </span>
-                          </div>
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <MapPin className="h-4 w-4" />
-                            <span>{serviceData.location}</span>
+                            <span>{getLocation()}</span>
                           </div>
                         </div>
                       </div>
@@ -227,71 +275,10 @@ const ServiceDetails = () => {
                       <h3 className="font-semibold text-lg mb-2">
                         Sobre o Serviço
                       </h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {serviceData.description}
+                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                        {service.description}
                       </p>
                     </div>
-                  </CardContent>
-                </Card>
-
-                {/* Reviews Section */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-xl">
-                      Avaliações ({serviceData.reviewsList.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {serviceData.reviewsList.map((review) => (
-                      <div key={review.id} className="space-y-3">
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage
-                              src={review.avatar}
-                              alt={review.author}
-                            />
-                            <AvatarFallback>{review.author[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-semibold text-sm">
-                                {review.author}
-                              </h4>
-                              <span className="text-xs text-muted-foreground">
-                                {review.date}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 mb-2">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-3.5 w-3.5 ${
-                                    i < review.rating
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-muted"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {review.comment}
-                            </p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="mt-2 h-8 text-xs hover:gradient-primary"
-                            >
-                              <ThumbsUp className="h-3 w-3 mr-1" />
-                              Útil ({review.helpful})
-                            </Button>
-                          </div>
-                        </div>
-                        {review.id !==
-                          serviceData.reviewsList[
-                            serviceData.reviewsList.length - 1
-                          ].id && <Separator />}
-                      </div>
-                    ))}
                   </CardContent>
                 </Card>
               </div>
@@ -299,27 +286,41 @@ const ServiceDetails = () => {
               {/* Right Column - Provider Info and Booking */}
               <div className="space-y-6">
                 {/* Price Card */}
-                <Card className="hidden md:flex ">
+                <Card className="hidden md:flex">
                   <CardContent className="p-6 space-y-4 w-full">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
                         A partir de
                       </p>
                       <p className="text-3xl font-bold text-primary">
-                        {serviceData.price}
+                        {service.price}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {serviceData.priceDetails}
+                        {getPriceTypeLabel(service.price_type)}
                       </p>
                     </div>
 
                     <Separator />
 
                     <div className="space-y-2">
-                      <Button className="w-full h-12 text-base hover:brightness-110">
-                        <MessageSquare className="h-5 w-5 mr-2" />
-                        Solicitar Orçamento
-                      </Button>
+                      {service.whatsapp ? (
+                        <Button 
+                          className="w-full h-12 text-base hover:brightness-110"
+                          onClick={() => {
+                            const message = encodeURIComponent(`Olá! Vi seu anúncio "${service.title}" e gostaria de mais informações.`);
+                            const phone = service.whatsapp?.replace(/\D/g, "");
+                            window.open(`https://wa.me/55${phone}?text=${message}`, "_blank");
+                          }}
+                        >
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                          Contatar via WhatsApp
+                        </Button>
+                      ) : (
+                        <Button className="w-full h-12 text-base hover:brightness-110">
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                          Solicitar Orçamento
+                        </Button>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
@@ -329,21 +330,36 @@ const ServiceDetails = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="md:hidden fixed bottom-0 left-0 right-0 z-50 mx-auto  w-full rounded-t-2xl rounded-b-none shadow-2xl bg-background border-t-2 border-b-0">
+                {/* Mobile Price Card */}
+                <Card className="md:hidden fixed bottom-0 left-0 right-0 z-50 mx-auto w-full rounded-t-2xl rounded-b-none shadow-2xl bg-background border-t-2 border-b-0">
                   <CardContent className="p-4 pb-6">
-                    <div className="flex items-center justify-between gap-5 ">
+                    <div className="flex items-center justify-between gap-5">
                       <div className="flex flex-col w-full">
                         <p className="text-xs text-muted-foreground mb-1">
                           A partir de
                         </p>
                         <p className="text-2xl font-bold text-primary">
-                          {serviceData.price}
+                          {service.price}
                         </p>
                       </div>
-                      <Button className="w-full h-12 text-sm hover:brightness-110">
-                        <MessageSquare className="h-5 w-5 mr-2" />
-                        Solicitar Orçamento
-                      </Button>
+                      {service.whatsapp ? (
+                        <Button 
+                          className="w-full h-12 text-sm hover:brightness-110"
+                          onClick={() => {
+                            const message = encodeURIComponent(`Olá! Vi seu anúncio "${service.title}" e gostaria de mais informações.`);
+                            const phone = service.whatsapp?.replace(/\D/g, "");
+                            window.open(`https://wa.me/55${phone}?text=${message}`, "_blank");
+                          }}
+                        >
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                          WhatsApp
+                        </Button>
+                      ) : (
+                        <Button className="w-full h-12 text-sm hover:brightness-110">
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                          Solicitar Orçamento
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -358,49 +374,26 @@ const ServiceDetails = () => {
                   <CardContent className="space-y-4">
                     <div className="flex items-start gap-3">
                       <Avatar className="h-12 w-12 flex-shrink-0">
-                        <AvatarImage
-                          src={serviceData.provider.avatar}
-                          alt={serviceData.provider.name}
-                        />
-                        <AvatarFallback>
-                          {serviceData.provider.name[0]}
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {getProviderInitials()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold">
-                            {serviceData.provider.name}
+                            {service.provider_name || "Profissional"}
                           </h3>
-                          {serviceData.provider.verified && (
+                          {service.verified && (
                             <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
                           )}
                         </div>
-                        <div className="flex items-center gap-1 mb-2">
-                          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold">
-                            {serviceData.provider.rating}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            ({serviceData.provider.reviewCount} avaliações)
-                          </span>
-                        </div>
                         <div className="flex flex-wrap gap-1">
-                          {serviceData.provider.badges.map((badge, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {badge}
-                            </Badge>
-                          ))}
+                          <Badge variant="secondary" className="text-xs">
+                            {getServiceLabel(service.category)}
+                          </Badge>
                         </div>
                       </div>
                     </div>
-
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {serviceData.provider.bio}
-                    </p>
 
                     <Separator />
 
@@ -411,35 +404,20 @@ const ServiceDetails = () => {
                           <span>Membro desde</span>
                         </div>
                         <p className="font-semibold">
-                          {serviceData.provider.memberSince}
+                          {new Date(service.created_at).toLocaleDateString("pt-BR", {
+                            month: "long",
+                            year: "numeric",
+                          })}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Award className="h-4 w-4" />
-                          <span>Trabalhos concluídos</span>
+                          <MapPin className="h-4 w-4" />
+                          <span>Localização</span>
                         </div>
-                        <p className="font-semibold">
-                          {serviceData.provider.completedJobs}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Star className="h-4 w-4" />
-                          <span>Avaliação média</span>
-                        </div>
-                        <p className="font-semibold">
-                          {serviceData.provider.rating}/5.0
-                        </p>
+                        <p className="font-semibold">{getLocation()}</p>
                       </div>
                     </div>
-
-                    <Button
-                      variant="outline"
-                      className="w-full hover:gradient-primary"
-                    >
-                      Ver Perfil Completo
-                    </Button>
                   </CardContent>
                 </Card>
               </div>
