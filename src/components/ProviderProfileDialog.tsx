@@ -170,37 +170,23 @@ const ProviderProfileDialog = ({
               {services.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {services.map((service) => (
-<<<<<<< HEAD
-                    <ServiceCard
-                      key={service.id}
-                      id={service.id}
-                      title={service.title}
-                      category={getServiceLabel(service.category)}
-                      price={service.price}
-                      location={`${
-                        service.city
-                      }, ${service.state.toUpperCase()}`}
-                      image={
-                        service.images?.[0] ||
-                        "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
-                      }
-                      provider={provider.full_name || "Profissional"}
-                      verified={service.verified}
-                    />
-=======
                     <div key={service.id} onClick={() => onOpenChange(false)}>
                       <ServiceCard
                         id={service.id}
                         title={service.title}
                         category={getServiceLabel(service.category)}
                         price={service.price}
-                        location={`${service.city}, ${service.state.toUpperCase()}`}
-                        image={service.images?.[0] || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"}
+                        location={`${
+                          service.city
+                        }, ${service.state.toUpperCase()}`}
+                        image={
+                          service.images?.[0] ||
+                          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
+                        }
                         provider={provider.full_name || "Profissional"}
                         verified={service.verified}
                       />
                     </div>
->>>>>>> 1f535fb8d9f38c51b0fbabee75d79c23eb854d9d
                   ))}
                 </div>
               ) : (
