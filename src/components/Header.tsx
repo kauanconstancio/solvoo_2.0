@@ -40,9 +40,24 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success("Logout realizado com sucesso!");
-    navigate("/");
+    try {
+      // Clear local state first to prevent multiple logout attempts
+      setUser(null);
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error && error.message !== "Session not found") {
+        console.error("Logout error:", error);
+        toast.error("Erro ao sair. Tente novamente.");
+        return;
+      }
+      
+      toast.success("Logout realizado com sucesso!");
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Erro ao sair. Tente novamente.");
+    }
   };
 
   const getUserInitials = () => {
