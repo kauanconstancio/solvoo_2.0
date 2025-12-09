@@ -339,23 +339,6 @@ const AdvertiseService = () => {
                 <Label htmlFor="neighborhood">Bairro</Label>
                 <Input id="neighborhood" placeholder="Seu bairro (opcional)" />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="serviceArea">Área de Atendimento</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o raio de atendimento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">Até 5 km</SelectItem>
-                    <SelectItem value="10">Até 10 km</SelectItem>
-                    <SelectItem value="20">Até 20 km</SelectItem>
-                    <SelectItem value="50">Até 50 km</SelectItem>
-                    <SelectItem value="city">Toda a cidade</SelectItem>
-                    <SelectItem value="state">Todo o estado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
           </Card>
 

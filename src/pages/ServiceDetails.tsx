@@ -33,21 +33,13 @@ const serviceData = {
   priceDetails: "por visita (até 100m²)",
   rating: 4.9,
   reviews: 127,
-  location: "São Paulo, SP",
+  location: "São Paulo, SP, madureira",
   verified: true,
   images: [
     "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=600&fit=crop",
     "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?w=800&h=600&fit=crop",
     "https://images.unsplash.com/photo-1585421514738-01798e348b17?w=800&h=600&fit=crop",
     "https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800&h=600&fit=crop",
-  ],
-  features: [
-    "Limpeza de todos os cômodos",
-    "Produtos de limpeza inclusos",
-    "Profissionais treinados",
-    "Seguro contra danos",
-    "Flexibilidade de horários",
-    "Garantia de satisfação",
   ],
   provider: {
     name: "Maria Silva Limpeza",
@@ -239,22 +231,6 @@ const ServiceDetails = () => {
                         {serviceData.description}
                       </p>
                     </div>
-
-                    <Separator />
-
-                    <div>
-                      <h3 className="font-semibold text-lg mb-4">
-                        O que está incluído
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {serviceData.features.map((feature, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                            <span className="text-sm">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                   </CardContent>
                 </Card>
 
@@ -303,7 +279,7 @@ const ServiceDetails = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="mt-2 h-8 text-xs"
+                              className="mt-2 h-8 text-xs hover:gradient-primary"
                             >
                               <ThumbsUp className="h-3 w-3 mr-1" />
                               Útil ({review.helpful})
@@ -428,7 +404,7 @@ const ServiceDetails = () => {
 
                     <Separator />
 
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex flex-col gap-4 text-sm">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
@@ -436,15 +412,6 @@ const ServiceDetails = () => {
                         </div>
                         <p className="font-semibold">
                           {serviceData.provider.memberSince}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>Tempo de resposta</span>
-                        </div>
-                        <p className="font-semibold">
-                          {serviceData.provider.responseTime}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -467,7 +434,10 @@ const ServiceDetails = () => {
                       </div>
                     </div>
 
-                    <Button variant="outline" className="w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full hover:gradient-primary"
+                    >
                       Ver Perfil Completo
                     </Button>
                   </CardContent>
