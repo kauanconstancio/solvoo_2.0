@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -53,24 +54,24 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/como-funciona" className="hover:text-foreground transition-smooth">
                   Como Funciona
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/categorias" className="hover:text-foreground transition-smooth">
                   Encontrar Serviços
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/categorias" className="hover:text-foreground transition-smooth">
                   Avaliações
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/ajuda" className="hover:text-foreground transition-smooth">
                   Central de Ajuda
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -81,24 +82,24 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/anunciar" className="hover:text-foreground transition-smooth">
                   Anunciar Serviço
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/para-profissionais" className="hover:text-foreground transition-smooth">
                   Como Vender
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/para-profissionais" className="hover:text-foreground transition-smooth">
                   Planos
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/blog" className="hover:text-foreground transition-smooth">
                   Blog
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -109,24 +110,24 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/sobre" className="hover:text-foreground transition-smooth">
                   Sobre Nós
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/termos" className="hover:text-foreground transition-smooth">
                   Termos de Uso
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/privacidade" className="hover:text-foreground transition-smooth">
                   Privacidade
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-foreground transition-smooth">
+                <Link to="/contato" className="hover:text-foreground transition-smooth">
                   Contato
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
