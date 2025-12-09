@@ -42,17 +42,17 @@ const Header = () => {
   const handleLogout = async () => {
     // Clear local state first to prevent multiple logout attempts
     setUser(null);
-    
+
     try {
       const { error } = await supabase.auth.signOut();
-      
+
       // Ignore session-related errors as the logout still works
       if (error && !error.message?.toLowerCase().includes("session")) {
         console.error("Logout error:", error);
         toast.error("Erro ao sair. Tente novamente.");
         return;
       }
-      
+
       toast.success("Logout realizado com sucesso!");
       navigate("/");
     } catch (error) {
@@ -180,7 +180,7 @@ const Header = () => {
           )}
 
           <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
-            <a href="/anunciar">Anunciar</a>
+            <a href="/anunciar">Anuncios</a>
           </Button>
 
           <Sheet>
@@ -246,9 +246,11 @@ const Header = () => {
                   </Link>
                 </div>
                 <div className="pt-4 space-y-2 border-t">
-                  <Button className="w-full hover:brightness-110 sm:hidden">
-                    Anunciar Serviço
-                  </Button>
+                  <Link to="/anunciar">
+                    <Button className="w-full hover:brightness-110 transition-smooth text-sm md:text-base ">
+                      Anuncios
+                    </Button>
+                  </Link>
                   <div>
                     {user ? (
                       <>
