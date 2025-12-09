@@ -12,6 +12,7 @@ import {
   Star,
   BadgeCheck,
   X,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,107 +45,19 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { serviceCategories, serviceCategoryLabels } from "@/data/services";
 import { searchLocations, searchLocationLabels } from "@/data/searchLocations";
+import { supabase } from "@/integrations/supabase/client";
 
-// Dados de exemplo - futuramente virão do banco de dados
-const allServices = [
-  {
-    id: 1,
-    title: "Limpeza Residencial Completa",
-    provider: "Maria Silva",
-    location: "São Paulo, SP",
-    rating: 4.9,
-    reviews: 127,
-    price: "R$ 150",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400",
-    category: "limpeza",
-    verified: true,
-  },
-  {
-    id: 2,
-    title: "Fotografia Profissional",
-    provider: "João Santos",
-    location: "Rio de Janeiro, RJ",
-    rating: 4.8,
-    reviews: 89,
-    price: "R$ 300",
-    image: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=400",
-    category: "fotografia",
-    verified: true,
-  },
-  {
-    id: 3,
-    title: "Mecânico Automotivo",
-    provider: "Carlos Oliveira",
-    location: "Belo Horizonte, MG",
-    rating: 4.7,
-    reviews: 156,
-    price: "R$ 200",
-    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400",
-    category: "mecanica",
-    verified: false,
-  },
-  {
-    id: 4,
-    title: "Encanador 24h",
-    provider: "Pedro Costa",
-    location: "Curitiba, PR",
-    rating: 4.6,
-    reviews: 78,
-    price: "R$ 180",
-    image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400",
-    category: "encanador",
-    verified: true,
-  },
-  {
-    id: 5,
-    title: "Eletricista Residencial",
-    provider: "Ana Paula",
-    location: "Porto Alegre, RS",
-    rating: 4.9,
-    reviews: 203,
-    price: "R$ 160",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400",
-    category: "eletricista",
-    verified: true,
-  },
-  {
-    id: 6,
-    title: "Pintura de Interiores",
-    provider: "Roberto Lima",
-    location: "Brasília, DF",
-    rating: 4.5,
-    reviews: 64,
-    price: "R$ 250",
-    image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400",
-    category: "pintura",
-    verified: false,
-  },
-  {
-    id: 7,
-    title: "Suporte Técnico em TI",
-    provider: "Lucas Tech",
-    location: "São Paulo, SP",
-    rating: 4.8,
-    reviews: 112,
-    price: "R$ 120",
-    image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400",
-    category: "ti",
-    verified: true,
-  },
-  {
-    id: 8,
-    title: "Mudanças e Fretes",
-    provider: "Transportes Express",
-    location: "Rio de Janeiro, RJ",
-    rating: 4.4,
-    reviews: 95,
-    price: "R$ 400",
-    image: "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=400",
-    category: "mudancas",
-    verified: true,
-  },
-];
-
+interface ServiceFromDB {
+  id: string;
+  title: string;
+  category: string;
+  price: string;
+  city: string;
+  state: string;
+  images: string[];
+  verified: boolean;
+  provider_name: string | null;
+}
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -163,6 +76,69 @@ const SearchResults = () => {
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [minRating, setMinRating] = useState(0);
   const [onlyVerified, setOnlyVerified] = useState(false);
+
+  // Estados para dados do banco
+  const [services, setServices] = useState<ServiceFromDB[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Buscar serviços do banco de dados
+  useEffect(() => {
+    const fetchServices = async () => {
+      setIsLoading(true);
+      try {
+        let query = supabase
+          .from("services")
+          .select("id, title, category, price, city, state, images, verified, user_id")
+          .eq("status", "active")
+          .order("created_at", { ascending: false });
+
+        // Filtrar por categoria se especificado
+        if (serviceQuery) {
+          query = query.eq("category", serviceQuery);
+        }
+
+        // Filtrar por cidade se especificado
+        if (cityQuery) {
+          query = query.ilike("city", `%${cityQuery}%`);
+        }
+
+        const { data: servicesData, error } = await query;
+
+        if (error) throw error;
+
+        // Fetch profiles for each service
+        const servicesWithProfiles: ServiceFromDB[] = await Promise.all(
+          (servicesData || []).map(async (service) => {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("user_id", service.user_id)
+              .maybeSingle();
+            
+            return {
+              id: service.id,
+              title: service.title,
+              category: service.category,
+              price: service.price,
+              city: service.city,
+              state: service.state,
+              images: service.images || [],
+              verified: service.verified,
+              provider_name: profileData?.full_name || null,
+            };
+          })
+        );
+
+        setServices(servicesWithProfiles);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, [serviceQuery, cityQuery]);
 
   // Atualizar estados quando os parâmetros da URL mudarem
   useEffect(() => {
@@ -192,38 +168,24 @@ const SearchResults = () => {
     return match ? parseInt(match[0]) : 0;
   };
 
-  // Filtrar serviços baseado nos parâmetros de busca e filtros
-  const filteredServices = allServices.filter((service) => {
-    const matchesService = serviceQuery
-      ? service.category.toLowerCase() === serviceQuery.toLowerCase()
-      : true;
-    const matchesCity = cityQuery
-      ? service.location
-          .toLowerCase()
-          .includes(
-            searchLocationLabels[cityQuery]?.toLowerCase() || cityQuery.toLowerCase()
-          )
-      : true;
-
+  // Filtrar serviços baseado nos filtros locais
+  const filteredServices = services.filter((service) => {
     const servicePrice = extractPrice(service.price);
     const matchesPrice =
       servicePrice >= priceRange[0] && servicePrice <= priceRange[1];
-    const matchesRating = service.rating >= minRating;
     const matchesVerified = onlyVerified ? service.verified : true;
 
-    return (
-      matchesService &&
-      matchesCity &&
-      matchesPrice &&
-      matchesRating &&
-      matchesVerified
-    );
+    return matchesPrice && matchesVerified;
   });
 
   const serviceLabel = serviceQuery
     ? serviceCategoryLabels[serviceQuery] || serviceQuery
     : "";
   const cityLabel = cityQuery ? searchLocationLabels[cityQuery] || cityQuery : "";
+
+  const getLocation = (city: string, state: string) => {
+    return `${city}, ${state.toUpperCase()}`;
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -429,35 +391,6 @@ const SearchResults = () => {
                         </div>
                       </div>
 
-                      {/* Filtro de Avaliação */}
-                      <div className="space-y-4">
-                        <Label className="text-base font-semibold">
-                          Avaliação Mínima
-                        </Label>
-                        <div className="flex flex-wrap gap-2">
-                          {[0, 3, 3.5, 4, 4.5].map((rating) => (
-                            <Button
-                              key={rating}
-                              variant={
-                                minRating === rating ? "default" : "outline"
-                              }
-                              size="sm"
-                              onClick={() => setMinRating(rating)}
-                              className="flex items-center gap-1 hover:gradient-primary"
-                            >
-                              {rating === 0 ? (
-                                "Todas"
-                              ) : (
-                                <>
-                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                  {rating}+
-                                </>
-                              )}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-
                       {/* Filtro de Verificados */}
                       <div className="space-y-4">
                         <Label className="text-base font-semibold">
@@ -516,10 +449,24 @@ const SearchResults = () => {
 
         {/* Lista de resultados */}
         <div className="container px-4 py-8">
-          {filteredServices.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredServices.map((service) => (
-                <ServiceCard key={service.id} {...service} />
+                <ServiceCard
+                  key={service.id}
+                  id={service.id}
+                  title={service.title}
+                  provider={service.provider_name || undefined}
+                  location={getLocation(service.city, service.state)}
+                  price={service.price}
+                  image={service.images?.[0]}
+                  category={service.category}
+                  verified={service.verified}
+                />
               ))}
             </div>
           ) : (

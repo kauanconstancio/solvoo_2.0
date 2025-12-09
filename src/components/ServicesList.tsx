@@ -14,9 +14,7 @@ interface Service {
   state: string;
   images: string[];
   verified: boolean;
-  profiles?: {
-    full_name: string | null;
-  } | null;
+  provider_name: string | null;
 }
 
 const ServicesList = () => {
@@ -28,27 +26,39 @@ const ServicesList = () => {
     const fetchServices = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data: servicesData, error } = await supabase
           .from("services")
-          .select(`
-            id,
-            title,
-            category,
-            price,
-            city,
-            state,
-            images,
-            verified,
-            profiles:user_id (
-              full_name
-            )
-          `)
+          .select("id, title, category, price, city, state, images, verified, user_id")
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(12);
 
         if (error) throw error;
-        setServices(data || []);
+
+        // Fetch profiles for each service
+        const servicesWithProfiles: Service[] = await Promise.all(
+          (servicesData || []).map(async (service) => {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("full_name")
+              .eq("user_id", service.user_id)
+              .maybeSingle();
+            
+            return {
+              id: service.id,
+              title: service.title,
+              category: service.category,
+              price: service.price,
+              city: service.city,
+              state: service.state,
+              images: service.images || [],
+              verified: service.verified,
+              provider_name: profileData?.full_name || null,
+            };
+          })
+        );
+
+        setServices(servicesWithProfiles);
       } catch (error) {
         console.error("Error fetching services:", error);
       } finally {
@@ -154,7 +164,7 @@ const ServicesList = () => {
                     key={service.id}
                     id={service.id}
                     title={service.title}
-                    provider={service.profiles?.full_name || undefined}
+                    provider={service.provider_name || undefined}
                     location={getLocation(service.city, service.state)}
                     price={service.price}
                     image={service.images?.[0]}
