@@ -11,6 +11,7 @@ import AdvertiseService from "./pages/AdvertiseService";
 import ServiceDetails from "./pages/ServiceDetails";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/anunciar" element={<AdvertiseService />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/perfil" element={<Profile />} />
+          <Route path="/favoritos" element={<Favorites />} />
           <Route path="/servico/:id" element={<ServiceDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
