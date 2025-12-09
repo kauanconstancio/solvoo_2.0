@@ -7,7 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { User } from "lucide-react";
 import Header from "@/components/Header";
@@ -44,8 +50,10 @@ const Profile = () => {
 
   useEffect(() => {
     const checkAuthAndLoadProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
         navigate("/auth");
         return;
@@ -90,8 +98,10 @@ const Profile = () => {
     e.preventDefault();
     setSaving(true);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     if (!session) {
       navigate("/auth");
       return;
@@ -146,7 +156,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <Card>
@@ -162,7 +172,7 @@ const Profile = () => {
               <CardTitle className="text-2xl">Meu Perfil</CardTitle>
               <p className="text-muted-foreground">{email}</p>
             </CardHeader>
-            
+
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -171,17 +181,21 @@ const Profile = () => {
                     <Input
                       id="full_name"
                       value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, full_name: e.target.value })
+                      }
                       placeholder="Seu nome completo"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="phone">Telefone</Label>
                     <Input
                       id="phone"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
                       placeholder="(00) 00000-0000"
                     />
                   </div>
@@ -193,23 +207,27 @@ const Profile = () => {
                     <Input
                       id="city"
                       value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, city: e.target.value })
+                      }
                       placeholder="Sua cidade"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="state">Estado</Label>
                     <Input
                       id="state"
                       value={formData.state}
-                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, state: e.target.value })
+                      }
                       placeholder="Seu estado"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="account_type">Tipo de Conta</Label>
                   <Select
                     value={formData.account_type}
@@ -223,14 +241,16 @@ const Profile = () => {
                       <SelectItem value="profissional">Profissional</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">Sobre você</Label>
                   <Textarea
                     id="bio"
                     value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, bio: e.target.value })
+                    }
                     placeholder="Conte um pouco sobre você..."
                     rows={4}
                   />

@@ -130,7 +130,10 @@ const Header = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuItem asChild>
-                  <Link to="/perfil" className="flex items-center">
+                  <Link
+                    to="/perfil"
+                    className="flex items-center hover:bg-primary hover:text-primary-foreground transition-smooth"
+                  >
                     <User className="mr-2 h-4 w-4" />
                     Meu Perfil
                   </Link>
@@ -138,7 +141,7 @@ const Header = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="text-destructive"
+                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-smooth"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
