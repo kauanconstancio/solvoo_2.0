@@ -174,7 +174,7 @@ const Profile = () => {
                 </div>
                 <div className="text-center sm:text-left sm:pb-1">
                   <h1 className="text-2xl font-bold">
-                    {formData.full_name || "Seu Nome"}
+                    {profile?.full_name || formData.full_name || "Complete seu perfil"}
                   </h1>
                   <div className="flex items-center justify-center sm:justify-start gap-2 text-muted-foreground">
                     <Mail className="h-4 w-4" />
