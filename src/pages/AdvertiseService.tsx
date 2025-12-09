@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Camera,
   MapPin,
@@ -33,11 +34,14 @@ import {
   Info,
   Sparkles,
   Loader2,
+  Plus,
+  List,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { states, getCitiesByState } from "@/data/locations";
 import { serviceCategories } from "@/data/services";
 import { supabase } from "@/integrations/supabase/client";
+import MyServices from "@/components/MyServices";
 
 const AdvertiseService = () => {
   const { toast } = useToast();
@@ -155,18 +159,37 @@ const AdvertiseService = () => {
       <main className="container mx-auto px-4 py-8 ">
         {/* Header */}
         <div className="text-center mb-8">
-          <Badge className="mb-4" variant="secondary">
-            <Sparkles className="w-3 h-3 mr-1" />
-            Novo Anúncio
-          </Badge>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4 ">
-            Anuncie seu Serviço
+            Gerenciar Anúncios
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Preencha as informações abaixo para criar seu anúncio e começar a
-            receber clientes hoje mesmo.
+            Crie novos anúncios ou gerencie seus serviços publicados.
           </p>
         </div>
+
+        <Tabs defaultValue="my-services" className="max-w-4xl mx-auto">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="my-services" className="flex items-center gap-2">
+              <List className="w-4 h-4" />
+              Meus Anúncios
+            </TabsTrigger>
+            <TabsTrigger value="new-service" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              Novo Anúncio
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="my-services">
+            <MyServices />
+          </TabsContent>
+
+          <TabsContent value="new-service">
+            <div className="text-center mb-8">
+              <Badge className="mb-4" variant="secondary">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Novo Anúncio
+              </Badge>
+            </div>
 
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
           {/* Informações Básicas */}
@@ -462,6 +485,8 @@ const AdvertiseService = () => {
             </CardContent>
           </Card>
         </form>
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />
