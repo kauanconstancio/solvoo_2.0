@@ -22,6 +22,16 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
 
+interface ProviderProfile {
+  user_id: string;
+  full_name: string | null;
+  city: string | null;
+  state: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+}
+
 interface ServiceData {
   id: string;
   title: string;
@@ -36,7 +46,7 @@ interface ServiceData {
   phone: string | null;
   whatsapp: string | null;
   created_at: string;
-  provider_name: string | null;
+  user_id: string;
 }
 
 const ServiceDetails = () => {
@@ -45,6 +55,7 @@ const ServiceDetails = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [service, setService] = useState<ServiceData | null>(null);
+  const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,14 +89,12 @@ const ServiceDetails = () => {
         // Fetch provider profile
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("full_name")
+          .select("user_id, full_name, city, state, avatar_url, bio, created_at")
           .eq("user_id", serviceData.user_id)
           .maybeSingle();
 
-        setService({
-          ...serviceData,
-          provider_name: profileData?.full_name || null,
-        });
+        setService(serviceData);
+        setProvider(profileData || null);
       } catch (err: any) {
         console.error("Error fetching service:", err);
         setError("Erro ao carregar o serviço");
@@ -114,13 +123,27 @@ const ServiceDetails = () => {
   };
 
   const getProviderInitials = () => {
-    if (!service?.provider_name) return "P";
-    return service.provider_name
+    if (!provider?.full_name) return "P";
+    return provider.full_name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const getProviderLocation = () => {
+    if (!provider?.city && !provider?.state) return getLocation();
+    return `${provider.city || ""}, ${provider.state?.toUpperCase() || ""}`;
+  };
+
+  const getMemberSince = () => {
+    const date = provider?.created_at || service?.created_at;
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric",
+    });
   };
 
   const defaultImage = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
@@ -374,6 +397,7 @@ const ServiceDetails = () => {
                   <CardContent className="space-y-4">
                     <div className="flex items-start gap-3">
                       <Avatar className="h-12 w-12 flex-shrink-0">
+                        <AvatarImage src={provider?.avatar_url || undefined} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
                           {getProviderInitials()}
                         </AvatarFallback>
@@ -381,7 +405,7 @@ const ServiceDetails = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold">
-                            {service.provider_name || "Profissional"}
+                            {provider?.full_name || "Profissional"}
                           </h3>
                           {service.verified && (
                             <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
@@ -403,21 +427,26 @@ const ServiceDetails = () => {
                           <Calendar className="h-4 w-4" />
                           <span>Membro desde</span>
                         </div>
-                        <p className="font-semibold">
-                          {new Date(service.created_at).toLocaleDateString("pt-BR", {
-                            month: "long",
-                            year: "numeric",
-                          })}
-                        </p>
+                        <p className="font-semibold">{getMemberSince()}</p>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <span>Localização</span>
                         </div>
-                        <p className="font-semibold">{getLocation()}</p>
+                        <p className="font-semibold">{getProviderLocation()}</p>
                       </div>
                     </div>
+
+                    <Separator />
+
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate(`/profissional/${service.user_id}`)}
+                    >
+                      Ver perfil completo
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
