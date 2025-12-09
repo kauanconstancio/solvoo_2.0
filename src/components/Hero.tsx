@@ -13,8 +13,11 @@ import {
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  
   // Estados para o popover de serviço
   const [openService, setOpenService] = React.useState(false);
   const [valueService, setValueService] = React.useState("");
@@ -22,6 +25,13 @@ const Hero = () => {
   // Estados para o popover de cidade
   const [openCity, setOpenCity] = React.useState(false);
   const [valueCity, setValueCity] = React.useState("");
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (valueService) params.set("servico", valueService);
+    if (valueCity) params.set("cidade", valueCity);
+    navigate(`/busca?${params.toString()}`);
+  };
 
   const city = [
     { value: "sp", label: "São Paulo, SP" },
@@ -173,7 +183,10 @@ const Hero = () => {
               </Popover>
 
               {/* Botão de Buscar */}
-              <Button className="w-full md:w-auto md:px-8 gradient-primary hover:brightness-110 transition-smooth">
+              <Button 
+                onClick={handleSearch}
+                className="w-full md:w-auto md:px-8 gradient-primary hover:brightness-110 transition-smooth"
+              >
                 <Search className="h-4 w-4 mr-2" />
                 Buscar
               </Button>
