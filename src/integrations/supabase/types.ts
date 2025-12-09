@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          service_category: string | null
+          service_id: string
+          service_image: string | null
+          service_price: string | null
+          service_title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          service_category?: string | null
+          service_id: string
+          service_image?: string | null
+          service_price?: string | null
+          service_title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          service_category?: string | null
+          service_id?: string
+          service_image?: string | null
+          service_price?: string | null
+          service_title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null
