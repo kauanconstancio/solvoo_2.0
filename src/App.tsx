@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import Index from "./pages/Index";
 import ForProfessionals from "./pages/ForProfessionals";
 import Categories from "./pages/Categories";
@@ -29,14 +31,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Páginas Públicas */}
           <Route path="/" element={<Index />} />
           <Route path="/para-profissionais" element={<ForProfessionals />} />
           <Route path="/categorias" element={<Categories />} />
           <Route path="/como-funciona" element={<HowItWorks />} />
-          <Route path="/anunciar" element={<AdvertiseService />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/perfil" element={<Profile />} />
-          <Route path="/favoritos" element={<Favorites />} />
           <Route path="/sobre" element={<About />} />
           <Route path="/termos" element={<Terms />} />
           <Route path="/privacidade" element={<Privacy />} />
@@ -44,6 +43,43 @@ const App = () => (
           <Route path="/ajuda" element={<Help />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/servico/:id" element={<ServiceDetails />} />
+
+          {/* Página de Auth - Redireciona se já estiver logado */}
+          <Route
+            path="/auth"
+            element={
+              <PublicOnlyRoute>
+                <Auth />
+              </PublicOnlyRoute>
+            }
+          />
+
+          {/* Páginas Privadas - Requer autenticação */}
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/favoritos"
+            element={
+              <ProtectedRoute>
+                <Favorites />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/anunciar"
+            element={
+              <ProtectedRoute>
+                <AdvertiseService />
+              </ProtectedRoute>
+            }
+          />
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
