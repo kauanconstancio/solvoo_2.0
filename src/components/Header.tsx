@@ -95,13 +95,15 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden md:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
-          >
-            <Heart className="h-5 w-5" />
-          </Button>
+          <Link to="/favoritos">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden md:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+            >
+              <Heart className="h-5 w-5" />
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
