@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ServiceCard from "@/components/ServiceCard";
-import { Search, MapPin, Filter, ChevronsUpDownIcon, CheckIcon } from "lucide-react";
+import { Search, MapPin, Filter, ChevronsUpDownIcon, CheckIcon, Star, BadgeCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -14,6 +14,20 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 // Dados de exemplo - futuramente virão do banco de dados
@@ -168,11 +182,25 @@ const SearchResults = () => {
   const [openCity, setOpenCity] = useState(false);
   const [valueCity, setValueCity] = useState(cityQuery);
 
+  // Estados para os filtros
+  const [openFilters, setOpenFilters] = useState(false);
+  const [priceRange, setPriceRange] = useState([0, 500]);
+  const [minRating, setMinRating] = useState(0);
+  const [onlyVerified, setOnlyVerified] = useState(false);
+
   // Atualizar estados quando os parâmetros da URL mudarem
   useEffect(() => {
     setValueService(serviceQuery);
     setValueCity(cityQuery);
   }, [serviceQuery, cityQuery]);
+
+  const clearFilters = () => {
+    setPriceRange([0, 500]);
+    setMinRating(0);
+    setOnlyVerified(false);
+  };
+
+  const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < 500 || minRating > 0 || onlyVerified;
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -181,7 +209,13 @@ const SearchResults = () => {
     navigate(`/busca?${params.toString()}`);
   };
 
-  // Filtrar serviços baseado nos parâmetros de busca
+  // Extrair valor numérico do preço
+  const extractPrice = (priceStr: string) => {
+    const match = priceStr.match(/\d+/);
+    return match ? parseInt(match[0]) : 0;
+  };
+
+  // Filtrar serviços baseado nos parâmetros de busca e filtros
   const filteredServices = allServices.filter((service) => {
     const matchesService = serviceQuery
       ? service.category.toLowerCase() === serviceQuery.toLowerCase()
@@ -189,7 +223,13 @@ const SearchResults = () => {
     const matchesCity = cityQuery
       ? service.location.toLowerCase().includes(cityLabels[cityQuery]?.toLowerCase() || cityQuery.toLowerCase())
       : true;
-    return matchesService && matchesCity;
+    
+    const servicePrice = extractPrice(service.price);
+    const matchesPrice = servicePrice >= priceRange[0] && servicePrice <= priceRange[1];
+    const matchesRating = service.rating >= minRating;
+    const matchesVerified = onlyVerified ? service.verified : true;
+
+    return matchesService && matchesCity && matchesPrice && matchesRating && matchesVerified;
   });
 
   const serviceLabel = serviceQuery ? serviceLabels[serviceQuery] || serviceQuery : "";
@@ -340,10 +380,110 @@ const SearchResults = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtros
-                </Button>
+                <Sheet open={openFilters} onOpenChange={setOpenFilters}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="relative">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filtros
+                      {hasActiveFilters && (
+                        <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                          !
+                        </Badge>
+                      )}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-md">
+                    <SheetHeader>
+                      <SheetTitle className="flex items-center justify-between">
+                        Filtros
+                        {hasActiveFilters && (
+                          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                            <X className="h-4 w-4 mr-1" />
+                            Limpar
+                          </Button>
+                        )}
+                      </SheetTitle>
+                      <SheetDescription>
+                        Refine sua busca com os filtros abaixo
+                      </SheetDescription>
+                    </SheetHeader>
+                    
+                    <div className="space-y-6 py-6">
+                      {/* Filtro de Preço */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Faixa de Preço</Label>
+                        <div className="px-2">
+                          <Slider
+                            value={priceRange}
+                            onValueChange={setPriceRange}
+                            max={500}
+                            min={0}
+                            step={10}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>R$ {priceRange[0]}</span>
+                          <span>R$ {priceRange[1]}+</span>
+                        </div>
+                      </div>
+
+                      {/* Filtro de Avaliação */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Avaliação Mínima</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {[0, 3, 3.5, 4, 4.5].map((rating) => (
+                            <Button
+                              key={rating}
+                              variant={minRating === rating ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setMinRating(rating)}
+                              className="flex items-center gap-1"
+                            >
+                              {rating === 0 ? (
+                                "Todas"
+                              ) : (
+                                <>
+                                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                  {rating}+
+                                </>
+                              )}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Filtro de Verificados */}
+                      <div className="space-y-4">
+                        <Label className="text-base font-semibold">Profissionais</Label>
+                        <div className="flex items-center space-x-3 rounded-lg border p-4">
+                          <Checkbox
+                            id="verified"
+                            checked={onlyVerified}
+                            onCheckedChange={(checked) => setOnlyVerified(checked as boolean)}
+                          />
+                          <div className="flex-1">
+                            <Label htmlFor="verified" className="flex items-center gap-2 cursor-pointer">
+                              <BadgeCheck className="h-4 w-4 text-primary" />
+                              Apenas verificados
+                            </Label>
+                            <p className="text-sm text-muted-foreground">
+                              Mostrar apenas profissionais com identidade verificada
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <SheetFooter>
+                      <SheetClose asChild>
+                        <Button className="w-full gradient-primary">
+                          Aplicar Filtros
+                        </Button>
+                      </SheetClose>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
                 <span className="text-sm text-muted-foreground">
                   {filteredServices.length} resultado(s)
                 </span>
