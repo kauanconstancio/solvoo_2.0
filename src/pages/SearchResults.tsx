@@ -475,12 +475,21 @@ const SearchResults = () => {
                       </div>
                     </div>
 
-                    <SheetFooter>
+                    <SheetFooter className="flex-col gap-2 sm:flex-col">
                       <SheetClose asChild>
                         <Button className="w-full gradient-primary">
                           Aplicar Filtros
                         </Button>
                       </SheetClose>
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={clearFilters}
+                        disabled={!hasActiveFilters}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Limpar Filtros
+                      </Button>
                     </SheetFooter>
                   </SheetContent>
                 </Sheet>
