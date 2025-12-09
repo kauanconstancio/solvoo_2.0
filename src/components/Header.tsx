@@ -208,6 +208,18 @@ const Header = () => {
                     Para Profissionais
                   </a>
                 </nav>
+                <div className="flex gap-2 pt-2">
+                  <Link to="/favoritos" className="flex-1">
+                    <Button variant="outline" className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth">
+                      <Heart className="h-4 w-4 mr-2" />
+                      Favoritos
+                    </Button>
+                  </Link>
+                  <Button variant="outline" className="flex-1 justify-start hover:bg-primary hover:text-primary-foreground transition-smooth">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Mensagens
+                  </Button>
+                </div>
                 <div className="pt-4 space-y-2 border-t">
                   <Button className="w-full hover:brightness-110 sm:hidden">
                     Anunciar Serviço
