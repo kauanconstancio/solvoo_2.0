@@ -12,6 +12,12 @@ import ServiceDetails from "./pages/ServiceDetails";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
 import Favorites from "./pages/Favorites";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Contact from "./pages/Contact";
+import Help from "./pages/Help";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +37,12 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/perfil" element={<Profile />} />
           <Route path="/favoritos" element={<Favorites />} />
+          <Route path="/sobre" element={<About />} />
+          <Route path="/termos" element={<Terms />} />
+          <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/contato" element={<Contact />} />
+          <Route path="/ajuda" element={<Help />} />
+          <Route path="/blog" element={<Blog />} />
           <Route path="/servico/:id" element={<ServiceDetails />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
