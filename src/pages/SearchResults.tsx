@@ -3,9 +3,22 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ServiceCard from "@/components/ServiceCard";
-import { Search, MapPin, Filter, ChevronsUpDownIcon, CheckIcon, Star, BadgeCheck, X } from "lucide-react";
+import {
+  Search,
+  MapPin,
+  Filter,
+  ChevronsUpDownIcon,
+  CheckIcon,
+  Star,
+  BadgeCheck,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -200,7 +213,8 @@ const SearchResults = () => {
     setOnlyVerified(false);
   };
 
-  const hasActiveFilters = priceRange[0] > 0 || priceRange[1] < 500 || minRating > 0 || onlyVerified;
+  const hasActiveFilters =
+    priceRange[0] > 0 || priceRange[1] < 500 || minRating > 0 || onlyVerified;
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -221,24 +235,37 @@ const SearchResults = () => {
       ? service.category.toLowerCase() === serviceQuery.toLowerCase()
       : true;
     const matchesCity = cityQuery
-      ? service.location.toLowerCase().includes(cityLabels[cityQuery]?.toLowerCase() || cityQuery.toLowerCase())
+      ? service.location
+          .toLowerCase()
+          .includes(
+            cityLabels[cityQuery]?.toLowerCase() || cityQuery.toLowerCase()
+          )
       : true;
-    
+
     const servicePrice = extractPrice(service.price);
-    const matchesPrice = servicePrice >= priceRange[0] && servicePrice <= priceRange[1];
+    const matchesPrice =
+      servicePrice >= priceRange[0] && servicePrice <= priceRange[1];
     const matchesRating = service.rating >= minRating;
     const matchesVerified = onlyVerified ? service.verified : true;
 
-    return matchesService && matchesCity && matchesPrice && matchesRating && matchesVerified;
+    return (
+      matchesService &&
+      matchesCity &&
+      matchesPrice &&
+      matchesRating &&
+      matchesVerified
+    );
   });
 
-  const serviceLabel = serviceQuery ? serviceLabels[serviceQuery] || serviceQuery : "";
+  const serviceLabel = serviceQuery
+    ? serviceLabels[serviceQuery] || serviceQuery
+    : "";
   const cityLabel = cityQuery ? cityLabels[cityQuery] || cityQuery : "";
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      
+
       <main className="flex-1 bg-muted/30">
         {/* Barra de busca */}
         <div className="bg-primary/5 border-b">
@@ -257,7 +284,8 @@ const SearchResults = () => {
                     >
                       <span className="truncate">
                         {valueService
-                          ? services.find((s) => s.value === valueService)?.label
+                          ? services.find((s) => s.value === valueService)
+                              ?.label
                           : "Que serviço você precisa?"}
                       </span>
                       <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -275,14 +303,20 @@ const SearchResults = () => {
                             key={service.value}
                             value={service.value}
                             onSelect={(currentValue) => {
-                              setValueService(currentValue === valueService ? "" : currentValue);
+                              setValueService(
+                                currentValue === valueService
+                                  ? ""
+                                  : currentValue
+                              );
                               setOpenService(false);
                             }}
                           >
                             <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                valueService === service.value ? "opacity-100" : "opacity-0"
+                                valueService === service.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {service.label}
@@ -318,21 +352,27 @@ const SearchResults = () => {
                   <Command>
                     <CommandInput placeholder="Procurar localização..." />
                     <CommandList>
-                      <CommandEmpty>Nenhuma localização encontrada.</CommandEmpty>
+                      <CommandEmpty>
+                        Nenhuma localização encontrada.
+                      </CommandEmpty>
                       <CommandGroup>
                         {cities.map((city) => (
                           <CommandItem
                             key={city.value}
                             value={city.value}
                             onSelect={(currentValue) => {
-                              setValueCity(currentValue === valueCity ? "" : currentValue);
+                              setValueCity(
+                                currentValue === valueCity ? "" : currentValue
+                              );
                               setOpenCity(false);
                             }}
                           >
                             <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                valueCity === city.value ? "opacity-100" : "opacity-0"
+                                valueCity === city.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
                               )}
                             />
                             {city.label}
@@ -374,15 +414,17 @@ const SearchResults = () => {
                     {cityLabel}
                   </span>
                 )}
-                {!serviceLabel && !cityLabel && (
-                  <span>Todos os serviços</span>
-                )}
+                {!serviceLabel && !cityLabel && <span>Todos os serviços</span>}
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Sheet open={openFilters} onOpenChange={setOpenFilters}>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="relative">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="relative hover:gradient-primary"
+                    >
                       <Filter className="h-4 w-4 mr-2" />
                       Filtros
                       {hasActiveFilters && (
@@ -396,22 +438,18 @@ const SearchResults = () => {
                     <SheetHeader>
                       <SheetTitle className="flex items-center justify-between">
                         Filtros
-                        {hasActiveFilters && (
-                          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
-                            <X className="h-4 w-4 mr-1" />
-                            Limpar
-                          </Button>
-                        )}
                       </SheetTitle>
                       <SheetDescription>
                         Refine sua busca com os filtros abaixo
                       </SheetDescription>
                     </SheetHeader>
-                    
+
                     <div className="space-y-6 py-6">
                       {/* Filtro de Preço */}
                       <div className="space-y-4">
-                        <Label className="text-base font-semibold">Faixa de Preço</Label>
+                        <Label className="text-base font-semibold">
+                          Faixa de Preço
+                        </Label>
                         <div className="px-2">
                           <Slider
                             value={priceRange}
@@ -430,15 +468,19 @@ const SearchResults = () => {
 
                       {/* Filtro de Avaliação */}
                       <div className="space-y-4">
-                        <Label className="text-base font-semibold">Avaliação Mínima</Label>
+                        <Label className="text-base font-semibold">
+                          Avaliação Mínima
+                        </Label>
                         <div className="flex flex-wrap gap-2">
                           {[0, 3, 3.5, 4, 4.5].map((rating) => (
                             <Button
                               key={rating}
-                              variant={minRating === rating ? "default" : "outline"}
+                              variant={
+                                minRating === rating ? "default" : "outline"
+                              }
                               size="sm"
                               onClick={() => setMinRating(rating)}
-                              className="flex items-center gap-1"
+                              className="flex items-center gap-1 hover:gradient-primary"
                             >
                               {rating === 0 ? (
                                 "Todas"
@@ -455,35 +497,43 @@ const SearchResults = () => {
 
                       {/* Filtro de Verificados */}
                       <div className="space-y-4">
-                        <Label className="text-base font-semibold">Profissionais</Label>
+                        <Label className="text-base font-semibold">
+                          Profissionais
+                        </Label>
                         <div className="flex items-center space-x-3 rounded-lg border p-4">
                           <Checkbox
                             id="verified"
                             checked={onlyVerified}
-                            onCheckedChange={(checked) => setOnlyVerified(checked as boolean)}
+                            onCheckedChange={(checked) =>
+                              setOnlyVerified(checked as boolean)
+                            }
                           />
                           <div className="flex-1">
-                            <Label htmlFor="verified" className="flex items-center gap-2 cursor-pointer">
+                            <Label
+                              htmlFor="verified"
+                              className="flex items-center gap-2 cursor-pointer"
+                            >
                               <BadgeCheck className="h-4 w-4 text-primary" />
                               Apenas verificados
                             </Label>
                             <p className="text-sm text-muted-foreground">
-                              Mostrar apenas profissionais com identidade verificada
+                              Mostrar apenas profissionais com identidade
+                              verificada
                             </p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <SheetFooter className="flex-col gap-2 sm:flex-col">
+                    <SheetFooter className="flex flex-col gap-2">
                       <SheetClose asChild>
                         <Button className="w-full gradient-primary">
                           Aplicar Filtros
                         </Button>
                       </SheetClose>
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
+                      <Button
+                        variant="outline"
+                        className="w-full hover:bg-white hover:text-primary"
                         onClick={clearFilters}
                         disabled={!hasActiveFilters}
                       >
@@ -516,7 +566,8 @@ const SearchResults = () => {
                 Nenhum serviço encontrado
               </h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Não encontramos serviços para sua busca. Tente alterar os filtros ou buscar por outro termo.
+                Não encontramos serviços para sua busca. Tente alterar os
+                filtros ou buscar por outro termo.
               </p>
             </div>
           )}
