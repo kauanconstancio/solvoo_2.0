@@ -129,6 +129,10 @@ const Header = () => {
             <MessageSquare className="h-5 w-5" />
           </Button>
 
+          <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
+            <a href="/anunciar">Anuncios</a>
+          </Button>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -178,10 +182,6 @@ const Header = () => {
               </Button>
             </Link>
           )}
-
-          <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
-            <a href="/anunciar">Anuncios</a>
-          </Button>
 
           <Sheet>
             <SheetTrigger asChild>
