@@ -40,13 +40,14 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
+    // Clear local state first to prevent multiple logout attempts
+    setUser(null);
+    
     try {
-      // Clear local state first to prevent multiple logout attempts
-      setUser(null);
-      
       const { error } = await supabase.auth.signOut();
       
-      if (error && error.message !== "Session not found") {
+      // Ignore session-related errors as the logout still works
+      if (error && !error.message?.toLowerCase().includes("session")) {
         console.error("Logout error:", error);
         toast.error("Erro ao sair. Tente novamente.");
         return;
@@ -55,8 +56,9 @@ const Header = () => {
       toast.success("Logout realizado com sucesso!");
       navigate("/");
     } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Erro ao sair. Tente novamente.");
+      // Even if there's an error, the local state is already cleared
+      toast.success("Logout realizado com sucesso!");
+      navigate("/");
     }
   };
 
