@@ -83,7 +83,7 @@ const AdvertiseService = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!acceptTerms) {
       toast({
         title: "Termos não aceitos",
@@ -93,7 +93,15 @@ const AdvertiseService = () => {
       return;
     }
 
-    if (!title || !category || !description || !price || !priceType || !selectedState || !selectedCity) {
+    if (
+      !title ||
+      !category ||
+      !description ||
+      !price ||
+      !priceType ||
+      !selectedState ||
+      !selectedCity
+    ) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -105,8 +113,10 @@ const AdvertiseService = () => {
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         toast({
           title: "Erro de autenticação",
@@ -144,7 +154,9 @@ const AdvertiseService = () => {
       console.error("Error creating service:", error);
       toast({
         title: "Erro ao criar anúncio",
-        description: error.message || "Ocorreu um erro ao criar seu anúncio. Tente novamente.",
+        description:
+          error.message ||
+          "Ocorreu um erro ao criar seu anúncio. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -169,11 +181,17 @@ const AdvertiseService = () => {
 
         <Tabs defaultValue="my-services" className="max-w-4xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="my-services" className="flex items-center gap-2">
+            <TabsTrigger
+              value="my-services"
+              className="flex items-center gap-2"
+            >
               <List className="w-4 h-4" />
               Meus Anúncios
             </TabsTrigger>
-            <TabsTrigger value="new-service" className="flex items-center gap-2">
+            <TabsTrigger
+              value="new-service"
+              className="flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               Novo Anúncio
             </TabsTrigger>
@@ -191,300 +209,302 @@ const AdvertiseService = () => {
               </Badge>
             </div>
 
-        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-8">
-          {/* Informações Básicas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-primary" />
-                Informações Básicas
-              </CardTitle>
-              <CardDescription>
-                Descreva seu serviço de forma clara e objetiva
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título do Anúncio *</Label>
-                <Input
-                  id="title"
-                  placeholder="Ex: Limpeza Residencial Completa com Produtos Inclusos"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  maxLength={100}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Use um título claro e descritivo (máx. 100 caracteres)
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoria *</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {serviceCategories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição do Serviço *</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Descreva detalhadamente o serviço que você oferece, sua experiência, diferenciais e o que está incluso..."
-                  className="min-h-[150px]"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  Seja detalhista! Uma boa descrição aumenta suas chances de
-                  contratação.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fotos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Camera className="w-5 h-5 text-primary" />
-                Fotos do Serviço
-              </CardTitle>
-              <CardDescription>
-                Adicione fotos do seu trabalho para atrair mais clientes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {images.map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative aspect-square rounded-lg border border-border overflow-hidden group"
-                  >
-                    <img
-                      src={image}
-                      alt={`Foto ${index + 1}`}
-                      className="w-full h-full object-cover"
+            <form
+              onSubmit={handleSubmit}
+              className="max-w-4xl mx-auto space-y-8"
+            >
+              {/* Informações Básicas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Informações Básicas
+                  </CardTitle>
+                  <CardDescription>
+                    Descreva seu serviço de forma clara e objetiva
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Título do Anúncio *</Label>
+                    <Input
+                      id="title"
+                      placeholder="Ex: Limpeza Residencial Completa com Produtos Inclusos"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      maxLength={100}
+                      required
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    <p className="text-xs text-muted-foreground">
+                      Use um título claro e descritivo (máx. 100 caracteres)
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Categoria *</Label>
+                    <Select
+                      value={category}
+                      onValueChange={setCategory}
+                      required
                     >
-                      <X className="w-4 h-4" />
-                    </button>
-                    {index === 0 && (
-                      <Badge className="absolute bottom-2 left-2 text-xs">
-                        Principal
-                      </Badge>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceCategories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descrição do Serviço *</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Descreva detalhadamente o serviço que você oferece, sua experiência, diferenciais e o que está incluso..."
+                      className="min-h-[150px]"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Seja detalhista! Uma boa descrição aumenta suas chances de
+                      contratação.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Fotos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="w-5 h-5 text-primary" />
+                    Fotos do Serviço
+                  </CardTitle>
+                  <CardDescription>
+                    Adicione fotos do seu trabalho para atrair mais clientes
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {images.map((image, index) => (
+                      <div
+                        key={index}
+                        className="relative aspect-square rounded-lg border border-border overflow-hidden group"
+                      >
+                        <img
+                          src={image}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        {index === 0 && (
+                          <Badge className="absolute bottom-2 left-2 text-xs">
+                            Principal
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                    {images.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={handleImageUpload}
+                        className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+                      >
+                        <Upload className="w-6 h-6" />
+                        <span className="text-xs">Adicionar</span>
+                      </button>
                     )}
                   </div>
-                ))}
-                {images.length < 5 && (
-                  <button
-                    type="button"
-                    onClick={handleImageUpload}
-                    className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
-                  >
-                    <Upload className="w-6 h-6" />
-                    <span className="text-xs">Adicionar</span>
-                  </button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Info className="w-3 h-3" />
-                Adicione até 5 fotos. A primeira será a foto principal do
-                anúncio.
-              </p>
-            </CardContent>
-          </Card>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Adicione até 5 fotos. A primeira será a foto principal do
+                    anúncio.
+                  </p>
+                </CardContent>
+              </Card>
 
-          {/* Preço e Disponibilidade */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-primary" />
-                Preço
-              </CardTitle>
-              <CardDescription>Defina o valor do seu serviço</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="price">Preço Base (R$) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    placeholder="0,00"
-                    min="0"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="priceType">Tipo de Cobrança *</Label>
-                  <Select value={priceType} onValueChange={setPriceType} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fixed">Preço Fixo</SelectItem>
-                      <SelectItem value="hour">Por Hora</SelectItem>
-                      <SelectItem value="day">Por Diária</SelectItem>
-                      <SelectItem value="project">Por Projeto</SelectItem>
-                      <SelectItem value="negotiable">A Combinar</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              {/* Preço e Disponibilidade */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    Preço
+                  </CardTitle>
+                  <CardDescription>
+                    Defina o valor do seu serviço
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Preço Base (R$) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        placeholder="0,00"
+                        min="0"
+                        step="0.01"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="priceType">Tipo de Cobrança *</Label>
+                      <Select
+                        value={priceType}
+                        onValueChange={setPriceType}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fixed">Preço Fixo</SelectItem>
+                          <SelectItem value="hour">Por Hora</SelectItem>
+                          <SelectItem value="day">Por Diária</SelectItem>
+                          <SelectItem value="project">Por Projeto</SelectItem>
+                          <SelectItem value="negotiable">A Combinar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Localização */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                Localização e Contato
-              </CardTitle>
-              <CardDescription>
-                Informe onde você atende e como os clientes podem te contatar
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="state">Estado *</Label>
-                  <Select 
-                    value={selectedState} 
-                    onValueChange={(value) => {
-                      setSelectedState(value);
-                      setSelectedCity("");
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {states.map((state) => (
-                        <SelectItem key={state.value} value={state.value}>
-                          {state.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Cidade *</Label>
-                  <Select 
-                    value={selectedCity} 
-                    onValueChange={setSelectedCity}
-                    disabled={!selectedState}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={selectedState ? "Selecione a cidade" : "Selecione o estado primeiro"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getCitiesByState(selectedState).map((city) => (
-                        <SelectItem key={city.value} value={city.value}>
-                          {city.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              {/* Localização */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    Localização
+                  </CardTitle>
+                  <CardDescription>Informe onde você atende</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="state">Estado *</Label>
+                      <Select
+                        value={selectedState}
+                        onValueChange={(value) => {
+                          setSelectedState(value);
+                          setSelectedCity("");
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {states.map((state) => (
+                            <SelectItem key={state.value} value={state.value}>
+                              {state.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Cidade *</Label>
+                      <Select
+                        value={selectedCity}
+                        onValueChange={setSelectedCity}
+                        disabled={!selectedState}
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              selectedState
+                                ? "Selecione a cidade"
+                                : "Selecione o estado primeiro"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getCitiesByState(selectedState).map((city) => (
+                            <SelectItem key={city.value} value={city.value}>
+                              {city.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input 
-                    id="phone" 
-                    placeholder="(00) 0000-0000"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp">WhatsApp</Label>
-                  <Input 
-                    id="whatsapp" 
-                    placeholder="(00) 00000-0000"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              {/* Termos e Submissão */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-start space-x-3 mb-6">
+                    <Checkbox
+                      id="terms"
+                      checked={acceptTerms}
+                      onCheckedChange={(checked) =>
+                        setAcceptTerms(checked as boolean)
+                      }
+                    />
+                    <Label
+                      htmlFor="terms"
+                      className="text-sm font-normal cursor-pointer leading-relaxed"
+                    >
+                      Li e aceito os{" "}
+                      <a
+                        href="/termos"
+                        className="text-primary hover:underline"
+                      >
+                        Termos de Uso
+                      </a>{" "}
+                      e a{" "}
+                      <a
+                        href="/privacidade"
+                        className="text-primary hover:underline"
+                      >
+                        Política de Privacidade
+                      </a>{" "}
+                      da plataforma. Confirmo que as informações fornecidas são
+                      verdadeiras.
+                    </Label>
+                  </div>
 
-          {/* Termos e Submissão */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start space-x-3 mb-6">
-                <Checkbox
-                  id="terms"
-                  checked={acceptTerms}
-                  onCheckedChange={(checked) =>
-                    setAcceptTerms(checked as boolean)
-                  }
-                />
-                <Label
-                  htmlFor="terms"
-                  className="text-sm font-normal cursor-pointer leading-relaxed"
-                >
-                  Li e aceito os{" "}
-                  <a href="/termos" className="text-primary hover:underline">
-                    Termos de Uso
-                  </a>{" "}
-                  e a{" "}
-                  <a href="/privacidade" className="text-primary hover:underline">
-                    Política de Privacidade
-                  </a>{" "}
-                  da plataforma. Confirmo que as informações fornecidas são
-                  verdadeiras.
-                </Label>
-              </div>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="flex-1 py-3"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Publicando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          Publicar Anúncio
+                        </>
+                      )}
+                    </Button>
+                  </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  type="submit" 
-                  size="lg" 
-                  className="flex-1 py-3"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Publicando...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Publicar Anúncio
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                Seu anúncio será publicado imediatamente após a submissão.
-              </p>
-            </CardContent>
-          </Card>
-        </form>
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    Seu anúncio será publicado imediatamente após a submissão.
+                  </p>
+                </CardContent>
+              </Card>
+            </form>
           </TabsContent>
         </Tabs>
       </main>

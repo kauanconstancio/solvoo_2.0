@@ -30,7 +30,9 @@ const ServiceCard = ({
   category,
   verified = false,
 }: ServiceCardProps) => {
-  const displayImage = image || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
+  const displayImage =
+    image ||
+    "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
   const categoryLabel = getServiceLabel(category);
 
   return (

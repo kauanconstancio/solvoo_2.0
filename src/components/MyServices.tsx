@@ -16,14 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Eye,
-  Edit,
-  Trash2,
-  MapPin,
-  Calendar,
-  Package,
-} from "lucide-react";
+import { Eye, Edit, Trash2, MapPin, Calendar, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Service {
@@ -46,8 +39,10 @@ const MyServices = () => {
 
   const fetchMyServices = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) return;
 
       const { data, error } = await supabase
@@ -132,7 +127,9 @@ const MyServices = () => {
       <Card>
         <CardContent className="py-12 text-center">
           <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Nenhum anúncio encontrado</h3>
+          <h3 className="text-lg font-semibold mb-2">
+            Nenhum anúncio encontrado
+          </h3>
           <p className="text-muted-foreground mb-4">
             Você ainda não publicou nenhum serviço.
           </p>
@@ -163,7 +160,9 @@ const MyServices = () => {
                     {service.title}
                   </h3>
                   <Badge
-                    variant={service.status === "active" ? "default" : "secondary"}
+                    variant={
+                      service.status === "active" ? "default" : "secondary"
+                    }
                     className="flex-shrink-0"
                   >
                     {service.status === "active" ? "Ativo" : "Inativo"}
@@ -196,13 +195,23 @@ const MyServices = () => {
 
               {/* Actions */}
               <div className="flex sm:flex-col gap-2 flex-shrink-0">
-                <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="flex-1 sm:flex-none hover:gradient-primary"
+                >
                   <Link to={`/servico/${service.id}`}>
                     <Eye className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Ver</span>
                   </Link>
                 </Button>
-                <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="flex-1 sm:flex-none hover:gradient-primary"
+                >
                   <Link to={`/editar-servico/${service.id}`}>
                     <Edit className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Editar</span>
@@ -210,7 +219,11 @@ const MyServices = () => {
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none text-destructive hover:text-destructive">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 sm:flex-none text-destructive hover:text-white hover:bg-destructive"
+                    >
                       <Trash2 className="w-4 h-4 sm:mr-2" />
                       <span className="hidden sm:inline">Excluir</span>
                     </Button>
@@ -219,7 +232,8 @@ const MyServices = () => {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Excluir anúncio?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Esta ação não pode ser desfeita. O anúncio "{service.title}" será permanentemente removido.
+                        Esta ação não pode ser desfeita. O anúncio "
+                        {service.title}" será permanentemente removido.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

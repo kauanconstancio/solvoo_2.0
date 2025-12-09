@@ -91,7 +91,9 @@ const ServiceDetails = () => {
         // Fetch provider profile
         const { data: profileData } = await supabase
           .from("profiles")
-          .select("user_id, full_name, city, state, avatar_url, bio, created_at")
+          .select(
+            "user_id, full_name, city, state, avatar_url, bio, created_at"
+          )
           .eq("user_id", serviceData.user_id)
           .maybeSingle();
 
@@ -148,10 +150,12 @@ const ServiceDetails = () => {
     });
   };
 
-  const defaultImage = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
-  const displayImages = service?.images && service.images.length > 0 
-    ? service.images 
-    : [defaultImage];
+  const defaultImage =
+    "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
+  const displayImages =
+    service?.images && service.images.length > 0
+      ? service.images
+      : [defaultImage];
 
   if (isLoading) {
     return (
@@ -170,7 +174,9 @@ const ServiceDetails = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex flex-col items-center justify-center gap-4">
-          <p className="text-muted-foreground">{error || "Serviço não encontrado"}</p>
+          <p className="text-muted-foreground">
+            {error || "Serviço não encontrado"}
+          </p>
           <Button onClick={() => navigate("/")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar para a página inicial
@@ -201,7 +207,9 @@ const ServiceDetails = () => {
                 Categorias
               </a>
               <span>/</span>
-              <span className="text-foreground">{getServiceLabel(service.category)}</span>
+              <span className="text-foreground">
+                {getServiceLabel(service.category)}
+              </span>
             </div>
           </div>
         </section>
@@ -328,24 +336,10 @@ const ServiceDetails = () => {
                     <Separator />
 
                     <div className="space-y-2">
-                      {service.whatsapp ? (
-                        <Button 
-                          className="w-full h-12 text-base hover:brightness-110"
-                          onClick={() => {
-                            const message = encodeURIComponent(`Olá! Vi seu anúncio "${service.title}" e gostaria de mais informações.`);
-                            const phone = service.whatsapp?.replace(/\D/g, "");
-                            window.open(`https://wa.me/55${phone}?text=${message}`, "_blank");
-                          }}
-                        >
-                          <MessageSquare className="h-5 w-5 mr-2" />
-                          Contatar via WhatsApp
-                        </Button>
-                      ) : (
-                        <Button className="w-full h-12 text-base hover:brightness-110">
-                          <MessageSquare className="h-5 w-5 mr-2" />
-                          Solicitar Orçamento
-                        </Button>
-                      )}
+                      <Button className="w-full h-12 text-base hover:brightness-110">
+                        <MessageSquare className="h-5 w-5 mr-2" />
+                        Solicitar Orçamento
+                      </Button>
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
@@ -367,24 +361,10 @@ const ServiceDetails = () => {
                           {service.price}
                         </p>
                       </div>
-                      {service.whatsapp ? (
-                        <Button 
-                          className="w-full h-12 text-sm hover:brightness-110"
-                          onClick={() => {
-                            const message = encodeURIComponent(`Olá! Vi seu anúncio "${service.title}" e gostaria de mais informações.`);
-                            const phone = service.whatsapp?.replace(/\D/g, "");
-                            window.open(`https://wa.me/55${phone}?text=${message}`, "_blank");
-                          }}
-                        >
-                          <MessageSquare className="h-5 w-5 mr-2" />
-                          WhatsApp
-                        </Button>
-                      ) : (
-                        <Button className="w-full h-12 text-sm hover:brightness-110">
-                          <MessageSquare className="h-5 w-5 mr-2" />
-                          Solicitar Orçamento
-                        </Button>
-                      )}
+                      <Button className="w-full h-12 text-sm hover:brightness-110">
+                        <MessageSquare className="h-5 w-5 mr-2" />
+                        Solicitar Orçamento
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -413,11 +393,6 @@ const ServiceDetails = () => {
                             <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
                           )}
                         </div>
-                        <div className="flex flex-wrap gap-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {getServiceLabel(service.category)}
-                          </Badge>
-                        </div>
                       </div>
                     </div>
 
@@ -444,7 +419,7 @@ const ServiceDetails = () => {
 
                     <Button
                       variant="outline"
-                      className="w-full"
+                      className="w-full hover:gradient-primary"
                       onClick={() => setIsProfileDialogOpen(true)}
                     >
                       Ver perfil completo
