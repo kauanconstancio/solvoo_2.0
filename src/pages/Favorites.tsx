@@ -26,7 +26,9 @@ const Favorites = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         toast.error("Você precisa estar logado para ver seus favoritos");
         navigate("/auth");
@@ -58,13 +60,10 @@ const Favorites = () => {
 
   const removeFavorite = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("favorites")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("favorites").delete().eq("id", id);
 
       if (error) throw error;
-      
+
       setFavorites(favorites.filter((fav) => fav.id !== id));
       toast.success("Favorito removido com sucesso!");
     } catch (error: any) {
@@ -95,7 +94,7 @@ const Favorites = () => {
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mb-4 hover:bg-primary/10"
+            className="mb-4 hover:gradient-primary transition-all duration-300"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
