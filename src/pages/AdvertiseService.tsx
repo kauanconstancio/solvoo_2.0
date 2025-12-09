@@ -35,6 +35,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { states, getCitiesByState } from "@/data/locations";
 
 const categories = [
   "Limpeza",
@@ -54,40 +55,12 @@ const categories = [
   "Outros",
 ];
 
-const states = [
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-];
-
 const AdvertiseService = () => {
   const { toast } = useToast();
   const [images, setImages] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
 
   const handleImageUpload = () => {
     // Simula upload de imagem
@@ -316,14 +289,20 @@ const AdvertiseService = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="state">Estado *</Label>
-                  <Select required>
+                  <Select 
+                    value={selectedState} 
+                    onValueChange={(value) => {
+                      setSelectedState(value);
+                      setSelectedCity("");
+                    }}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
+                      <SelectValue placeholder="Selecione o estado" />
                     </SelectTrigger>
                     <SelectContent>
                       {states.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
+                        <SelectItem key={state.value} value={state.value}>
+                          {state.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -331,7 +310,22 @@ const AdvertiseService = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="city">Cidade *</Label>
-                  <Input id="city" placeholder="Sua cidade" required />
+                  <Select 
+                    value={selectedCity} 
+                    onValueChange={setSelectedCity}
+                    disabled={!selectedState}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={selectedState ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getCitiesByState(selectedState).map((city) => (
+                        <SelectItem key={city.value} value={city.value}>
+                          {city.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
