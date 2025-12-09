@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -21,49 +22,42 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Camera,
   MapPin,
   DollarSign,
-  Clock,
   FileText,
   CheckCircle2,
   Upload,
   X,
   Info,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { states, getCitiesByState } from "@/data/locations";
-
-const categories = [
-  "Limpeza",
-  "Fotografia",
-  "Mecânica",
-  "Encanamento",
-  "Eletricista",
-  "Pintura",
-  "Jardinagem",
-  "Mudanças",
-  "Reformas",
-  "Aulas Particulares",
-  "Personal Trainer",
-  "Beleza e Estética",
-  "Eventos",
-  "Tecnologia",
-  "Outros",
-];
+import { serviceCategories } from "@/data/services";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdvertiseService = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [images, setImages] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form fields
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [priceType, setPriceType] = useState("");
+  const [phone, setPhone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
 
   const handleImageUpload = () => {
-    // Simula upload de imagem
     if (images.length < 5) {
       setImages([...images, `/placeholder.svg`]);
       toast({
@@ -83,8 +77,9 @@ const AdvertiseService = () => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!acceptTerms) {
       toast({
         title: "Termos não aceitos",
@@ -93,11 +88,64 @@ const AdvertiseService = () => {
       });
       return;
     }
-    toast({
-      title: "Serviço anunciado!",
-      description:
-        "Seu anúncio foi enviado para revisão e será publicado em breve.",
-    });
+
+    if (!title || !category || !description || !price || !priceType || !selectedState || !selectedCity) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos obrigatórios.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Você precisa estar logado para anunciar um serviço.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      const { error } = await supabase.from("services").insert({
+        user_id: user.id,
+        title,
+        description,
+        category,
+        price: `R$ ${price}`,
+        price_type: priceType,
+        state: selectedState,
+        city: selectedCity,
+        images,
+        phone,
+        whatsapp,
+        status: "active",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Serviço anunciado!",
+        description: "Seu anúncio foi publicado com sucesso.",
+      });
+
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error creating service:", error);
+      toast({
+        title: "Erro ao criar anúncio",
+        description: error.message || "Ocorreu um erro ao criar seu anúncio. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -138,6 +186,9 @@ const AdvertiseService = () => {
                 <Input
                   id="title"
                   placeholder="Ex: Limpeza Residencial Completa com Produtos Inclusos"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={100}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
@@ -147,14 +198,14 @@ const AdvertiseService = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="category">Categoria *</Label>
-                <Select required>
+                <Select value={category} onValueChange={setCategory} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category.toLowerCase()}>
-                        {category}
+                    {serviceCategories.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -167,6 +218,8 @@ const AdvertiseService = () => {
                   id="description"
                   placeholder="Descreva detalhadamente o serviço que você oferece, sua experiência, diferenciais e o que está incluso..."
                   className="min-h-[150px]"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
@@ -252,12 +305,14 @@ const AdvertiseService = () => {
                     placeholder="0,00"
                     min="0"
                     step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="priceType">Tipo de Cobrança *</Label>
-                  <Select required>
+                  <Select value={priceType} onValueChange={setPriceType} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
@@ -279,10 +334,10 @@ const AdvertiseService = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-primary" />
-                Localização e Área de Atendimento
+                Localização e Contato
               </CardTitle>
               <CardDescription>
-                Informe onde você atende seus clientes
+                Informe onde você atende e como os clientes podem te contatar
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -329,9 +384,25 @@ const AdvertiseService = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="neighborhood">Bairro</Label>
-                <Input id="neighborhood" placeholder="Seu bairro (opcional)" />
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefone</Label>
+                  <Input 
+                    id="phone" 
+                    placeholder="(00) 0000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input 
+                    id="whatsapp" 
+                    placeholder="(00) 00000-0000"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -352,11 +423,11 @@ const AdvertiseService = () => {
                   className="text-sm font-normal cursor-pointer leading-relaxed"
                 >
                   Li e aceito os{" "}
-                  <a href="#" className="text-primary hover:underline">
+                  <a href="/termos" className="text-primary hover:underline">
                     Termos de Uso
                   </a>{" "}
                   e a{" "}
-                  <a href="#" className="text-primary hover:underline">
+                  <a href="/privacidade" className="text-primary hover:underline">
                     Política de Privacidade
                   </a>{" "}
                   da plataforma. Confirmo que as informações fornecidas são
@@ -365,17 +436,28 @@ const AdvertiseService = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button type="submit" size="lg" className="flex-1 py-3">
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Publicar Anúncio
-                </Button>
-                <Button type="button" variant="outline" size="lg">
-                  Salvar Rascunho
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="flex-1 py-3"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Publicando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Publicar Anúncio
+                    </>
+                  )}
                 </Button>
               </div>
 
               <p className="text-xs text-muted-foreground text-center mt-4">
-                Seu anúncio será revisado e publicado em até 24 horas.
+                Seu anúncio será publicado imediatamente após a submissão.
               </p>
             </CardContent>
           </Card>

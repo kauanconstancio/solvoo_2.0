@@ -89,6 +89,66 @@ export type Database = {
         }
         Relationships: []
       }
+      services: {
+        Row: {
+          category: string
+          city: string
+          created_at: string
+          description: string
+          id: string
+          images: string[] | null
+          phone: string | null
+          price: string
+          price_type: string
+          state: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          verified: boolean
+          views_count: number
+          whatsapp: string | null
+        }
+        Insert: {
+          category: string
+          city: string
+          created_at?: string
+          description: string
+          id?: string
+          images?: string[] | null
+          phone?: string | null
+          price: string
+          price_type?: string
+          state: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+          views_count?: number
+          whatsapp?: string | null
+        }
+        Update: {
+          category?: string
+          city?: string
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[] | null
+          phone?: string | null
+          price?: string
+          price_type?: string
+          state?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+          views_count?: number
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
