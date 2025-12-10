@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { getServiceLabel } from "@/data/services";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface ServiceCardProps {
   id: string;
@@ -32,10 +33,24 @@ const ServiceCard = ({
   subcategory,
   verified = false,
 }: ServiceCardProps) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
   const displayImage =
     image ||
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
   const categoryLabel = getServiceLabel(category);
+  const favorited = isFavorite(id);
+
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await toggleFavorite({
+      service_id: id,
+      service_title: title,
+      service_category: category,
+      service_image: image || null,
+      service_price: price,
+    });
+  };
 
   return (
     <Link to={`/servico/${id}`}>
@@ -50,9 +65,9 @@ const ServiceCard = ({
             size="icon"
             variant="ghost"
             className="absolute top-3 right-3 bg-background/80 backdrop-blur hover:bg-background"
-            onClick={(e) => e.preventDefault()}
+            onClick={handleFavoriteClick}
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${favorited ? "fill-red-500 text-red-500" : ""}`} />
           </Button>
           <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
             <Badge className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
