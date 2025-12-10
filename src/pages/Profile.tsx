@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { User, Phone, MapPin, FileText, Camera, Mail, Building2, Loader2 } from "lucide-react";
+import { User, Phone, MapPin, FileText, Camera, Mail, Building2, Loader2, Eye, Edit } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { states, getCitiesByState } from "@/data/locations";
@@ -135,6 +136,15 @@ const Profile = () => {
         variant: "destructive",
       });
     } else {
+      setProfile(prev => prev ? {
+        ...prev,
+        full_name: formData.full_name,
+        phone: formData.phone,
+        bio: formData.bio,
+        account_type: formData.account_type,
+        city: formData.city,
+        state: formData.state,
+      } : null);
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram salvas com sucesso.",
@@ -162,7 +172,6 @@ const Profile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Arquivo inválido",
@@ -172,7 +181,6 @@ const Profile = () => {
       return;
     }
 
-    // Validate file size (max 5MB for original image)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Arquivo muito grande",
@@ -182,12 +190,10 @@ const Profile = () => {
       return;
     }
 
-    // Create URL for cropper
     const imageUrl = URL.createObjectURL(file);
     setSelectedImage(imageUrl);
     setCropperOpen(true);
     
-    // Reset the input so the same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -207,7 +213,6 @@ const Profile = () => {
       const userId = session.user.id;
       const fileName = `${userId}/avatar.jpg`;
 
-      // Upload the cropped file
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, croppedBlob, { 
@@ -217,14 +222,12 @@ const Profile = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL with cache buster
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(fileName);
 
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
 
-      // Update the profile with the new avatar URL
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: urlWithCacheBuster })
@@ -259,6 +262,17 @@ const Profile = () => {
       URL.revokeObjectURL(selectedImage);
       setSelectedImage(null);
     }
+  };
+
+  const getStateName = (stateValue: string) => {
+    const state = states.find(s => s.value === stateValue);
+    return state?.label || stateValue;
+  };
+
+  const getCityName = (stateValue: string, cityValue: string) => {
+    const cities = getCitiesByState(stateValue);
+    const city = cities.find(c => c.value === cityValue);
+    return city?.label || cityValue;
   };
 
   if (loading) {
@@ -323,152 +337,251 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* Form Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                Informações Pessoais
-              </CardTitle>
-              <CardDescription>
-                Atualize suas informações de perfil
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Personal Info Section */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="full_name" className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      Nome Completo
-                    </Label>
-                    <Input
-                      id="full_name"
-                      value={formData.full_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, full_name: e.target.value })
-                      }
-                      placeholder="Seu nome completo"
-                      className="h-11"
-                    />
-                  </div>
+          {/* Tabs Card */}
+          <Tabs defaultValue="view" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="view" className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Visualizar
+              </TabsTrigger>
+              <TabsTrigger value="edit" className="flex items-center gap-2">
+                <Edit className="h-4 w-4" />
+                Editar
+              </TabsTrigger>
+            </TabsList>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      Telefone
-                    </Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      placeholder="(00) 00000-0000"
-                      className="h-11"
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Location Section */}
-                <div>
-                  <h3 className="flex items-center gap-2 text-sm font-medium mb-4">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    Localização
-                  </h3>
+            {/* View Tab */}
+            <TabsContent value="view">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    Informações Pessoais
+                  </CardTitle>
+                  <CardDescription>
+                    Visualize suas informações de perfil
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Personal Info Section */}
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="state" className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        Estado
-                      </Label>
-                      <Select
-                        value={formData.state}
-                        onValueChange={(value) => {
-                          setFormData({ ...formData, state: value, city: "" });
-                        }}
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue placeholder="Selecione o estado" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {states.map((state) => (
-                            <SelectItem key={state.value} value={state.value}>
-                              {state.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Nome Completo
+                      </p>
+                      <p className="font-medium">
+                        {formData.full_name || <span className="text-muted-foreground italic">Não informado</span>}
+                      </p>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="city" className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        Cidade
-                      </Label>
-                      <Select
-                        value={formData.city}
-                        onValueChange={(value) => {
-                          setFormData({ ...formData, city: value });
-                        }}
-                        disabled={!formData.state}
-                      >
-                        <SelectTrigger className="h-11">
-                          <SelectValue placeholder={formData.state ? "Selecione a cidade" : "Selecione o estado primeiro"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getCitiesByState(formData.state).map((city) => (
-                            <SelectItem key={city.value} value={city.value}>
-                              {city.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Telefone
+                      </p>
+                      <p className="font-medium">
+                        {formData.phone || <span className="text-muted-foreground italic">Não informado</span>}
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                <Separator />
+                  <Separator />
 
-                {/* Bio Section */}
-                <div className="space-y-2">
-                  <Label htmlFor="bio" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    Sobre você
-                  </Label>
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bio: e.target.value })
-                    }
-                    placeholder="Conte um pouco sobre você, suas experiências e interesses..."
-                    rows={4}
-                    className="resize-none"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Esta informação será exibida no seu perfil público.
-                  </p>
-                </div>
+                  {/* Location Section */}
+                  <div>
+                    <h3 className="flex items-center gap-2 text-sm font-medium mb-4">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      Localização
+                    </h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Estado
+                        </p>
+                        <p className="font-medium">
+                          {formData.state ? getStateName(formData.state) : <span className="text-muted-foreground italic">Não informado</span>}
+                        </p>
+                      </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button type="submit" size="lg" disabled={saving} className="min-w-[180px]">
-                    {saving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      "Salvar Alterações"
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                      <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Cidade
+                        </p>
+                        <p className="font-medium">
+                          {formData.city ? getCityName(formData.state, formData.city) : <span className="text-muted-foreground italic">Não informado</span>}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Bio Section */}
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Sobre você
+                    </p>
+                    <p className="font-medium whitespace-pre-wrap">
+                      {formData.bio || <span className="text-muted-foreground italic">Nenhuma descrição adicionada</span>}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Edit Tab */}
+            <TabsContent value="edit">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-primary" />
+                    Informações Pessoais
+                  </CardTitle>
+                  <CardDescription>
+                    Atualize suas informações de perfil
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Personal Info Section */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name" className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          Nome Completo
+                        </Label>
+                        <Input
+                          id="full_name"
+                          value={formData.full_name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, full_name: e.target.value })
+                          }
+                          placeholder="Seu nome completo"
+                          className="h-11"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          Telefone
+                        </Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
+                          placeholder="(00) 00000-0000"
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Location Section */}
+                    <div>
+                      <h3 className="flex items-center gap-2 text-sm font-medium mb-4">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        Localização
+                      </h3>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="state" className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            Estado
+                          </Label>
+                          <Select
+                            value={formData.state}
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, state: value, city: "" });
+                            }}
+                          >
+                            <SelectTrigger className="h-11">
+                              <SelectValue placeholder="Selecione o estado" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {states.map((state) => (
+                                <SelectItem key={state.value} value={state.value}>
+                                  {state.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="city" className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            Cidade
+                          </Label>
+                          <Select
+                            value={formData.city}
+                            onValueChange={(value) => {
+                              setFormData({ ...formData, city: value });
+                            }}
+                            disabled={!formData.state}
+                          >
+                            <SelectTrigger className="h-11">
+                              <SelectValue placeholder={formData.state ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {getCitiesByState(formData.state).map((city) => (
+                                <SelectItem key={city.value} value={city.value}>
+                                  {city.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Bio Section */}
+                    <div className="space-y-2">
+                      <Label htmlFor="bio" className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        Sobre você
+                      </Label>
+                      <Textarea
+                        id="bio"
+                        value={formData.bio}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bio: e.target.value })
+                        }
+                        placeholder="Conte um pouco sobre você, suas experiências e interesses..."
+                        rows={4}
+                        className="resize-none"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Esta informação será exibida no seu perfil público.
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                      <Button type="submit" size="lg" disabled={saving} className="min-w-[180px]">
+                        {saving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          "Salvar Alterações"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
