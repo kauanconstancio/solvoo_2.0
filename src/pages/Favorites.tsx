@@ -145,28 +145,38 @@ const Favorites = () => {
                   <Button
                     variant="destructive"
                     size="icon"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 transition-opacity"
                     onClick={() => removeFavorite(favorite.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
                 <CardContent className="p-4">
-                  <Link to={`/servico/${favorite.service_id}`}>
-                    <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors line-clamp-2">
-                      {favorite.service_title}
-                    </h3>
-                  </Link>
+                  <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors line-clamp-2">
+                    {favorite.service_title}
+                  </h3>
                   {favorite.service_category && (
                     <p className="text-sm text-muted-foreground mb-2">
                       {favorite.service_category}
                     </p>
                   )}
-                  {favorite.service_price && (
-                    <p className="text-primary font-bold">
-                      {favorite.service_price}
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between pt-2 border-t gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        A partir de
+                      </p>
+                      {favorite.service_price && (
+                        <p className="text-primary font-bold">
+                          {favorite.service_price}
+                        </p>
+                      )}
+                    </div>
+                    <Link to={`/servico/${favorite.service_id}`}>
+                      <Button className="hover:brightness-110 text-xs md:text-sm px-3 md:px-4 bg-primary text-primary-foreground">
+                        Ver Detalhes
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
