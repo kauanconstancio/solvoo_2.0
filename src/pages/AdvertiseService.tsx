@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -51,6 +51,8 @@ const AdvertiseService = () => {
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form fields
   const [title, setTitle] = useState("");
@@ -61,19 +63,86 @@ const AdvertiseService = () => {
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
 
-  const handleImageUpload = () => {
-    if (images.length < 5) {
-      setImages([...images, `/placeholder.svg`]);
-      toast({
-        title: "Imagem adicionada",
-        description: "Sua imagem foi adicionada com sucesso.",
-      });
-    } else {
+  const handleImageClick = () => {
+    if (images.length >= 5) {
       toast({
         title: "Limite atingido",
         description: "Você pode adicionar no máximo 5 imagens.",
         variant: "destructive",
       });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Tipo inválido",
+        description: "Por favor, selecione apenas arquivos de imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Erro de autenticação",
+          description: "Você precisa estar logado para fazer upload.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("service-images")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("service-images")
+        .getPublicUrl(fileName);
+
+      setImages((prev) => [...prev, publicUrl]);
+
+      toast({
+        title: "Imagem adicionada",
+        description: "Sua imagem foi enviada com sucesso.",
+      });
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      toast({
+        title: "Erro ao enviar imagem",
+        description: error.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -316,14 +385,30 @@ const AdvertiseService = () => {
                       </div>
                     ))}
                     {images.length < 5 && (
-                      <button
-                        type="button"
-                        onClick={handleImageUpload}
-                        className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
-                      >
-                        <Upload className="w-6 h-6" />
-                        <span className="text-xs">Adicionar</span>
-                      </button>
+                      <>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleImageClick}
+                          disabled={uploadingImage}
+                          className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {uploadingImage ? (
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                          ) : (
+                            <Upload className="w-6 h-6" />
+                          )}
+                          <span className="text-xs">
+                            {uploadingImage ? "Enviando..." : "Adicionar"}
+                          </span>
+                        </button>
+                      </>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
