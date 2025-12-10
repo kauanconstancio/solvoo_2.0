@@ -117,12 +117,15 @@ const SearchResults = () => {
 
         // Filtrar por cidade se especificado (formato: "cityValue|stateCode")
         if (cityQuery) {
-          const [cityValue, stateCode] = cityQuery.split("|");
-          if (cityValue) {
-            query = query.eq("city", cityValue);
+          // Decodificar a URL para garantir que caracteres especiais sejam tratados
+          const decodedCityQuery = decodeURIComponent(cityQuery);
+          const [cityValue, stateCode] = decodedCityQuery.split("|");
+          console.log("City filter:", { cityQuery, decodedCityQuery, cityValue, stateCode });
+          if (cityValue && cityValue.trim()) {
+            query = query.eq("city", cityValue.trim());
           }
-          if (stateCode) {
-            query = query.eq("state", stateCode);
+          if (stateCode && stateCode.trim()) {
+            query = query.eq("state", stateCode.trim());
           }
         }
 
