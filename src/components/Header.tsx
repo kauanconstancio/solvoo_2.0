@@ -145,7 +145,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden md:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
             >
               <Heart className="h-5 w-5" />
             </Button>
@@ -153,13 +153,13 @@ const Header = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="hidden md:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+            className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
           >
             <MessageSquare className="h-5 w-5" />
           </Button>
 
-          <Button className="hidden sm:flex hover:brightness-110 transition-smooth text-sm md:text-base">
-            <a href="/anunciar">Anuncios</a>
+          <Button className="hidden lg:flex hover:brightness-110 transition-smooth text-sm md:text-base">
+            <a href="/anunciar">Meus Anuncios</a>
           </Button>
 
           {user ? (
@@ -280,7 +280,7 @@ const Header = () => {
                 <div className="pt-4 space-y-2 border-t">
                   <Link to="/anunciar">
                     <Button className="w-full hover:brightness-110 transition-smooth text-sm md:text-base ">
-                      Anuncios
+                      Meus Anuncios
                     </Button>
                   </Link>
                   <div>
