@@ -12,7 +12,7 @@ interface ServiceCardProps {
   provider?: string;
   location: string;
   rating?: number;
-  reviews?: number;
+  reviewCount?: number;
   price: string;
   image?: string;
   category: string;
@@ -27,7 +27,7 @@ const ServiceCard = ({
   provider,
   location,
   rating = 0,
-  reviews = 0,
+  reviewCount = 0,
   price,
   image,
   category,
@@ -107,7 +107,7 @@ const ServiceCard = ({
               <div className="flex items-center gap-1">
                 <Star className="h-3.5 md:h-4 w-3.5 md:w-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-semibold">{rating}</span>
-                <span className="text-muted-foreground">({reviews})</span>
+                <span className="text-muted-foreground">({reviewCount})</span>
               </div>
             )}
             <div className="flex items-center gap-1 text-muted-foreground">
