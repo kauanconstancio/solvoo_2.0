@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import ServiceCard from "./ServiceCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
+import { useServicesRatings } from "@/hooks/useReviews";
 
 interface Service {
   id: string;
@@ -22,6 +23,9 @@ const ServicesList = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  
+  const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
+  const { ratingsMap } = useServicesRatings(serviceIds);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -161,21 +165,26 @@ const ServicesList = () => {
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {filteredServices.map((service) => (
-                  <ServiceCard
-                    key={service.id}
-                    id={service.id}
-                    title={service.title}
-                    provider={service.provider_name || undefined}
-                    location={getLocation(service.city, service.state)}
-                    price={service.price}
-                    image={service.images?.[0]}
-                    category={service.category}
-                    subcategory={service.subcategory}
-                    verified={service.verified}
-                    providerName={service.provider_name}
-                  />
-                ))}
+                {filteredServices.map((service) => {
+                  const serviceRating = ratingsMap[service.id];
+                  return (
+                    <ServiceCard
+                      key={service.id}
+                      id={service.id}
+                      title={service.title}
+                      provider={service.provider_name || undefined}
+                      location={getLocation(service.city, service.state)}
+                      price={service.price}
+                      image={service.images?.[0]}
+                      category={service.category}
+                      subcategory={service.subcategory}
+                      verified={service.verified}
+                      providerName={service.provider_name}
+                      rating={serviceRating?.average_rating}
+                      reviewCount={serviceRating?.review_count}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">

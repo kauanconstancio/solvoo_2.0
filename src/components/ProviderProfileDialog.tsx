@@ -298,27 +298,34 @@ const ProviderProfileDialog = ({
                 </h3>
                 {services.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {services.map((service) => (
-                      <div key={service.id} onClick={() => onOpenChange(false)}>
-                        <ServiceCard
-                          id={service.id}
-                          title={service.title}
-                          category={service.category}
-                          subcategory={service.subcategory}
-                          price={service.price}
-                          location={`${
-                            service.city
-                          }, ${service.state.toUpperCase()}`}
-                          image={
-                            service.images?.[0] ||
-                            "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
-                          }
-                          provider={provider.full_name || "Profissional"}
-                          verified={service.verified}
-                          providerName={provider.full_name}
-                        />
-                      </div>
-                    ))}
+                    {services.map((service) => {
+                      const serviceRating = serviceRatings.find(
+                        (sr) => sr.service_id === service.id
+                      );
+                      return (
+                        <div key={service.id} onClick={() => onOpenChange(false)}>
+                          <ServiceCard
+                            id={service.id}
+                            title={service.title}
+                            category={service.category}
+                            subcategory={service.subcategory}
+                            price={service.price}
+                            location={`${
+                              service.city
+                            }, ${service.state.toUpperCase()}`}
+                            image={
+                              service.images?.[0] ||
+                              "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop"
+                            }
+                            provider={provider.full_name || "Profissional"}
+                            verified={service.verified}
+                            providerName={provider.full_name}
+                            rating={serviceRating?.average_rating}
+                            reviewCount={serviceRating?.review_count}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-4">
