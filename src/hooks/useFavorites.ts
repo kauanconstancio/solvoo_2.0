@@ -6,6 +6,7 @@ interface FavoriteData {
   service_id: string;
   service_title: string;
   service_category: string | null;
+  service_subcategory: string | null;
   service_image: string | null;
   service_price: string | null;
   service_provider: string | null;
@@ -94,6 +95,7 @@ export const useFavorites = () => {
             service_id: data.service_id,
             service_title: data.service_title,
             service_category: data.service_category,
+            service_subcategory: data.service_subcategory,
             service_image: data.service_image,
             service_price: data.service_price,
             service_provider: data.service_provider,
