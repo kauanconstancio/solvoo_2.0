@@ -38,6 +38,16 @@ const Hero = () => {
     ? getCategoryConfig(valueService)?.subcategories || []
     : [];
 
+  // Função para obter o label da cidade a partir do formato "cityValue|stateCode"
+  const getCityDisplayLabel = (cityKey: string): string => {
+    if (!cityKey) return "";
+    const [cityValue, stateCode] = cityKey.split("|");
+    const state = states.find(s => s.value === stateCode);
+    if (!state) return cityKey;
+    const city = state.cities.find(c => c.value === cityValue);
+    return city ? `${city.label}, ${state.value}` : cityKey;
+  };
+
   // Limpar subcategoria quando categoria mudar
   React.useEffect(() => {
     setValueSubcategory("");
@@ -178,7 +188,7 @@ const Hero = () => {
                   <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[250px] cursor-pointer overflow-hidden">
                     <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span className="flex-1 truncate text-sm">
-                      {valueCity || "Localização"}
+                      {valueCity ? getCityDisplayLabel(valueCity) : "Localização"}
                     </span>
                     <ChevronsUpDownIcon className="h-4 w-4 flex-shrink-0 opacity-50" />
                   </div>
@@ -193,14 +203,14 @@ const Hero = () => {
                       {states.map((state) => (
                         <CommandGroup key={state.value} heading={state.label}>
                           {state.cities.map((city) => {
-                            const cityValue = `${city.label}, ${state.value}`;
+                            const cityKey = `${city.value}|${state.value}`;
                             return (
                               <CommandItem
                                 key={`${state.value}-${city.value}`}
                                 value={`${city.label} ${state.label}`}
                                 onSelect={() => {
                                   setValueCity(
-                                    cityValue === valueCity ? "" : cityValue
+                                    cityKey === valueCity ? "" : cityKey
                                   );
                                   setOpenCity(false);
                                 }}
@@ -208,7 +218,7 @@ const Hero = () => {
                                 <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    valueCity === cityValue
+                                    valueCity === cityKey
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
