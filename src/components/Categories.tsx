@@ -1,67 +1,20 @@
-import {
-  Sparkles,
-  Camera,
-  Wrench,
-  Droplet,
-  Zap,
-  Paintbrush,
-  Laptop,
-  Truck,
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-
-const categories = [
-  {
-    icon: Sparkles,
-    name: "Limpeza",
-    count: "234 profissionais",
-    color: "text-blue-500",
-  },
-  {
-    icon: Camera,
-    name: "Fotografia",
-    count: "189 profissionais",
-    color: "text-purple-500",
-  },
-  {
-    icon: Wrench,
-    name: "Mecânica",
-    count: "156 profissionais",
-    color: "text-orange-500",
-  },
-  {
-    icon: Droplet,
-    name: "Encanador",
-    count: "203 profissionais",
-    color: "text-cyan-500",
-  },
-  {
-    icon: Zap,
-    name: "Eletricista",
-    count: "178 profissionais",
-    color: "text-yellow-500",
-  },
-  {
-    icon: Paintbrush,
-    name: "Pintura",
-    count: "145 profissionais",
-    color: "text-pink-500",
-  },
-  {
-    icon: Laptop,
-    name: "TI & Suporte",
-    count: "267 profissionais",
-    color: "text-indigo-500",
-  },
-  {
-    icon: Truck,
-    name: "Mudanças",
-    count: "98 profissionais",
-    color: "text-green-500",
-  },
-];
+import { Skeleton } from "@/components/ui/skeleton";
+import { categoryConfig } from "@/data/categoryIcons";
+import { useCategoryCounts } from "@/hooks/useCategoryCounts";
 
 const Categories = () => {
+  const navigate = useNavigate();
+  const { counts, isLoading } = useCategoryCounts();
+
+  // Show only the first 8 categories on homepage
+  const displayCategories = categoryConfig.slice(0, 8);
+
+  const handleCategoryClick = (categoryValue: string) => {
+    navigate(`/busca?categoria=${categoryValue}`);
+  };
+
   return (
     <section className="py-8 md:py-12">
       <div className="container px-4">
@@ -75,11 +28,14 @@ const Categories = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-          {categories.map((category) => {
+          {displayCategories.map((category) => {
             const Icon = category.icon;
+            const serviceCount = counts[category.value] || 0;
+
             return (
               <Card
-                key={category.name}
+                key={category.value}
+                onClick={() => handleCategoryClick(category.value)}
                 className="p-4 md:p-6 cursor-pointer hover:shadow-soft-lg hover:bg-card-hover hover:-translate-y-1 transition-smooth border-2"
               >
                 <div className="flex flex-col items-center text-center gap-2 md:gap-3">
@@ -90,11 +46,15 @@ const Categories = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-sm md:text-base mb-1">
-                      {category.name}
+                      {category.label}
                     </h3>
-                    <p className="text-xs text-muted-foreground sm:block">
-                      {category.count}
-                    </p>
+                    {isLoading ? (
+                      <Skeleton className="h-3 w-16 mx-auto" />
+                    ) : (
+                      <p className="text-xs text-muted-foreground sm:block">
+                        {serviceCount} {serviceCount === 1 ? "serviço" : "serviços"}
+                      </p>
+                    )}
                   </div>
                 </div>
               </Card>
