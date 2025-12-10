@@ -1,4 +1,4 @@
-import { Search, MapPin, ChevronsUpDownIcon } from "lucide-react";
+import { Search, MapPin, ChevronsUpDownIcon, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Item, ItemDescription } from "./ui/item";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -16,6 +16,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { serviceCategories } from "@/data/services";
 import { searchLocations } from "@/data/searchLocations";
+import { getCategoryConfig } from "@/data/categoryIcons";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -28,9 +29,24 @@ const Hero = () => {
   const [openCity, setOpenCity] = React.useState(false);
   const [valueCity, setValueCity] = React.useState("");
 
+  // Estados para o popover de subcategoria
+  const [openSubcategory, setOpenSubcategory] = React.useState(false);
+  const [valueSubcategory, setValueSubcategory] = React.useState("");
+
+  // Obter subcategorias disponíveis baseado na categoria selecionada
+  const availableSubcategories = valueService
+    ? getCategoryConfig(valueService)?.subcategories || []
+    : [];
+
+  // Limpar subcategoria quando categoria mudar
+  React.useEffect(() => {
+    setValueSubcategory("");
+  }, [valueService]);
+
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (valueService) params.set("servico", valueService);
+    if (valueSubcategory) params.set("subcategoria", valueSubcategory);
     if (valueCity) params.set("cidade", valueCity);
     navigate(`/busca?${params.toString()}`);
   };
@@ -108,6 +124,60 @@ const Hero = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
+
+              {/* Popover de Subcategoria - só aparece se categoria selecionada */}
+              {valueService && availableSubcategories.length > 0 && (
+                <Popover open={openSubcategory} onOpenChange={setOpenSubcategory}>
+                  <PopoverTrigger asChild>
+                    <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[180px] cursor-pointer">
+                      <Tag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <Button
+                        variant="ghost"
+                        role="combobox"
+                        aria-expanded={openSubcategory}
+                        className="w-full justify-between hover:bg-transparent hover:text-gray-500 p-0 h-auto font-normal text-left"
+                      >
+                        <span className="truncate">
+                          {valueSubcategory || "Subcategoria"}
+                        </span>
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Procurar subcategoria..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma subcategoria encontrada.</CommandEmpty>
+                        <CommandGroup>
+                          {availableSubcategories.map((subcategory) => (
+                            <CommandItem
+                              key={subcategory}
+                              value={subcategory}
+                              onSelect={(currentValue) => {
+                                setValueSubcategory(
+                                  currentValue === valueSubcategory ? "" : currentValue
+                                );
+                                setOpenSubcategory(false);
+                              }}
+                            >
+                              <CheckIcon
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  valueSubcategory === subcategory
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {subcategory}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
 
               {/* Popover de Localização */}
               <Popover open={openCity} onOpenChange={setOpenCity}>

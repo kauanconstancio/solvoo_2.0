@@ -13,6 +13,7 @@ import {
   BadgeCheck,
   X,
   Loader2,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +45,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { serviceCategories, serviceCategoryLabels } from "@/data/services";
+import { getCategoryConfig } from "@/data/categoryIcons";
 import { searchLocations, searchLocationLabels } from "@/data/searchLocations";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -51,6 +53,7 @@ interface ServiceFromDB {
   id: string;
   title: string;
   category: string;
+  subcategory: string | null;
   price: string;
   city: string;
   state: string;
@@ -65,9 +68,13 @@ const SearchResults = () => {
   const serviceQuery = searchParams.get("servico") || "";
   const cityQuery = searchParams.get("cidade") || "";
 
+  const subcategoryQuery = searchParams.get("subcategoria") || "";
+
   // Estados para os popovers
   const [openService, setOpenService] = useState(false);
   const [valueService, setValueService] = useState(serviceQuery);
+  const [openSubcategory, setOpenSubcategory] = useState(false);
+  const [valueSubcategory, setValueSubcategory] = useState(subcategoryQuery);
   const [openCity, setOpenCity] = useState(false);
   const [valueCity, setValueCity] = useState(cityQuery);
 
@@ -76,6 +83,12 @@ const SearchResults = () => {
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [minRating, setMinRating] = useState(0);
   const [onlyVerified, setOnlyVerified] = useState(false);
+  const [filterSubcategory, setFilterSubcategory] = useState("");
+
+  // Obter subcategorias disponíveis baseado na categoria selecionada
+  const availableSubcategories = valueService
+    ? getCategoryConfig(valueService)?.subcategories || []
+    : [];
 
   // Estados para dados do banco
   const [services, setServices] = useState<ServiceFromDB[]>([]);
@@ -88,13 +101,18 @@ const SearchResults = () => {
       try {
         let query = supabase
           .from("services")
-          .select("id, title, category, price, city, state, images, verified, user_id")
+          .select("id, title, category, subcategory, price, city, state, images, verified, user_id")
           .eq("status", "active")
           .order("created_at", { ascending: false });
 
         // Filtrar por categoria se especificado
         if (serviceQuery) {
           query = query.eq("category", serviceQuery);
+        }
+
+        // Filtrar por subcategoria se especificado
+        if (subcategoryQuery) {
+          query = query.eq("subcategory", subcategoryQuery);
         }
 
         // Filtrar por cidade se especificado
@@ -119,6 +137,7 @@ const SearchResults = () => {
               id: service.id,
               title: service.title,
               category: service.category,
+              subcategory: service.subcategory,
               price: service.price,
               city: service.city,
               state: service.state,
@@ -138,26 +157,36 @@ const SearchResults = () => {
     };
 
     fetchServices();
-  }, [serviceQuery, cityQuery]);
+  }, [serviceQuery, cityQuery, subcategoryQuery]);
 
   // Atualizar estados quando os parâmetros da URL mudarem
   useEffect(() => {
     setValueService(serviceQuery);
+    setValueSubcategory(subcategoryQuery);
     setValueCity(cityQuery);
-  }, [serviceQuery, cityQuery]);
+  }, [serviceQuery, subcategoryQuery, cityQuery]);
+
+  // Limpar subcategoria quando categoria mudar
+  useEffect(() => {
+    if (valueService !== serviceQuery) {
+      setValueSubcategory("");
+    }
+  }, [valueService, serviceQuery]);
 
   const clearFilters = () => {
     setPriceRange([0, 500]);
     setMinRating(0);
     setOnlyVerified(false);
+    setFilterSubcategory("");
   };
 
   const hasActiveFilters =
-    priceRange[0] > 0 || priceRange[1] < 500 || minRating > 0 || onlyVerified;
+    priceRange[0] > 0 || priceRange[1] < 500 || minRating > 0 || onlyVerified || filterSubcategory;
 
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (valueService) params.set("servico", valueService);
+    if (valueSubcategory) params.set("subcategoria", valueSubcategory);
     if (valueCity) params.set("cidade", valueCity);
     navigate(`/busca?${params.toString()}`);
   };
@@ -174,9 +203,17 @@ const SearchResults = () => {
     const matchesPrice =
       servicePrice >= priceRange[0] && servicePrice <= priceRange[1];
     const matchesVerified = onlyVerified ? service.verified : true;
+    const matchesSubcategory = filterSubcategory 
+      ? service.subcategory === filterSubcategory 
+      : true;
 
-    return matchesPrice && matchesVerified;
+    return matchesPrice && matchesVerified && matchesSubcategory;
   });
+
+  // Obter subcategorias para filtro baseado na categoria buscada
+  const filterAvailableSubcategories = serviceQuery
+    ? getCategoryConfig(serviceQuery)?.subcategories || []
+    : [];
 
   const serviceLabel = serviceQuery
     ? serviceCategoryLabels[serviceQuery] || serviceQuery
@@ -253,6 +290,60 @@ const SearchResults = () => {
                 </PopoverContent>
               </Popover>
 
+              {/* Popover de Subcategoria - só aparece se categoria selecionada */}
+              {valueService && availableSubcategories.length > 0 && (
+                <Popover open={openSubcategory} onOpenChange={setOpenSubcategory}>
+                  <PopoverTrigger asChild>
+                    <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[200px] cursor-pointer">
+                      <Tag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <Button
+                        variant="ghost"
+                        role="combobox"
+                        aria-expanded={openSubcategory}
+                        className="w-full justify-between hover:bg-transparent hover:text-muted-foreground p-0 h-auto font-normal text-left"
+                      >
+                        <span className="truncate">
+                          {valueSubcategory || "Subcategoria"}
+                        </span>
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Procurar subcategoria..." />
+                      <CommandList>
+                        <CommandEmpty>Nenhuma subcategoria encontrada.</CommandEmpty>
+                        <CommandGroup>
+                          {availableSubcategories.map((subcategory) => (
+                            <CommandItem
+                              key={subcategory}
+                              value={subcategory}
+                              onSelect={(currentValue) => {
+                                setValueSubcategory(
+                                  currentValue === valueSubcategory ? "" : currentValue
+                                );
+                                setOpenSubcategory(false);
+                              }}
+                            >
+                              <CheckIcon
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  valueSubcategory === subcategory
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {subcategory}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
+
               {/* Popover de Localização */}
               <Popover open={openCity} onOpenChange={setOpenCity}>
                 <PopoverTrigger asChild>
@@ -325,21 +416,30 @@ const SearchResults = () => {
         <div className="bg-background border-b">
           <div className="container px-4 py-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground flex-wrap">
                 {serviceLabel && (
                   <span className="flex items-center gap-1">
                     <Search className="h-4 w-4" />
                     {serviceLabel}
                   </span>
                 )}
-                {serviceLabel && cityLabel && <span>•</span>}
+                {subcategoryQuery && (
+                  <>
+                    <span>›</span>
+                    <span className="flex items-center gap-1">
+                      <Tag className="h-4 w-4" />
+                      {subcategoryQuery}
+                    </span>
+                  </>
+                )}
+                {(serviceLabel || subcategoryQuery) && cityLabel && <span>•</span>}
                 {cityLabel && (
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
                     {cityLabel}
                   </span>
                 )}
-                {!serviceLabel && !cityLabel && <span>Todos os serviços</span>}
+                {!serviceLabel && !subcategoryQuery && !cityLabel && <span>Todos os serviços</span>}
               </div>
 
               <div className="flex items-center gap-2">
@@ -388,8 +488,38 @@ const SearchResults = () => {
                         <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <span>R$ {priceRange[0]}</span>
                           <span>R$ {priceRange[1]}+</span>
-                        </div>
                       </div>
+
+                      {/* Filtro de Subcategoria */}
+                      {filterAvailableSubcategories.length > 0 && (
+                        <div className="space-y-4">
+                          <Label className="text-base font-semibold">
+                            Subcategoria
+                          </Label>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant={filterSubcategory === "" ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setFilterSubcategory("")}
+                              className={filterSubcategory === "" ? "gradient-primary" : ""}
+                            >
+                              Todas
+                            </Button>
+                            {filterAvailableSubcategories.map((sub) => (
+                              <Button
+                                key={sub}
+                                variant={filterSubcategory === sub ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setFilterSubcategory(sub)}
+                                className={filterSubcategory === sub ? "gradient-primary" : ""}
+                              >
+                                {sub}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                       {/* Filtro de Verificados */}
                       <div className="space-y-4">
