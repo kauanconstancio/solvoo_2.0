@@ -46,7 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { serviceCategories, serviceCategoryLabels } from "@/data/services";
 import { getCategoryConfig } from "@/data/categoryIcons";
-import { searchLocations, searchLocationLabels } from "@/data/searchLocations";
+import { states } from "@/data/locations";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceFromDB {
@@ -218,7 +218,7 @@ const SearchResults = () => {
   const serviceLabel = serviceQuery
     ? serviceCategoryLabels[serviceQuery] || serviceQuery
     : "";
-  const cityLabel = cityQuery ? searchLocationLabels[cityQuery] || cityQuery : "";
+  const cityLabel = cityQuery || "";
 
   const getLocation = (city: string, state: string) => {
     return `${city}, ${state.toUpperCase()}`;
@@ -294,19 +294,12 @@ const SearchResults = () => {
               {valueService && availableSubcategories.length > 0 && (
                 <Popover open={openSubcategory} onOpenChange={setOpenSubcategory}>
                   <PopoverTrigger asChild>
-                    <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[200px] cursor-pointer">
+                    <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[200px] cursor-pointer overflow-hidden">
                       <Tag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <Button
-                        variant="ghost"
-                        role="combobox"
-                        aria-expanded={openSubcategory}
-                        className="w-full justify-between hover:bg-transparent hover:text-muted-foreground p-0 h-auto font-normal text-left"
-                      >
-                        <span className="truncate">
-                          {valueSubcategory || "Subcategoria"}
-                        </span>
-                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
+                      <span className="flex-1 truncate text-sm">
+                        {valueSubcategory || "Subcategoria"}
+                      </span>
+                      <ChevronsUpDownIcon className="h-4 w-4 flex-shrink-0 opacity-50" />
                     </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-[200px] p-0" align="start">
@@ -347,54 +340,50 @@ const SearchResults = () => {
               {/* Popover de Localização */}
               <Popover open={openCity} onOpenChange={setOpenCity}>
                 <PopoverTrigger asChild>
-                  <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[250px] cursor-pointer">
+                  <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[250px] cursor-pointer overflow-hidden">
                     <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <Button
-                      variant="ghost"
-                      role="combobox"
-                      aria-expanded={openCity}
-                      className="w-full justify-between hover:bg-transparent hover:text-muted-foreground p-0 h-auto font-normal text-left"
-                    >
-                      <span className="truncate">
-                        {valueCity
-                          ? searchLocations.find((l) => l.value === valueCity)?.label
-                          : "Localização"}
-                      </span>
-                      <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
+                    <span className="flex-1 truncate text-sm">
+                      {valueCity || "Localização"}
+                    </span>
+                    <ChevronsUpDownIcon className="h-4 w-4 flex-shrink-0 opacity-50" />
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-[250px] p-0" align="start">
+                <PopoverContent className="w-[280px] p-0" align="start">
                   <Command>
-                    <CommandInput placeholder="Procurar localização..." />
-                    <CommandList>
+                    <CommandInput placeholder="Procurar cidade..." />
+                    <CommandList className="max-h-[300px]">
                       <CommandEmpty>
                         Nenhuma localização encontrada.
                       </CommandEmpty>
-                      <CommandGroup>
-                        {searchLocations.map((location) => (
-                          <CommandItem
-                            key={location.value}
-                            value={location.value}
-                            onSelect={(currentValue) => {
-                              setValueCity(
-                                currentValue === valueCity ? "" : currentValue
-                              );
-                              setOpenCity(false);
-                            }}
-                          >
-                            <CheckIcon
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                valueCity === location.value
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                            {location.label}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
+                      {states.map((state) => (
+                        <CommandGroup key={state.value} heading={state.label}>
+                          {state.cities.map((city) => {
+                            const cityValue = `${city.label}, ${state.value}`;
+                            return (
+                              <CommandItem
+                                key={`${state.value}-${city.value}`}
+                                value={`${city.label} ${state.label}`}
+                                onSelect={() => {
+                                  setValueCity(
+                                    cityValue === valueCity ? "" : cityValue
+                                  );
+                                  setOpenCity(false);
+                                }}
+                              >
+                                <CheckIcon
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    valueCity === cityValue
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {city.label}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      ))}
                     </CommandList>
                   </Command>
                 </PopoverContent>
