@@ -242,6 +242,7 @@ const ServiceDetails = () => {
                                 service_id: service.id,
                                 service_title: service.title,
                                 service_category: service.category,
+                                service_subcategory: service.subcategory,
                                 service_image: service.images?.[0] || null,
                                 service_price: service.price,
                                 service_provider: provider?.full_name || null,

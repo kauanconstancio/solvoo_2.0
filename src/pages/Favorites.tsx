@@ -4,15 +4,18 @@ import { Heart, Trash2, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { getServiceLabel } from "@/data/services";
 
 interface Favorite {
   id: string;
   service_id: string;
   service_title: string;
   service_category: string | null;
+  service_subcategory: string | null;
   service_image: string | null;
   service_price: string | null;
   service_provider: string | null;
@@ -151,19 +154,26 @@ const Favorites = () => {
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
+                  <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+                    {favorite.service_category && (
+                      <Badge className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
+                        {getServiceLabel(favorite.service_category)}
+                      </Badge>
+                    )}
+                    {favorite.service_subcategory && (
+                      <Badge variant="outline" className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
+                        {favorite.service_subcategory}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors line-clamp-2">
                     {favorite.service_title}
                   </h3>
                   {favorite.service_provider && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mb-2">
                       {favorite.service_provider}
-                    </p>
-                  )}
-                  {favorite.service_category && (
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {favorite.service_category}
                     </p>
                   )}
                   <div className="flex items-center justify-between pt-2 border-t gap-3">

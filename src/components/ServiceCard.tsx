@@ -49,6 +49,7 @@ const ServiceCard = ({
       service_id: id,
       service_title: title,
       service_category: category,
+      service_subcategory: subcategory || null,
       service_image: image || null,
       service_price: price,
       service_provider: providerName || provider || null,
