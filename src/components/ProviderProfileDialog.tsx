@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { MapPin, Calendar, BadgeCheck, Loader2, Star, PenLine } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  BadgeCheck,
+  Loader2,
+  Star,
+  PenLine,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -54,14 +61,22 @@ const ProviderProfileDialog = ({
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
-  const [selectedServiceForReview, setSelectedServiceForReview] = useState<ServiceItem | null>(null);
+  const [selectedServiceForReview, setSelectedServiceForReview] =
+    useState<ServiceItem | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { providerRating, serviceRatings, allReviews, isLoading: isRatingLoading } = useProviderRating(userId);
+  const {
+    providerRating,
+    serviceRatings,
+    allReviews,
+    isLoading: isRatingLoading,
+  } = useProviderRating(userId);
   const { toast } = useToast();
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -87,7 +102,9 @@ const ProviderProfileDialog = ({
         // Fetch provider services
         const { data: servicesData } = await supabase
           .from("services")
-          .select("id, title, category, subcategory, price, city, state, images, verified")
+          .select(
+            "id, title, category, subcategory, price, city, state, images, verified"
+          )
           .eq("user_id", userId)
           .eq("status", "active")
           .order("created_at", { ascending: false });
@@ -200,7 +217,7 @@ const ProviderProfileDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden w-[calc(100%-2rem)] sm:w-[95%] rounded-xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader>
             <DialogTitle>Perfil do Profissional</DialogTitle>
           </DialogHeader>
@@ -210,7 +227,7 @@ const ProviderProfileDialog = ({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : provider ? (
-            <div className="space-y-6">
+            <div className="space-y-6 overflow-x-hidden">
               {/* Provider Header */}
               <div className="flex items-start gap-4">
                 <Avatar className="h-16 w-16 flex-shrink-0">
@@ -219,20 +236,22 @@ const ProviderProfileDialog = ({
                     {getProviderInitials()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-xl font-semibold">
+                    <h2 className="text-md font-semibold break-words">
                       {provider.full_name || "Profissional"}
                     </h2>
-                    <BadgeCheck className="h-5 w-5 text-primary" />
+                    <BadgeCheck className="h-5 w-5 text-primary flex-shrink-0" />
                   </div>
 
                   {/* Rating Summary */}
                   {providerRating && (
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold">{providerRating.average_rating}</span>
+                        <span className="font-semibold">
+                          {providerRating.average_rating}
+                        </span>
                       </div>
                       <span className="text-sm text-muted-foreground">
                         ({providerRating.total_reviews} avaliações)
@@ -242,12 +261,16 @@ const ProviderProfileDialog = ({
 
                   <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{getProviderLocation()}</span>
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span className="break-words">
+                        {getProviderLocation()}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Membro desde {getMemberSince()}</span>
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span className="break-words">
+                        Membro desde {getMemberSince()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -271,14 +294,23 @@ const ProviderProfileDialog = ({
                 <>
                   <Separator />
                   <div>
-                    <h3 className="font-semibold mb-3">Avaliações por Serviço</h3>
+                    <h3 className="font-semibold mb-3">
+                      Avaliações por Serviço
+                    </h3>
                     <div className="space-y-2">
                       {serviceRatings.map((sr) => (
-                        <div key={sr.service_id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                          <span className="text-sm font-medium truncate flex-1 mr-2">{sr.title}</span>
+                        <div
+                          key={sr.service_id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                        >
+                          <span className="text-sm font-medium truncate flex-1 mr-2">
+                            {sr.title}
+                          </span>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-semibold">{sr.average_rating}</span>
+                            <span className="font-semibold">
+                              {sr.average_rating}
+                            </span>
                             <span className="text-xs text-muted-foreground">
                               ({sr.review_count})
                             </span>
@@ -303,7 +335,10 @@ const ProviderProfileDialog = ({
                         (sr) => sr.service_id === service.id
                       );
                       return (
-                        <div key={service.id} onClick={() => onOpenChange(false)}>
+                        <div
+                          key={service.id}
+                          onClick={() => onOpenChange(false)}
+                        >
                           <ServiceCard
                             id={service.id}
                             title={service.title}
