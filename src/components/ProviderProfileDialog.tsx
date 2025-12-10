@@ -26,6 +26,7 @@ interface ServiceItem {
   id: string;
   title: string;
   category: string;
+  subcategory: string | null;
   price: string;
   city: string;
   state: string;
@@ -68,7 +69,7 @@ const ProviderProfileDialog = ({
         // Fetch provider services
         const { data: servicesData } = await supabase
           .from("services")
-          .select("id, title, category, price, city, state, images, verified")
+          .select("id, title, category, subcategory, price, city, state, images, verified")
           .eq("user_id", userId)
           .eq("status", "active")
           .order("created_at", { ascending: false });
@@ -174,7 +175,8 @@ const ProviderProfileDialog = ({
                       <ServiceCard
                         id={service.id}
                         title={service.title}
-                        category={getServiceLabel(service.category)}
+                        category={service.category}
+                        subcategory={service.subcategory}
                         price={service.price}
                         location={`${
                           service.city

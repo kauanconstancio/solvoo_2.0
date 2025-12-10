@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Eye, Edit, Trash2, MapPin, Calendar, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getServiceLabel } from "@/data/services";
 
 interface Service {
   id: string;
   title: string;
   category: string;
+  subcategory: string | null;
   price: string;
   city: string;
   state: string;
@@ -169,9 +171,16 @@ const MyServices = () => {
                   </Badge>
                 </div>
 
-                <p className="text-sm text-muted-foreground mb-1">
-                  {service.category}
-                </p>
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-sm text-muted-foreground">
+                    {getServiceLabel(service.category)}
+                  </span>
+                  {service.subcategory && (
+                    <Badge variant="outline" className="text-xs">
+                      {service.subcategory}
+                    </Badge>
+                  )}
+                </div>
 
                 <p className="text-primary font-semibold mb-2">
                   {service.price}
