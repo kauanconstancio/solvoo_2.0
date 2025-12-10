@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
 import ProviderProfileDialog from "@/components/ProviderProfileDialog";
+import { useFavorites } from "@/hooks/useFavorites";
 
 interface ProviderProfile {
   user_id: string;
@@ -55,12 +56,12 @@ const ServiceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [service, setService] = useState<ServiceData | null>(null);
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -235,11 +236,21 @@ const ServiceDetails = () => {
                           size="icon"
                           variant="secondary"
                           className="bg-background/80 backdrop-blur hover:bg-background"
-                          onClick={() => setIsFavorite(!isFavorite)}
+                          onClick={() => {
+                            if (service) {
+                              toggleFavorite({
+                                service_id: service.id,
+                                service_title: service.title,
+                                service_category: service.category,
+                                service_image: service.images?.[0] || null,
+                                service_price: service.price,
+                              });
+                            }
+                          }}
                         >
                           <Heart
                             className={`h-5 w-5 ${
-                              isFavorite ? "fill-red-500 text-red-500" : ""
+                              service && isFavorite(service.id) ? "fill-red-500 text-red-500" : ""
                             }`}
                           />
                         </Button>
