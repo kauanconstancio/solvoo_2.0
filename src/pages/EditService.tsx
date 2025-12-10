@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { states, getCitiesByState } from "@/data/locations";
-import { serviceCategories } from "@/data/services";
+import { categoryConfig } from "@/data/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -53,6 +53,7 @@ const EditService = () => {
   // Form fields
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [priceType, setPriceType] = useState("");
@@ -92,6 +93,7 @@ const EditService = () => {
 
         setTitle(data.title);
         setCategory(data.category);
+        setSubcategory(data.subcategory || "");
         setDescription(data.description);
         setPrice(data.price.replace("R$ ", ""));
         setPriceType(data.price_type);
@@ -235,6 +237,7 @@ const EditService = () => {
           title,
           description,
           category,
+          subcategory: subcategory || null,
           price: `R$ ${price}`,
           price_type: priceType,
           state: selectedState,
@@ -374,20 +377,51 @@ const EditService = () => {
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="category">Categoria *</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {serviceCategories.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Categoria *</Label>
+                  <Select
+                    value={category}
+                    onValueChange={(value) => {
+                      setCategory(value);
+                      setSubcategory("");
+                    }}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryConfig.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="subcategory">Subcategoria</Label>
+                  <Select
+                    value={subcategory}
+                    onValueChange={setSubcategory}
+                    disabled={!category}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={category ? "Selecione uma subcategoria" : "Selecione uma categoria primeiro"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryConfig
+                        .find((c) => c.value === category)
+                        ?.subcategories?.map((sub) => (
+                          <SelectItem key={sub} value={sub}>
+                            {sub}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">

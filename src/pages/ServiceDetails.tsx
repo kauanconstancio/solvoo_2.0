@@ -38,6 +38,7 @@ interface ServiceData {
   title: string;
   description: string;
   category: string;
+  subcategory: string | null;
   price: string;
   price_type: string;
   city: string;
@@ -280,10 +281,15 @@ const ServiceDetails = () => {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <Badge variant="secondary">
                             {getServiceLabel(service.category)}
                           </Badge>
+                          {service.subcategory && (
+                            <Badge variant="outline">
+                              {service.subcategory}
+                            </Badge>
+                          )}
                           {service.verified && (
                             <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
                               <BadgeCheck className="h-3 w-3 mr-1" />
