@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
 import ProviderProfileDialog from "@/components/ProviderProfileDialog";
 import { useFavorites } from "@/hooks/useFavorites";
-import { useReviews } from "@/hooks/useReviews";
+import { useReviews, useProviderRating } from "@/hooks/useReviews";
 import ReviewsList from "@/components/ReviewsList";
 import ReviewDialog from "@/components/ReviewDialog";
 
@@ -69,6 +69,7 @@ const ServiceDetails = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { reviews, serviceRating, addReview } = useReviews(id);
+  const { providerRating } = useProviderRating(provider?.user_id || null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -464,6 +465,17 @@ const ServiceDetails = () => {
                             <BadgeCheck className="h-4 w-4 text-primary flex-shrink-0" />
                           )}
                         </div>
+                        {providerRating && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-semibold text-sm">{providerRating.average_rating}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              ({providerRating.total_reviews} avaliações)
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

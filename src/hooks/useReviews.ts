@@ -255,3 +255,58 @@ export const useProviderRating = (userId: string | null) => {
 
   return { providerRating, serviceRatings, allReviews, isLoading };
 };
+
+// Hook to get ratings for multiple services
+export const useServicesRatings = (serviceIds: string[]) => {
+  const [ratingsMap, setRatingsMap] = useState<Record<string, ServiceRating>>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRatings = async () => {
+      if (!serviceIds.length) return;
+
+      setIsLoading(true);
+      try {
+        const { data: reviewsData } = await supabase
+          .from("reviews")
+          .select("service_id, rating")
+          .in("service_id", serviceIds);
+
+        if (!reviewsData || reviewsData.length === 0) {
+          setRatingsMap({});
+          setIsLoading(false);
+          return;
+        }
+
+        // Group reviews by service_id and calculate averages
+        const grouped: Record<string, { total: number; count: number }> = {};
+        reviewsData.forEach((r) => {
+          if (!grouped[r.service_id]) {
+            grouped[r.service_id] = { total: 0, count: 0 };
+          }
+          grouped[r.service_id].total += r.rating;
+          grouped[r.service_id].count += 1;
+        });
+
+        const ratings: Record<string, ServiceRating> = {};
+        Object.entries(grouped).forEach(([serviceId, data]) => {
+          ratings[serviceId] = {
+            service_id: serviceId,
+            average_rating: Math.round((data.total / data.count) * 10) / 10,
+            review_count: data.count,
+          };
+        });
+
+        setRatingsMap(ratings);
+      } catch (error) {
+        console.error("Error fetching services ratings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRatings();
+  }, [serviceIds.join(",")]);
+
+  return { ratingsMap, isLoading };
+};
