@@ -15,6 +15,7 @@ interface Favorite {
   service_category: string | null;
   service_image: string | null;
   service_price: string | null;
+  service_provider: string | null;
   created_at: string;
 }
 
@@ -155,8 +156,13 @@ const Favorites = () => {
                   <h3 className="font-semibold text-lg mb-1 hover:text-primary transition-colors line-clamp-2">
                     {favorite.service_title}
                   </h3>
+                  {favorite.service_provider && (
+                    <p className="text-sm text-muted-foreground">
+                      {favorite.service_provider}
+                    </p>
+                  )}
                   {favorite.service_category && (
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-xs text-muted-foreground mb-2">
                       {favorite.service_category}
                     </p>
                   )}

@@ -173,6 +173,7 @@ const ServicesList = () => {
                     category={service.category}
                     subcategory={service.subcategory}
                     verified={service.verified}
+                    providerName={service.provider_name}
                   />
                 ))}
               </div>

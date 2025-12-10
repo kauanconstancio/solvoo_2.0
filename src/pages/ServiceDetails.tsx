@@ -244,6 +244,7 @@ const ServiceDetails = () => {
                                 service_category: service.category,
                                 service_image: service.images?.[0] || null,
                                 service_price: service.price,
+                                service_provider: provider?.full_name || null,
                               });
                             }
                           }}

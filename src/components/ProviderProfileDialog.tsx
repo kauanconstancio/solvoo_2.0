@@ -187,6 +187,7 @@ const ProviderProfileDialog = ({
                         }
                         provider={provider.full_name || "Profissional"}
                         verified={service.verified}
+                        providerName={provider.full_name}
                       />
                     </div>
                   ))}
