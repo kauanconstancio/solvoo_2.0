@@ -80,7 +80,7 @@ const SearchResults = () => {
 
   // Estados para os filtros
   const [openFilters, setOpenFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 500]);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
   const [minRating, setMinRating] = useState(0);
   const [onlyVerified, setOnlyVerified] = useState(false);
   const [filterSubcategory, setFilterSubcategory] = useState("");
@@ -117,10 +117,8 @@ const SearchResults = () => {
 
         // Filtrar por cidade se especificado (formato: "cityValue|stateCode")
         if (cityQuery) {
-          // Decodificar a URL para garantir que caracteres especiais sejam tratados
           const decodedCityQuery = decodeURIComponent(cityQuery);
           const [cityValue, stateCode] = decodedCityQuery.split("|");
-          console.log("City filter:", { cityQuery, decodedCityQuery, cityValue, stateCode });
           if (cityValue && cityValue.trim()) {
             query = query.eq("city", cityValue.trim());
           }
@@ -183,14 +181,14 @@ const SearchResults = () => {
   }, [valueService, serviceQuery]);
 
   const clearFilters = () => {
-    setPriceRange([0, 500]);
+    setPriceRange([0, 10000]);
     setMinRating(0);
     setOnlyVerified(false);
     setFilterSubcategory("");
   };
 
   const hasActiveFilters =
-    priceRange[0] > 0 || priceRange[1] < 500 || minRating > 0 || onlyVerified || filterSubcategory;
+    priceRange[0] > 0 || priceRange[1] < 10000 || minRating > 0 || onlyVerified || filterSubcategory;
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -489,9 +487,9 @@ const SearchResults = () => {
                           <Slider
                             value={priceRange}
                             onValueChange={setPriceRange}
-                            max={500}
+                            max={10000}
                             min={0}
-                            step={10}
+                            step={100}
                             className="w-full"
                           />
                         </div>
