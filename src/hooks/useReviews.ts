@@ -10,10 +10,10 @@ export interface Review {
   comment: string | null;
   created_at: string;
   updated_at: string;
-  profiles?: {
+  profile?: {
     full_name: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 export interface ServiceRating {
@@ -38,32 +38,47 @@ export const useReviews = (serviceId?: string) => {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch reviews
+      const { data: reviewsData, error: reviewsError } = await supabase
         .from("reviews")
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select("*")
         .eq("service_id", serviceId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setReviews(data || []);
+      if (reviewsError) throw reviewsError;
+
+      if (!reviewsData || reviewsData.length === 0) {
+        setReviews([]);
+        setServiceRating(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch profiles for each reviewer
+      const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", userIds);
+
+      const profilesMap = new Map(
+        (profilesData || []).map((p) => [p.user_id, p])
+      );
+
+      const reviewsWithProfiles: Review[] = reviewsData.map((r) => ({
+        ...r,
+        profile: profilesMap.get(r.user_id) || null,
+      }));
+
+      setReviews(reviewsWithProfiles);
 
       // Calculate rating
-      if (data && data.length > 0) {
-        const totalRating = data.reduce((sum, r) => sum + r.rating, 0);
-        setServiceRating({
-          service_id: serviceId,
-          average_rating: Math.round((totalRating / data.length) * 10) / 10,
-          review_count: data.length,
-        });
-      } else {
-        setServiceRating(null);
-      }
+      const totalRating = reviewsData.reduce((sum, r) => sum + r.rating, 0);
+      setServiceRating({
+        service_id: serviceId,
+        average_rating: Math.round((totalRating / reviewsData.length) * 10) / 10,
+        review_count: reviewsData.length,
+      });
     } catch (error) {
       console.error("Error fetching reviews:", error);
     } finally {
@@ -166,19 +181,13 @@ export const useProviderRating = (userId: string | null) => {
         const serviceIds = services.map((s) => s.id);
 
         // Get all reviews for these services
-        const { data: reviews } = await supabase
+        const { data: reviewsData } = await supabase
           .from("reviews")
-          .select(`
-            *,
-            profiles:user_id (
-              full_name,
-              avatar_url
-            )
-          `)
+          .select("*")
           .in("service_id", serviceIds)
           .order("created_at", { ascending: false });
 
-        if (!reviews || reviews.length === 0) {
+        if (!reviewsData || reviewsData.length === 0) {
           setProviderRating(null);
           setServiceRatings([]);
           setAllReviews([]);
@@ -186,7 +195,23 @@ export const useProviderRating = (userId: string | null) => {
           return;
         }
 
-        setAllReviews(reviews);
+        // Fetch profiles for each reviewer
+        const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url")
+          .in("user_id", userIds);
+
+        const profilesMap = new Map(
+          (profilesData || []).map((p) => [p.user_id, p])
+        );
+
+        const reviewsWithProfiles: Review[] = reviewsData.map((r) => ({
+          ...r,
+          profile: profilesMap.get(r.user_id) || null,
+        }));
+
+        setAllReviews(reviewsWithProfiles);
 
         // Calculate per-service ratings
         const ratingsMap: Record<string, { total: number; count: number; title: string }> = {};
@@ -194,7 +219,7 @@ export const useProviderRating = (userId: string | null) => {
           ratingsMap[s.id] = { total: 0, count: 0, title: s.title };
         });
 
-        reviews.forEach((r) => {
+        reviewsData.forEach((r) => {
           if (ratingsMap[r.service_id]) {
             ratingsMap[r.service_id].total += r.rating;
             ratingsMap[r.service_id].count += 1;
@@ -213,10 +238,10 @@ export const useProviderRating = (userId: string | null) => {
         setServiceRatings(serviceRatingsArray);
 
         // Calculate overall provider rating
-        const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+        const totalRating = reviewsData.reduce((sum, r) => sum + r.rating, 0);
         setProviderRating({
-          average_rating: Math.round((totalRating / reviews.length) * 10) / 10,
-          total_reviews: reviews.length,
+          average_rating: Math.round((totalRating / reviewsData.length) * 10) / 10,
+          total_reviews: reviewsData.length,
         });
       } catch (error) {
         console.error("Error fetching provider rating:", error);

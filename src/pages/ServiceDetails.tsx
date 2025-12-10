@@ -11,6 +11,7 @@ import {
   Calendar,
   Loader2,
   ArrowLeft,
+  PenLine,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -23,6 +24,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
 import ProviderProfileDialog from "@/components/ProviderProfileDialog";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useReviews } from "@/hooks/useReviews";
+import ReviewsList from "@/components/ReviewsList";
+import ReviewDialog from "@/components/ReviewDialog";
 
 interface ProviderProfile {
   user_id: string;
@@ -61,10 +65,21 @@ const ServiceDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { reviews, serviceRating, addReview } = useReviews(id);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getUser();
   }, []);
 
   useEffect(() => {
@@ -151,6 +166,8 @@ const ServiceDetails = () => {
       year: "numeric",
     });
   };
+
+  const canWriteReview = currentUserId && service && currentUserId !== service.user_id;
 
   const defaultImage =
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
@@ -314,6 +331,15 @@ const ServiceDetails = () => {
                           {service.title}
                         </CardTitle>
                         <div className="flex flex-wrap items-center gap-4 text-sm">
+                          {serviceRating && (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-semibold">{serviceRating.average_rating}</span>
+                              <span className="text-muted-foreground">
+                                ({serviceRating.review_count} avaliações)
+                              </span>
+                            </div>
+                          )}
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <MapPin className="h-4 w-4" />
                             <span>{getLocation()}</span>
@@ -331,6 +357,30 @@ const ServiceDetails = () => {
                         {service.description}
                       </p>
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Reviews Section */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">
+                        Avaliações ({reviews.length})
+                      </CardTitle>
+                      {canWriteReview && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setIsReviewDialogOpen(true)}
+                        >
+                          <PenLine className="h-4 w-4 mr-2" />
+                          Escrever avaliação
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ReviewsList reviews={reviews} />
                   </CardContent>
                 </Card>
               </div>
@@ -455,6 +505,13 @@ const ServiceDetails = () => {
         userId={service?.user_id || null}
         open={isProfileDialogOpen}
         onOpenChange={setIsProfileDialogOpen}
+      />
+
+      <ReviewDialog
+        open={isReviewDialogOpen}
+        onOpenChange={setIsReviewDialogOpen}
+        onSubmit={addReview}
+        serviceTitle={service.title}
       />
 
       <Footer />
