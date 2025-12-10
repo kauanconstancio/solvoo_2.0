@@ -115,11 +115,11 @@ const SearchResults = () => {
           query = query.eq("subcategory", subcategoryQuery);
         }
 
-        // Filtrar por cidade se especificado (formato: "Cidade, UF")
+        // Filtrar por cidade se especificado (formato: "cityValue|stateCode")
         if (cityQuery) {
-          const [cityName, stateCode] = cityQuery.split(", ");
-          if (cityName) {
-            query = query.ilike("city", `%${cityName}%`);
+          const [cityValue, stateCode] = cityQuery.split("|");
+          if (cityValue) {
+            query = query.eq("city", cityValue);
           }
           if (stateCode) {
             query = query.eq("state", stateCode);
@@ -224,7 +224,18 @@ const SearchResults = () => {
   const serviceLabel = serviceQuery
     ? serviceCategoryLabels[serviceQuery] || serviceQuery
     : "";
-  const cityLabel = cityQuery || "";
+  
+  // Função para obter o label da cidade a partir do formato "cityValue|stateCode"
+  const getCityDisplayLabel = (cityQuery: string): string => {
+    if (!cityQuery) return "";
+    const [cityValue, stateCode] = cityQuery.split("|");
+    const state = states.find(s => s.value === stateCode);
+    if (!state) return cityQuery;
+    const city = state.cities.find(c => c.value === cityValue);
+    return city ? `${city.label}, ${state.value}` : cityQuery;
+  };
+  
+  const cityLabel = getCityDisplayLabel(cityQuery);
 
   const getLocation = (city: string, state: string) => {
     return `${city}, ${state.toUpperCase()}`;
@@ -349,7 +360,7 @@ const SearchResults = () => {
                   <div className="flex items-center gap-2 border border-input rounded-md bg-background px-3 py-2 flex-1 min-w-0 hover:border-primary transition-colors md:max-w-[250px] cursor-pointer overflow-hidden">
                     <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span className="flex-1 truncate text-sm">
-                      {valueCity || "Localização"}
+                      {valueCity ? getCityDisplayLabel(valueCity) : "Localização"}
                     </span>
                     <ChevronsUpDownIcon className="h-4 w-4 flex-shrink-0 opacity-50" />
                   </div>
@@ -364,14 +375,15 @@ const SearchResults = () => {
                       {states.map((state) => (
                         <CommandGroup key={state.value} heading={state.label}>
                           {state.cities.map((city) => {
-                            const cityValue = `${city.label}, ${state.value}`;
+                            const cityKey = `${city.value}|${state.value}`;
+                            const cityDisplay = `${city.label}, ${state.value}`;
                             return (
                               <CommandItem
                                 key={`${state.value}-${city.value}`}
                                 value={`${city.label} ${state.label}`}
                                 onSelect={() => {
                                   setValueCity(
-                                    cityValue === valueCity ? "" : cityValue
+                                    cityKey === valueCity ? "" : cityKey
                                   );
                                   setOpenCity(false);
                                 }}
@@ -379,7 +391,7 @@ const SearchResults = () => {
                                 <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    valueCity === cityValue
+                                    valueCity === cityKey
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
