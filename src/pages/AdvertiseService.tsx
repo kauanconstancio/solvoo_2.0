@@ -162,6 +162,15 @@ const AdvertiseService = () => {
       return;
     }
 
+    if (images.length === 0) {
+      toast({
+        title: "Imagem obrigatória",
+        description: "Adicione pelo menos uma foto do seu serviço.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (
       !title ||
       !category ||
@@ -352,7 +361,7 @@ const AdvertiseService = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Camera className="w-5 h-5 text-primary" />
-                    Fotos do Serviço
+                    Fotos do Serviço *
                   </CardTitle>
                   <CardDescription>
                     Adicione fotos do seu trabalho para atrair mais clientes
@@ -413,7 +422,7 @@ const AdvertiseService = () => {
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Info className="w-3 h-3" />
-                    Adicione até 5 fotos. A primeira será a foto principal do
+                    Adicione pelo menos 1 foto (máx. 5). A primeira será a foto principal do
                     anúncio.
                   </p>
                 </CardContent>
