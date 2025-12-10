@@ -1,5 +1,5 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ServiceCard from "@/components/ServiceCard";
@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { serviceCategories, serviceCategoryLabels } from "@/data/services";
 import { getCategoryConfig } from "@/data/categoryIcons";
 import { states } from "@/data/locations";
+import { useServicesRatings } from "@/hooks/useReviews";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceFromDB {
@@ -165,6 +166,10 @@ const SearchResults = () => {
 
     fetchServices();
   }, [serviceQuery, cityQuery, subcategoryQuery]);
+
+  // Buscar ratings para todos os serviços
+  const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
+  const { ratingsMap } = useServicesRatings(serviceIds);
 
   // Atualizar estados quando os parâmetros da URL mudarem
   useEffect(() => {
@@ -593,20 +598,26 @@ const SearchResults = () => {
             </div>
           ) : filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredServices.map((service) => (
-                <ServiceCard
-                  key={service.id}
-                  id={service.id}
-                  title={service.title}
-                  provider={service.provider_name || undefined}
-                  location={getLocation(service.city, service.state)}
-                  price={service.price}
-                  image={service.images?.[0]}
-                  category={service.category}
-                  verified={service.verified}
-                  providerName={service.provider_name}
-                />
-              ))}
+              {filteredServices.map((service) => {
+                const serviceRating = ratingsMap[service.id];
+                return (
+                  <ServiceCard
+                    key={service.id}
+                    id={service.id}
+                    title={service.title}
+                    provider={service.provider_name || undefined}
+                    location={getLocation(service.city, service.state)}
+                    price={service.price}
+                    image={service.images?.[0]}
+                    category={service.category}
+                    subcategory={service.subcategory}
+                    verified={service.verified}
+                    providerName={service.provider_name}
+                    rating={serviceRating?.average_rating || 0}
+                    reviewCount={serviceRating?.review_count || 0}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-16">
