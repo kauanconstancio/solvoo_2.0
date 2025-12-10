@@ -252,7 +252,9 @@ const ServiceDetails = () => {
                         >
                           <Heart
                             className={`h-5 w-5 ${
-                              service && isFavorite(service.id) ? "fill-red-500 text-red-500" : ""
+                              service && isFavorite(service.id)
+                                ? "fill-red-500 text-red-500"
+                                : ""
                             }`}
                           />
                         </Button>
@@ -396,7 +398,7 @@ const ServiceDetails = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={provider?.avatar_url || undefined} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
