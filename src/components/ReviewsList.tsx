@@ -42,15 +42,15 @@ const ReviewsList = ({ reviews }: ReviewsListProps) => {
         >
           <div className="flex items-start gap-3">
             <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarImage src={review.profiles?.avatar_url || undefined} />
+              <AvatarImage src={review.profile?.avatar_url || undefined} />
               <AvatarFallback className="bg-muted">
-                {getInitials(review.profiles?.full_name || null)}
+                {getInitials(review.profile?.full_name || null)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-1">
                 <p className="font-medium truncate">
-                  {review.profiles?.full_name || "Usuário"}
+                  {review.profile?.full_name || "Usuário"}
                 </p>
                 <p className="text-xs text-muted-foreground flex-shrink-0">
                   {formatDate(review.created_at)}
