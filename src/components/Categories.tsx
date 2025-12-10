@@ -8,8 +8,10 @@ const Categories = () => {
   const navigate = useNavigate();
   const { counts, isLoading } = useCategoryCounts();
 
-  // Show only the first 8 categories on homepage
-  const displayCategories = categoryConfig.slice(0, 8);
+  // Sort categories by service count and show top 8
+  const displayCategories = [...categoryConfig]
+    .sort((a, b) => (counts[b.value] || 0) - (counts[a.value] || 0))
+    .slice(0, 8);
 
   const handleCategoryClick = (categoryValue: string) => {
     navigate(`/busca?categoria=${categoryValue}`);
