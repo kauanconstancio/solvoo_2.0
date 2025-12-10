@@ -115,9 +115,15 @@ const SearchResults = () => {
           query = query.eq("subcategory", subcategoryQuery);
         }
 
-        // Filtrar por cidade se especificado
+        // Filtrar por cidade se especificado (formato: "Cidade, UF")
         if (cityQuery) {
-          query = query.ilike("city", `%${cityQuery}%`);
+          const [cityName, stateCode] = cityQuery.split(", ");
+          if (cityName) {
+            query = query.ilike("city", `%${cityName}%`);
+          }
+          if (stateCode) {
+            query = query.eq("state", stateCode);
+          }
         }
 
         const { data: servicesData, error } = await query;
