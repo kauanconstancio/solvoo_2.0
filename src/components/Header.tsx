@@ -59,7 +59,7 @@ const Header = () => {
       .select("full_name, avatar_url")
       .eq("user_id", userId)
       .single();
-    
+
     if (data) {
       setProfile(data);
     }
@@ -167,7 +167,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full"
+                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full hover:gradient-primary"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
