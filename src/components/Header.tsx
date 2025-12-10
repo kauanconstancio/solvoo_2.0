@@ -21,8 +21,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
+interface Profile {
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
 const Header = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,23 +36,42 @@ const Header = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("user_id", userId)
+      .single();
+    
+    if (data) {
+      setProfile(data);
+    }
+  };
+
   const handleLogout = async () => {
-    // Clear local state first to prevent multiple logout attempts
     setUser(null);
+    setProfile(null);
 
     try {
       const { error } = await supabase.auth.signOut();
 
-      // Ignore session-related errors as the logout still works
       if (error && !error.message?.toLowerCase().includes("session")) {
         console.error("Logout error:", error);
         toast.error("Erro ao sair. Tente novamente.");
@@ -56,24 +81,28 @@ const Header = () => {
       toast.success("Logout realizado com sucesso!");
       navigate("/");
     } catch (error) {
-      // Even if there's an error, the local state is already cleared
       toast.success("Logout realizado com sucesso!");
       navigate("/");
     }
   };
 
   const getUserInitials = () => {
-    if (user?.user_metadata?.name) {
-      return user.user_metadata.name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
+    if (profile?.full_name) {
+      const names = profile.full_name.split(" ").filter(Boolean);
+      if (names.length >= 2) {
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase();
+      }
+      return names[0]?.[0]?.toUpperCase() || "U";
     }
     return user?.email?.charAt(0).toUpperCase() || "U";
   };
 
+  const getUserDisplayName = () => {
+    if (profile?.full_name) {
+      return profile.full_name;
+    }
+    return user?.email?.split("@")[0] || "Usuário";
+  };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -138,17 +167,20 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="hidden lg:flex relative h-10 w-10 rounded-full"
+                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full"
                 >
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={user.user_metadata?.avatar_url}
+                      src={profile?.avatar_url || undefined}
                       alt="Avatar"
                     />
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
+                  <span className="text-sm font-medium max-w-[120px] truncate">
+                    {getUserDisplayName()}
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
@@ -257,7 +289,7 @@ const Header = () => {
                         <div className="flex items-center gap-3 py-2">
                           <Avatar className="h-10 w-10">
                             <AvatarImage
-                              src={user.user_metadata?.avatar_url}
+                              src={profile?.avatar_url || undefined}
                               alt="Avatar"
                             />
                             <AvatarFallback className="bg-primary text-primary-foreground">
@@ -266,7 +298,7 @@ const Header = () => {
                           </Avatar>
                           <div className="flex flex-col">
                             <span className="text-sm font-medium">
-                              {user.user_metadata?.name || "Usuário"}
+                              {getUserDisplayName()}
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {user.email}
