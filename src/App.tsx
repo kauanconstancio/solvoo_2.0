@@ -10,6 +10,7 @@ import ForProfessionals from "./pages/ForProfessionals";
 import Categories from "./pages/Categories";
 import HowItWorks from "./pages/HowItWorks";
 import AdvertiseService from "./pages/AdvertiseService";
+import EditService from "./pages/EditService";
 import ServiceDetails from "./pages/ServiceDetails";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -78,6 +79,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AdvertiseService />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/editar-servico/:id"
+            element={
+              <ProtectedRoute>
+                <EditService />
               </ProtectedRoute>
             }
           />
