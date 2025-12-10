@@ -27,7 +27,7 @@ const Categories = () => {
   const totalServices = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
   const handleCategoryClick = (categoryValue: string) => {
-    navigate(`/busca?categoria=${categoryValue}`);
+    navigate(`/busca?servico=${categoryValue}`);
   };
 
   return (
