@@ -14,7 +14,7 @@ const Categories = () => {
     .slice(0, 8);
 
   const handleCategoryClick = (categoryValue: string) => {
-    navigate(`/busca?categoria=${categoryValue}`);
+    navigate(`/busca?servico=${categoryValue}`);
   };
 
   return (
