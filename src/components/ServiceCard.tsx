@@ -15,6 +15,7 @@ interface ServiceCardProps {
   price: string;
   image?: string;
   category: string;
+  subcategory?: string | null;
   verified?: boolean;
 }
 
@@ -28,6 +29,7 @@ const ServiceCard = ({
   price,
   image,
   category,
+  subcategory,
   verified = false,
 }: ServiceCardProps) => {
   const displayImage =
@@ -52,10 +54,15 @@ const ServiceCard = ({
           >
             <Heart className="h-4 w-4" />
           </Button>
-          <div className="absolute bottom-3 left-3 flex gap-2">
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
             <Badge className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
               {categoryLabel}
             </Badge>
+            {subcategory && (
+              <Badge variant="outline" className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
+                {subcategory}
+              </Badge>
+            )}
           </div>
         </div>
 

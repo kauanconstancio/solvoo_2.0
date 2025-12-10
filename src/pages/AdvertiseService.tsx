@@ -211,6 +211,7 @@ const AdvertiseService = () => {
         title,
         description,
         category,
+        subcategory: subcategory || null,
         price: `R$ ${price}`,
         price_type: priceType,
         state: selectedState,

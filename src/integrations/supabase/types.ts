@@ -102,6 +102,7 @@ export type Database = {
           price_type: string
           state: string
           status: string
+          subcategory: string | null
           title: string
           updated_at: string
           user_id: string
@@ -121,6 +122,7 @@ export type Database = {
           price_type?: string
           state: string
           status?: string
+          subcategory?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -140,6 +142,7 @@ export type Database = {
           price_type?: string
           state?: string
           status?: string
+          subcategory?: string | null
           title?: string
           updated_at?: string
           user_id?: string
