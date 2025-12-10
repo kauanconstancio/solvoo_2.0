@@ -20,6 +20,7 @@ import { User, Phone, MapPin, FileText, Camera, Mail, Building2, Loader2 } from 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { states, getCitiesByState } from "@/data/locations";
+import { ImageCropper } from "@/components/ImageCropper";
 
 interface Profile {
   id: string;
@@ -40,6 +41,8 @@ const Profile = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -169,16 +172,29 @@ const Profile = () => {
       return;
     }
 
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validate file size (max 5MB for original image)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Arquivo muito grande",
-        description: "A imagem deve ter no máximo 2MB.",
+        description: "A imagem deve ter no máximo 5MB.",
         variant: "destructive",
       });
       return;
     }
 
+    // Create URL for cropper
+    const imageUrl = URL.createObjectURL(file);
+    setSelectedImage(imageUrl);
+    setCropperOpen(true);
+    
+    // Reset the input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropperOpen(false);
     setUploadingAvatar(true);
 
     try {
@@ -189,30 +205,34 @@ const Profile = () => {
       }
 
       const userId = session.user.id;
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${userId}/avatar.${fileExt}`;
+      const fileName = `${userId}/avatar.jpg`;
 
-      // Upload the file
+      // Upload the cropped file
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, croppedBlob, { 
+          upsert: true,
+          contentType: "image/jpeg"
+        });
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
+      // Get the public URL with cache buster
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
         .getPublicUrl(fileName);
 
+      const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
+
       // Update the profile with the new avatar URL
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: urlWithCacheBuster })
         .eq("user_id", userId);
 
       if (updateError) throw updateError;
 
-      setAvatarUrl(publicUrl);
+      setAvatarUrl(urlWithCacheBuster);
       toast({
         title: "Foto atualizada",
         description: "Sua foto de perfil foi alterada com sucesso.",
@@ -226,6 +246,18 @@ const Profile = () => {
       });
     } finally {
       setUploadingAvatar(false);
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+        setSelectedImage(null);
+      }
+    }
+  };
+
+  const handleCropperClose = () => {
+    setCropperOpen(false);
+    if (selectedImage) {
+      URL.revokeObjectURL(selectedImage);
+      setSelectedImage(null);
     }
   };
 
@@ -441,6 +473,16 @@ const Profile = () => {
       </main>
 
       <Footer />
+
+      {selectedImage && (
+        <ImageCropper
+          open={cropperOpen}
+          onClose={handleCropperClose}
+          imageSrc={selectedImage}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+        />
+      )}
     </div>
   );
 };
