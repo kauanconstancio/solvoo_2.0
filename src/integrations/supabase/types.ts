@@ -22,6 +22,7 @@ export type Database = {
           service_id: string
           service_image: string | null
           service_price: string | null
+          service_provider: string | null
           service_title: string
           user_id: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           service_id: string
           service_image?: string | null
           service_price?: string | null
+          service_provider?: string | null
           service_title: string
           user_id: string
         }
@@ -42,6 +44,7 @@ export type Database = {
           service_id?: string
           service_image?: string | null
           service_price?: string | null
+          service_provider?: string | null
           service_title?: string
           user_id?: string
         }

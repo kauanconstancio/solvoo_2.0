@@ -466,6 +466,7 @@ const SearchResults = () => {
                   image={service.images?.[0]}
                   category={service.category}
                   verified={service.verified}
+                  providerName={service.provider_name}
                 />
               ))}
             </div>

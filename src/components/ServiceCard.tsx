@@ -18,6 +18,7 @@ interface ServiceCardProps {
   category: string;
   subcategory?: string | null;
   verified?: boolean;
+  providerName?: string | null;
 }
 
 const ServiceCard = ({
@@ -32,6 +33,7 @@ const ServiceCard = ({
   category,
   subcategory,
   verified = false,
+  providerName = null,
 }: ServiceCardProps) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const displayImage =
@@ -49,6 +51,7 @@ const ServiceCard = ({
       service_category: category,
       service_image: image || null,
       service_price: price,
+      service_provider: providerName || provider || null,
     });
   };
 
