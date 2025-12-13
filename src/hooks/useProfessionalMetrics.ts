@@ -73,15 +73,6 @@ export const useProfessionalMetrics = () => {
 
       const serviceIds = services.map(s => s.id);
 
-      // Fetch favorites count - need to count favorites from ALL users for these services
-      // The favorites table has RLS that only allows users to see their own favorites,
-      // so we need to count favorites differently - by querying without user filter
-      // Since RLS prevents this, we'll estimate from the services themselves
-      // For now, we'll track this from the client-side data we can access
-      
-      // Note: To properly count favorites from all users, we'd need a database function
-      // or a separate counter field on services. For now, showing 0 as placeholder.
-
       // Fetch conversations count
       const { data: conversations } = await supabase
         .from('conversations')
@@ -101,9 +92,8 @@ export const useProfessionalMetrics = () => {
         .select('service_id, rating')
         .in('service_id', serviceIds);
 
-      // Calculate metrics per service
+      // Calculate metrics per service - favorites_count now comes directly from the service
       const enrichedServices: ServiceMetrics[] = services.map(service => {
-        const serviceFavorites = favorites?.filter(f => f.service_id === service.id).length || 0;
         const serviceConversations = conversations?.filter(c => c.service_id === service.id).length || 0;
         const serviceReviews = reviews?.filter(r => r.service_id === service.id) || [];
         const avgRating = serviceReviews.length > 0
@@ -115,7 +105,7 @@ export const useProfessionalMetrics = () => {
           title: service.title,
           category: service.category,
           views_count: service.views_count || 0,
-          favorites_count: serviceFavorites,
+          favorites_count: (service as any).favorites_count || 0,
           conversations_count: serviceConversations,
           reviews_count: serviceReviews.length,
           average_rating: Math.round(avgRating * 10) / 10,
@@ -127,7 +117,7 @@ export const useProfessionalMetrics = () => {
 
       // Calculate totals
       const totalViews = enrichedServices.reduce((sum, s) => sum + s.views_count, 0);
-      const totalFavorites = favorites?.length || 0;
+      const totalFavorites = enrichedServices.reduce((sum, s) => sum + s.favorites_count, 0);
       const totalConversations = conversations?.length || 0;
       const totalReviews = reviews?.length || 0;
       const overallRating = totalReviews > 0
