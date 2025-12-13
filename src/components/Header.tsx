@@ -150,13 +150,15 @@ const Header = () => {
               <Heart className="h-5 w-5" />
             </Button>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
-          >
-            <MessageSquare className="h-5 w-5" />
-          </Button>
+          <Link to="/chat">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+            >
+              <MessageSquare className="h-5 w-5" />
+            </Button>
+          </Link>
 
           <Button className="hidden lg:flex hover:brightness-110 transition-smooth text-sm md:text-base">
             <a href="/anunciar">Meus Anuncios</a>
@@ -267,7 +269,7 @@ const Header = () => {
                       Favoritos
                     </Button>
                   </Link>
-                  <Link to="/mensagens">
+                  <Link to="/chat">
                     <Button
                       variant="outline"
                       className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
