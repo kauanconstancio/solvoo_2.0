@@ -72,13 +72,15 @@ export const useProfessionalMetrics = () => {
       }
 
       const serviceIds = services.map(s => s.id);
-      const serviceIdsAsStrings = serviceIds.map(id => id.toString());
 
-      // Fetch favorites count per service (service_id in favorites is text type)
-      const { data: favorites } = await supabase
-        .from('favorites')
-        .select('service_id')
-        .in('service_id', serviceIdsAsStrings);
+      // Fetch favorites count - need to count favorites from ALL users for these services
+      // The favorites table has RLS that only allows users to see their own favorites,
+      // so we need to count favorites differently - by querying without user filter
+      // Since RLS prevents this, we'll estimate from the services themselves
+      // For now, we'll track this from the client-side data we can access
+      
+      // Note: To properly count favorites from all users, we'd need a database function
+      // or a separate counter field on services. For now, showing 0 as placeholder.
 
       // Fetch conversations count
       const { data: conversations } = await supabase
