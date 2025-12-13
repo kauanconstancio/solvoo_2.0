@@ -1,4 +1,4 @@
-import { User, Heart, MessageSquare, Menu, LogOut } from "lucide-react";
+import { User, Heart, MessageSquare, Menu, LogOut, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -195,6 +195,15 @@ const Header = () => {
                     Meu Perfil
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center hover:bg-primary hover:text-primary-foreground transition-smooth"
+                  >
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
@@ -315,6 +324,15 @@ const Header = () => {
                             >
                               <User className="h-4 w-4 mr-2" />
                               Meu Perfil
+                            </Button>
+                          </Link>
+                          <Link to="/dashboard">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                            >
+                              <BarChart3 className="h-4 w-4 mr-2" />
+                              Dashboard
                             </Button>
                           </Link>
                           <Button
