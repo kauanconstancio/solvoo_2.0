@@ -27,6 +27,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useReviews, useProviderRating } from "@/hooks/useReviews";
 import ReviewsList from "@/components/ReviewsList";
 import ReviewDialog from "@/components/ReviewDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProviderProfile {
   user_id: string;
@@ -59,6 +60,7 @@ interface ServiceData {
 const ServiceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
   const [service, setService] = useState<ServiceData | null>(null);
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
@@ -70,6 +72,36 @@ const ServiceDetails = () => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { reviews, serviceRating, addReview } = useReviews(id);
   const { providerRating } = useProviderRating(provider?.user_id || null);
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: service?.title || "Serviço",
+      text: `Confira este serviço: ${service?.title} - ${service?.price}`,
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copiado!",
+          description: "O link do serviço foi copiado para a área de transferência.",
+        });
+      }
+    } catch (err) {
+      // User cancelled share or error occurred
+      if ((err as Error).name !== "AbortError") {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copiado!",
+          description: "O link do serviço foi copiado para a área de transferência.",
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -289,6 +321,7 @@ const ServiceDetails = () => {
                           size="icon"
                           variant="secondary"
                           className="bg-background/80 backdrop-blur hover:bg-background"
+                          onClick={handleShare}
                         >
                           <Share2 className="h-5 w-5" />
                         </Button>
