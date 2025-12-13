@@ -28,6 +28,7 @@ import { useReviews, useProviderRating } from "@/hooks/useReviews";
 import ReviewsList from "@/components/ReviewsList";
 import ReviewDialog from "@/components/ReviewDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateConversation } from "@/hooks/useChat";
 
 interface ProviderProfile {
   user_id: string;
@@ -72,6 +73,8 @@ const ServiceDetails = () => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { reviews, serviceRating, addReview } = useReviews(id);
   const { providerRating } = useProviderRating(provider?.user_id || null);
+  const { createOrGetConversation } = useCreateConversation();
+  const [isRequestingQuote, setIsRequestingQuote] = useState(false);
 
   // URL for Open Graph (social media crawlers)
   const ogShareUrl = `https://hgixhlcxvjvonmcxfvlc.supabase.co/functions/v1/og-service?id=${id}`;
@@ -104,6 +107,26 @@ const ServiceDetails = () => {
           description: "O link do serviço foi copiado para a área de transferência.",
         });
       }
+    }
+  };
+
+  const handleRequestQuote = async () => {
+    if (!service || !provider) return;
+    
+    setIsRequestingQuote(true);
+    
+    const autoMessage = `Olá! Tenho interesse no serviço "${service.title}" e gostaria de solicitar um orçamento.\n\nPoderia me passar mais informações sobre valores e disponibilidade?`;
+    
+    const conversationId = await createOrGetConversation(
+      service.user_id,
+      service.id,
+      autoMessage
+    );
+    
+    setIsRequestingQuote(false);
+    
+    if (conversationId) {
+      navigate(`/chat/${conversationId}`);
     }
   };
 
@@ -454,8 +477,16 @@ const ServiceDetails = () => {
                     <Separator />
 
                     <div className="space-y-2">
-                      <Button className="w-full h-12 text-base hover:brightness-110">
-                        <MessageSquare className="h-5 w-5 mr-2" />
+                      <Button 
+                        className="w-full h-12 text-base hover:brightness-110"
+                        onClick={handleRequestQuote}
+                        disabled={isRequestingQuote || currentUserId === service.user_id}
+                      >
+                        {isRequestingQuote ? (
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        ) : (
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                        )}
                         Solicitar Orçamento
                       </Button>
                     </div>
@@ -479,8 +510,16 @@ const ServiceDetails = () => {
                           {service.price}
                         </p>
                       </div>
-                      <Button className="w-full h-12 text-sm hover:brightness-110">
-                        <MessageSquare className="h-5 w-5 mr-2" />
+                      <Button 
+                        className="w-full h-12 text-sm hover:brightness-110"
+                        onClick={handleRequestQuote}
+                        disabled={isRequestingQuote || currentUserId === service.user_id}
+                      >
+                        {isRequestingQuote ? (
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        ) : (
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                        )}
                         Solicitar Orçamento
                       </Button>
                     </div>

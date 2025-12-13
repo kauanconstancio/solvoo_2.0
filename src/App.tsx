@@ -23,6 +23,8 @@ import Help from "./pages/Help";
 import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 import SearchResults from "./pages/SearchResults";
+import Chat from "./pages/Chat";
+import ChatConversation from "./pages/ChatConversation";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +89,22 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <EditService />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <Chat />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat/:conversationId"
+            element={
+              <ProtectedRoute>
+                <ChatConversation />
               </ProtectedRoute>
             }
           />
