@@ -1,1 +1,4 @@
 project_id = "hgixhlcxvjvonmcxfvlc"
+
+[functions.og-service]
+verify_jwt = false

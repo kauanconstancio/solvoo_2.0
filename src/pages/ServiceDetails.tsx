@@ -73,19 +73,23 @@ const ServiceDetails = () => {
   const { reviews, serviceRating, addReview } = useReviews(id);
   const { providerRating } = useProviderRating(provider?.user_id || null);
 
+  // URL for Open Graph (social media crawlers)
+  const ogShareUrl = `https://hgixhlcxvjvonmcxfvlc.supabase.co/functions/v1/og-service?id=${id}`;
+  // Direct URL for regular sharing
+  const directShareUrl = window.location.href;
+
   const handleShare = async () => {
-    const shareUrl = window.location.href;
     const shareData = {
       title: service?.title || "Serviço",
       text: `Confira este serviço: ${service?.title} - ${service?.price}`,
-      url: shareUrl,
+      url: ogShareUrl, // Use OG URL for rich previews
     };
 
     try {
       if (navigator.share && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(ogShareUrl);
         toast({
           title: "Link copiado!",
           description: "O link do serviço foi copiado para a área de transferência.",
@@ -94,7 +98,7 @@ const ServiceDetails = () => {
     } catch (err) {
       // User cancelled share or error occurred
       if ((err as Error).name !== "AbortError") {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(ogShareUrl);
         toast({
           title: "Link copiado!",
           description: "O link do serviço foi copiado para a área de transferência.",
