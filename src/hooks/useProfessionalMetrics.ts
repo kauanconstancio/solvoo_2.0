@@ -72,12 +72,13 @@ export const useProfessionalMetrics = () => {
       }
 
       const serviceIds = services.map(s => s.id);
+      const serviceIdsAsStrings = serviceIds.map(id => id.toString());
 
-      // Fetch favorites count per service
+      // Fetch favorites count per service (service_id in favorites is text type)
       const { data: favorites } = await supabase
         .from('favorites')
         .select('service_id')
-        .in('service_id', serviceIds);
+        .in('service_id', serviceIdsAsStrings);
 
       // Fetch conversations count
       const { data: conversations } = await supabase
