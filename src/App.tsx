@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import SearchResults from "./pages/SearchResults";
 import Chat from "./pages/Chat";
 import ChatConversation from "./pages/ChatConversation";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 
 const queryClient = new QueryClient();
 
@@ -105,6 +106,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <ChatConversation />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <ProfessionalDashboard />
               </ProtectedRoute>
             }
           />
