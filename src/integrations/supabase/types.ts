@@ -216,6 +216,7 @@ export type Database = {
           city: string
           created_at: string
           description: string
+          favorites_count: number
           id: string
           images: string[] | null
           phone: string | null
@@ -236,6 +237,7 @@ export type Database = {
           city: string
           created_at?: string
           description: string
+          favorites_count?: number
           id?: string
           images?: string[] | null
           phone?: string | null
@@ -256,6 +258,7 @@ export type Database = {
           city?: string
           created_at?: string
           description?: string
+          favorites_count?: number
           id?: string
           images?: string[] | null
           phone?: string | null
