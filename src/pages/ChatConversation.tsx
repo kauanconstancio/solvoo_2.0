@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMessages } from "@/hooks/useChat";
+import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,6 +29,7 @@ const ChatConversation = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const { messages, isLoading, sendMessage } = useMessages(conversationId);
+  const { markAsRead } = useMarkMessagesAsRead();
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -85,9 +87,13 @@ const ChatConversation = () => {
     fetchConversation();
   }, [conversationId]);
 
+  // Scroll to bottom and mark messages as read
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (conversationId && messages.length > 0) {
+      markAsRead(conversationId);
+    }
+  }, [messages, conversationId, markAsRead]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || isSending) return;
