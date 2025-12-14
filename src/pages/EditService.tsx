@@ -66,7 +66,9 @@ const EditService = () => {
       if (!id) return;
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) {
           navigate("/auth");
           return;
@@ -84,7 +86,8 @@ const EditService = () => {
         if (!data) {
           toast({
             title: "Anúncio não encontrado",
-            description: "Este anúncio não existe ou você não tem permissão para editá-lo.",
+            description:
+              "Este anúncio não existe ou você não tem permissão para editá-lo.",
             variant: "destructive",
           });
           navigate("/anunciar");
@@ -156,7 +159,9 @@ const EditService = () => {
     setUploadingImage(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast({
           title: "Erro de autenticação",
@@ -175,9 +180,9 @@ const EditService = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("service-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("service-images").getPublicUrl(fileName);
 
       setImages((prev) => [...prev, publicUrl]);
 
@@ -207,7 +212,15 @@ const EditService = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !category || !description || !price || !priceType || !selectedState || !selectedCity) {
+    if (
+      !title ||
+      !category ||
+      !description ||
+      !price ||
+      !priceType ||
+      !selectedState ||
+      !selectedCity
+    ) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -219,7 +232,9 @@ const EditService = () => {
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         toast({
@@ -262,7 +277,8 @@ const EditService = () => {
       console.error("Error updating service:", error);
       toast({
         title: "Erro ao atualizar",
-        description: error.message || "Ocorreu um erro ao salvar as alterações.",
+        description:
+          error.message || "Ocorreu um erro ao salvar as alterações.",
         variant: "destructive",
       });
     } finally {
@@ -335,13 +351,19 @@ const EditService = () => {
                 <SelectContent>
                   <SelectItem value="active">
                     <div className="flex items-center gap-2">
-                      <Badge variant="default" className="w-2 h-2 p-0 rounded-full" />
+                      <Badge
+                        variant="default"
+                        className="w-2 h-2 p-0 rounded-full"
+                      />
                       Ativo
                     </div>
                   </SelectItem>
                   <SelectItem value="paused">
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="w-2 h-2 p-0 rounded-full" />
+                      <Badge
+                        variant="secondary"
+                        className="w-2 h-2 p-0 rounded-full"
+                      />
                       Pausado
                     </div>
                   </SelectItem>
@@ -409,7 +431,13 @@ const EditService = () => {
                     disabled={!category}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={category ? "Selecione uma subcategoria" : "Selecione uma categoria primeiro"} />
+                      <SelectValue
+                        placeholder={
+                          category
+                            ? "Selecione uma subcategoria"
+                            : "Selecione uma categoria primeiro"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {categoryConfig
@@ -516,9 +544,7 @@ const EditService = () => {
                 <DollarSign className="w-5 h-5 text-primary" />
                 Preço
               </CardTitle>
-              <CardDescription>
-                Defina o valor do seu serviço
-              </CardDescription>
+              <CardDescription>Defina o valor do seu serviço</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
@@ -537,7 +563,11 @@ const EditService = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="priceType">Tipo de Cobrança *</Label>
-                  <Select value={priceType} onValueChange={setPriceType} required>
+                  <Select
+                    value={priceType}
+                    onValueChange={setPriceType}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
@@ -619,17 +649,13 @@ const EditService = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               onClick={() => navigate("/anunciar")}
               className="flex-1"
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex-1"
-            >
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

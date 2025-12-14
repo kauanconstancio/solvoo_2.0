@@ -1,4 +1,11 @@
-import { User, Heart, MessageSquare, Menu, LogOut, BarChart3 } from "lucide-react";
+import {
+  User,
+  Heart,
+  MessageSquare,
+  Menu,
+  LogOut,
+  BarChart3,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -162,8 +169,8 @@ const Header = () => {
               <MessageSquare className="h-5 w-5" />
             </Button>
             {unreadCount > 0 && (
-              <Badge 
-                variant="destructive" 
+              <Badge
+                variant="destructive"
                 className="absolute -top-1 -right-1 h-5 min-w-5 px-1 text-xs hidden lg:flex items-center justify-center"
               >
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -218,7 +225,7 @@ const Header = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-smooth"
+                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-smooth focus:bg-destructive focus:text-destructive-foreground"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
@@ -297,7 +304,10 @@ const Header = () => {
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Mensagens
                       {unreadCount > 0 && (
-                        <Badge variant="destructive" className="ml-auto h-5 min-w-5 px-1 text-xs">
+                        <Badge
+                          variant="destructive"
+                          className="ml-auto h-5 min-w-5 px-1 text-xs"
+                        >
                           {unreadCount > 99 ? "99+" : unreadCount}
                         </Badge>
                       )}
