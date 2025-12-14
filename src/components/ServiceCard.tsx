@@ -68,17 +68,24 @@ const ServiceCard = ({
           <Button
             size="icon"
             variant="ghost"
-            className="absolute top-3 right-3 bg-background/80 backdrop-blur hover:bg-background"
+            className="absolute top-3 right-3 bg-background/80 backdrop-blur hover:bg-background/90"
             onClick={handleFavoriteClick}
           >
-            <Heart className={`h-4 w-4 ${favorited ? "fill-red-500 text-red-500" : ""}`} />
+            <Heart
+              className={`h-4 w-4 ${
+                favorited ? "fill-red-500 text-red-500" : "text-foreground"
+              }`}
+            />
           </Button>
           <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
             <Badge className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
               {categoryLabel}
             </Badge>
             {subcategory && (
-              <Badge variant="outline" className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
+              <Badge
+                variant="outline"
+                className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90"
+              >
                 {subcategory}
               </Badge>
             )}
