@@ -231,13 +231,12 @@ export const useCreateConversation = () => {
         return null;
       }
 
-      // Check if conversation already exists
+      // Check if conversation already exists (only by client/professional pair, ignore service_id)
       const { data: existingConv } = await supabase
         .from('conversations')
         .select('id')
         .eq('client_id', user.id)
         .eq('professional_id', professionalId)
-        .eq('service_id', serviceId || null)
         .maybeSingle();
 
       if (existingConv) {

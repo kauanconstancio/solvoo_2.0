@@ -15,11 +15,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 interface Profile {
   full_name: string | null;
@@ -30,6 +32,7 @@ const Header = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
+  const { unreadCount } = useUnreadMessages();
 
   useEffect(() => {
     const {
@@ -150,7 +153,7 @@ const Header = () => {
               <Heart className="h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/chat">
+          <Link to="/chat" className="relative">
             <Button
               variant="ghost"
               size="icon"
@@ -158,6 +161,14 @@ const Header = () => {
             >
               <MessageSquare className="h-5 w-5" />
             </Button>
+            {unreadCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 min-w-5 px-1 text-xs hidden lg:flex items-center justify-center"
+              >
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </Badge>
+            )}
           </Link>
 
           <Button className="hidden lg:flex hover:brightness-110 transition-smooth text-sm md:text-base">
@@ -278,13 +289,18 @@ const Header = () => {
                       Favoritos
                     </Button>
                   </Link>
-                  <Link to="/chat">
+                  <Link to="/chat" className="relative w-full">
                     <Button
                       variant="outline"
                       className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
                     >
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Mensagens
+                      {unreadCount > 0 && (
+                        <Badge variant="destructive" className="ml-auto h-5 min-w-5 px-1 text-xs">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </Badge>
+                      )}
                     </Button>
                   </Link>
                 </div>
