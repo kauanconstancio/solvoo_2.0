@@ -5,6 +5,8 @@ import {
   Menu,
   LogOut,
   BarChart3,
+  ChevronDown,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -177,58 +179,74 @@ const Header = () => {
               </Badge>
             )}
           </Link>
-
-          <Button className="hidden lg:flex hover:brightness-110 transition-smooth text-sm md:text-base">
-            <a href="/anunciar">Meus Anuncios</a>
-          </Button>
-
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost"
-                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full hover:gradient-primary"
+                  variant="outline"
+                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-gray-200 hover:bg-transparent hover:text-black transition-smooth"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={profile?.avatar_url || undefined}
                       alt="Avatar"
                     />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                    <AvatarFallback className="bg-primary border-[1px] border-white text-primary-foreground text-sm">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium max-w-[120px] truncate">
                     {getUserDisplayName()}
                   </span>
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/perfil"
-                    className="flex items-center hover:bg-primary hover:text-primary-foreground transition-smooth"
-                  >
+              <DropdownMenuContent
+                className="w-56 flex flex-col gap-1"
+                align="end"
+              >
+                <DropdownMenuItem
+                  asChild
+                  className="hover:bg-primary hover:text-primary-foreground transition-smooth cursor-pointer"
+                >
+                  <Link to="/perfil">
                     <User className="mr-2 h-4 w-4" />
                     Meu Perfil
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center hover:bg-primary hover:text-primary-foreground transition-smooth"
-                  >
+                <DropdownMenuItem
+                  asChild
+                  className="hover:bg-primary hover:text-primary-foreground transition-smooth cursor-pointer"
+                >
+                  <Link to="/dashboard">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="hover:bg-primary hover:text-primary-foreground transition-smooth cursor-pointer"
+                >
+                  <Link to="/anunciar">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Meus Anuncios
+                  </Link>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
+
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground transition-smooth focus:bg-destructive focus:text-destructive-foreground"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive hover:text-destructive-foreground transition-smooth focus:bg-destructive focus:text-destructive-foreground"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start h-5 px-1 flex gap-2 items-center hover:bg-transparent"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </Button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -315,11 +333,11 @@ const Header = () => {
                   </Link>
                 </div>
                 <div className="pt-4 space-y-2 border-t">
-                  <Link to="/anunciar">
+                  {/* <Link to="/anunciar">
                     <Button className="w-full hover:brightness-110 transition-smooth text-sm md:text-base ">
                       Meus Anuncios
                     </Button>
-                  </Link>
+                  </Link> */}
                   <div>
                     {user ? (
                       <>
@@ -361,9 +379,18 @@ const Header = () => {
                               Dashboard
                             </Button>
                           </Link>
+                          <Link to="/anunciar">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Meus Anuncios
+                            </Button>
+                          </Link>
                           <Button
-                            variant="ghost"
-                            className="w-full justify-start text-destructive hover:bg-red-500 hover:text-white transition-smooth"
+                            variant="destructive"
+                            className="w-full justify-start"
                             onClick={handleLogout}
                           >
                             <LogOut className="h-4 w-4 mr-2" />
