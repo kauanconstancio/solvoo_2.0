@@ -107,7 +107,43 @@ export const useConversations = () => {
     fetchConversations();
   }, [fetchConversations]);
 
-  return { conversations, isLoading, refetch: fetchConversations };
+  const deleteConversation = useCallback(async (conversationId: string) => {
+    try {
+      // First delete all messages in the conversation
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      // Then delete the conversation
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      // Update local state
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+
+      toast({
+        title: 'Sucesso',
+        description: 'Conversa excluída com sucesso.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting conversation:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir a conversa.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [toast]);
+
+  return { conversations, isLoading, refetch: fetchConversations, deleteConversation };
 };
 
 export const useMessages = (conversationId: string | undefined) => {

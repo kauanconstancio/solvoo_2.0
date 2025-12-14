@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Send, Loader2, MoreVertical, ExternalLink } from "lucide-react";
+import { ArrowLeft, Send, Loader2, MoreVertical, ExternalLink, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,9 +9,20 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMessages } from "@/hooks/useChat";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useMessages, useConversations } from "@/hooks/useChat";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
@@ -29,6 +40,7 @@ const ChatConversation = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const { messages, isLoading, sendMessage } = useMessages(conversationId);
+  const { deleteConversation } = useConversations();
   const { markAsRead } = useMarkMessagesAsRead();
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -39,6 +51,8 @@ const ChatConversation = () => {
     avatar_url: string | null;
   } | null>(null);
   const [service, setService] = useState<ServiceInfo | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -94,6 +108,17 @@ const ChatConversation = () => {
       markAsRead(conversationId);
     }
   }, [messages, conversationId, markAsRead]);
+
+  const handleDeleteConversation = async () => {
+    if (!conversationId) return;
+    setIsDeleting(true);
+    const success = await deleteConversation(conversationId);
+    setIsDeleting(false);
+    if (success) {
+      navigate("/chat");
+    }
+    setDeleteDialogOpen(false);
+  };
 
   const handleSend = async () => {
     if (!newMessage.trim() || isSending) return;
@@ -202,6 +227,14 @@ const ChatConversation = () => {
                   </Link>
                 </DropdownMenuItem>
               )}
+              {service && <DropdownMenuSeparator />}
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir conversa
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -339,6 +372,35 @@ const ChatConversation = () => {
           </p>
         </div>
       </footer>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão permanentemente excluídas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
