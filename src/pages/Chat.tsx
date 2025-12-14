@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, Loader2, Search, Inbox, ArrowRight, Trash2, MoreVertical } from "lucide-react";
+import {
+  MessageSquare,
+  Loader2,
+  Search,
+  Inbox,
+  ArrowRight,
+  Trash2,
+  MoreVertical,
+} from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,12 +43,16 @@ const Chat = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [conversationToDelete, setConversationToDelete] = useState<
+    string | null
+  >(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -63,7 +75,10 @@ const Chat = () => {
     });
   };
 
-  const truncateMessage = (message: string | undefined, maxLength: number = 45) => {
+  const truncateMessage = (
+    message: string | undefined,
+    maxLength: number = 45
+  ) => {
     if (!message) return "Nenhuma mensagem ainda";
     if (message.length <= maxLength) return message;
     return message.slice(0, maxLength) + "...";
@@ -100,7 +115,9 @@ const Chat = () => {
         <main className="flex-1 flex items-center justify-center bg-gradient-hero">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Carregando conversas...</p>
+            <p className="text-sm text-muted-foreground">
+              Carregando conversas...
+            </p>
           </div>
         </main>
         <Footer />
@@ -120,10 +137,11 @@ const Chat = () => {
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">Mensagens</h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {conversations.length} {conversations.length === 1 ? "conversa" : "conversas"}
+                  {conversations.length}{" "}
+                  {conversations.length === 1 ? "conversa" : "conversas"}
                 </p>
               </div>
-              
+
               {conversations.length > 0 && (
                 <div className="relative w-full md:w-72">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -148,7 +166,8 @@ const Chat = () => {
                     Sua caixa de entrada está vazia
                   </h3>
                   <p className="text-muted-foreground max-w-sm mx-auto mb-6">
-                    Encontre um serviço e solicite um orçamento para iniciar uma conversa com o profissional.
+                    Encontre um serviço e solicite um orçamento para iniciar uma
+                    conversa com o profissional.
                   </p>
                   <Button onClick={() => navigate("/categorias")}>
                     Explorar Serviços
@@ -178,26 +197,20 @@ const Chat = () => {
                   >
                     <CardContent className="p-0">
                       <div className="flex items-stretch">
-                        {/* Service Image Thumbnail */}
-                        {conversation.service?.images?.[0] && (
-                          <div className="hidden sm:block w-24 h-24 flex-shrink-0 bg-muted">
-                            <img
-                              src={conversation.service.images[0]}
-                              alt={conversation.service.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        
                         <div className="flex-1 p-4 flex items-center gap-4">
                           {/* Avatar */}
                           <div className="relative">
                             <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-background shadow-sm">
                               <AvatarImage
-                                src={conversation.other_user?.avatar_url || undefined}
+                                src={
+                                  conversation.other_user?.avatar_url ||
+                                  undefined
+                                }
                               />
                               <AvatarFallback className="bg-primary text-primary-foreground font-medium">
-                                {getInitials(conversation.other_user?.full_name)}
+                                {getInitials(
+                                  conversation.other_user?.full_name
+                                )}
                               </AvatarFallback>
                             </Avatar>
                             {/* Online indicator could go here */}
@@ -207,40 +220,59 @@ const Chat = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
-                                {conversation.other_user?.full_name || "Usuário"}
+                                {conversation.other_user?.full_name ||
+                                  "Usuário"}
                               </h3>
                               <span className="text-xs text-muted-foreground flex-shrink-0 bg-muted px-2 py-0.5 rounded-full">
                                 {formatDate(conversation.last_message_at)}
                               </span>
                             </div>
-                            
+
                             {conversation.service && (
-                              <Badge variant="secondary" className="mb-1.5 text-xs font-normal">
-                                {conversation.service.title.length > 30 
-                                  ? conversation.service.title.slice(0, 30) + "..." 
+                              <Badge
+                                variant="secondary"
+                                className="mb-1.5 text-xs font-normal"
+                              >
+                                {conversation.service.title.length > 30
+                                  ? conversation.service.title.slice(0, 30) +
+                                    "..."
                                   : conversation.service.title}
                               </Badge>
                             )}
-                            
+
                             <p className="text-sm text-muted-foreground truncate">
-                              {conversation.last_message?.sender_id === currentUserId && (
-                                <span className="text-foreground font-medium">Você: </span>
+                              {conversation.last_message?.sender_id ===
+                                currentUserId && (
+                                <span className="text-foreground font-medium">
+                                  Você:{" "}
+                                </span>
                               )}
-                              {truncateMessage(conversation.last_message?.content)}
+                              {truncateMessage(
+                                conversation.last_message?.content
+                              )}
                             </p>
                           </div>
 
                           {/* Actions */}
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenuTrigger
+                              asChild
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:gradient-primary"
+                              >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={(e) => handleDeleteClick(e, conversation.id)}
+                                className="text-destructive hover:bg-destructive hover:text-white focus:bg-destructive focus:text-white"
+                                onClick={(e) =>
+                                  handleDeleteClick(e, conversation.id)
+                                }
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Excluir conversa
@@ -266,15 +298,21 @@ const Chat = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão permanentemente excluídas.
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa
+              serão permanentemente excluídas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="hover:gradient-primary transition-all duration-300"
+            >
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className=""
             >
               {isDeleting ? (
                 <>

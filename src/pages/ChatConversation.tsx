@@ -1,6 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Send, Loader2, MoreVertical, ExternalLink, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  Loader2,
+  MoreVertical,
+  ExternalLink,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -58,7 +65,9 @@ const ChatConversation = () => {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -75,8 +84,11 @@ const ChatConversation = () => {
         .maybeSingle();
 
       if (conv) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const otherUserId = conv.client_id === user?.id ? conv.professional_id : conv.client_id;
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const otherUserId =
+          conv.client_id === user?.id ? conv.professional_id : conv.client_id;
 
         const { data: profile } = await supabase
           .from("profiles")
@@ -172,7 +184,9 @@ const ChatConversation = () => {
         <main className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Carregando mensagens...</p>
+            <p className="text-sm text-muted-foreground">
+              Carregando mensagens...
+            </p>
           </div>
         </main>
       </div>
@@ -188,7 +202,7 @@ const ChatConversation = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/chat")}
-            className="flex-shrink-0"
+            className="flex-shrink-0 hover:bg-primary hover:text-primary-foreground"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -214,22 +228,17 @@ const ChatConversation = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="flex-shrink-0 hover:gradient-primary hover:text-primary-foreground"
+              >
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {service && (
-                <DropdownMenuItem asChild>
-                  <Link to={`/servico/${service.id}`} className="flex items-center">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Ver serviço
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              {service && <DropdownMenuSeparator />}
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
+                className="text-destructive hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -239,31 +248,6 @@ const ChatConversation = () => {
           </DropdownMenu>
         </div>
       </header>
-
-      {/* Service Banner (if exists) */}
-      {service && (
-        <Link 
-          to={`/servico/${service.id}`}
-          className="bg-background border-b px-4 py-3 flex items-center gap-3 hover:bg-muted/50 transition-colors"
-        >
-          <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-            {service.images?.[0] ? (
-              <img
-                src={service.images[0]}
-                alt={service.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-primary/10" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{service.title}</p>
-            <p className="text-sm text-primary font-semibold">{service.price}</p>
-          </div>
-          <ExternalLink className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        </Link>
-      )}
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto">
@@ -325,7 +309,9 @@ const ChatConversation = () => {
                       <p
                         className={cn(
                           "text-[10px] mt-1.5 text-right",
-                          isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+                          isOwn
+                            ? "text-primary-foreground/60"
+                            : "text-muted-foreground"
                         )}
                       >
                         {formatMessageTime(message.created_at)}
@@ -379,11 +365,17 @@ const ChatConversation = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão permanentemente excluídas.
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa
+              serão permanentemente excluídas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="hover:gradient-primary"
+            >
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConversation}
               disabled={isDeleting}
