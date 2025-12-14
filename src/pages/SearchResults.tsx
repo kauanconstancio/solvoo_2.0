@@ -9,7 +9,6 @@ import {
   Filter,
   ChevronsUpDownIcon,
   CheckIcon,
-  Star,
   BadgeCheck,
   X,
   Loader2,
