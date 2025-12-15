@@ -7,6 +7,7 @@ import {
   BarChart3,
   ChevronDown,
   Pencil,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Profile {
   full_name: string | null;
@@ -42,6 +44,7 @@ const Header = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const navigate = useNavigate();
   const { unreadCount } = useUnreadMessages();
+  const { hasAnyRole } = useUserRole();
 
   useEffect(() => {
     const {
@@ -229,9 +232,20 @@ const Header = () => {
                 >
                   <Link to="/anunciar">
                     <Pencil className="mr-2 h-4 w-4" />
-                    Meus Anuncios
+                    Meus Anúncios
                   </Link>
                 </DropdownMenuItem>
+                {hasAnyRole && (
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
+                  >
+                    <Link to="/admin">
+                      <Shield className="mr-2 h-4 w-4" />
+                      Painel Admin
+                    </Link>
+                  </DropdownMenuItem>
+                )}
 
                 <DropdownMenuSeparator />
 
@@ -380,9 +394,20 @@ const Header = () => {
                               className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
                             >
                               <Pencil className="mr-2 h-4 w-4" />
-                              Meus Anuncios
+                              Meus Anúncios
                             </Button>
                           </Link>
+                          {hasAnyRole && (
+                            <Link to="/admin">
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
+                              >
+                                <Shield className="mr-2 h-4 w-4" />
+                                Painel Admin
+                              </Button>
+                            </Link>
+                          )}
                           <Button
                             variant="destructive"
                             className="w-full justify-start"
