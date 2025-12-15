@@ -12,7 +12,9 @@ import {
   Loader2,
   ArrowLeft,
   PenLine,
+  Flag,
 } from "lucide-react";
+import ReportUserDialog from "@/components/ReportUserDialog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -598,13 +600,30 @@ const ServiceDetails = () => {
 
                     <Separator />
 
-                    <Button
-                      variant="outline"
-                      className="w-full hover:bg-primary transition-smooth"
-                      onClick={() => setIsProfileDialogOpen(true)}
-                    >
-                      Ver perfil completo
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 hover:bg-primary transition-smooth"
+                        onClick={() => setIsProfileDialogOpen(true)}
+                      >
+                        Ver perfil completo
+                      </Button>
+                      {service.user_id && currentUserId !== service.user_id && (
+                        <ReportUserDialog
+                          reportedUserId={service.user_id}
+                          reportedUserName={provider?.full_name}
+                          trigger={
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Flag className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </div>

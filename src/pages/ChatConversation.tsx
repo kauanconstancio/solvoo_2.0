@@ -14,7 +14,9 @@ import {
   Download,
   Reply,
   CornerDownRight,
+  Flag,
 } from "lucide-react";
+import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -397,6 +399,21 @@ const ChatConversation = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
+              {otherUser && (
+                <ReportUserDialog
+                  reportedUserId={otherUser.user_id}
+                  reportedUserName={otherUser.full_name}
+                  trigger={
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                      onSelect={(e) => e.preventDefault()}
+                    >
+                      <Flag className="h-4 w-4 mr-2" />
+                      Denunciar usuário
+                    </DropdownMenuItem>
+                  }
+                />
+              )}
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive focus:bg-destructive/10"
                 onClick={() => setDeleteDialogOpen(true)}

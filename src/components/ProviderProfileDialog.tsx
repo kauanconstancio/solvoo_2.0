@@ -6,7 +6,9 @@ import {
   Loader2,
   Star,
   PenLine,
+  Flag,
 } from "lucide-react";
+import ReportUserDialog from "@/components/ReportUserDialog";
 import {
   Dialog,
   DialogContent,
@@ -377,14 +379,31 @@ const ProviderProfileDialog = ({
                     Avaliações ({allReviews.length})
                   </h3>
                   {services.length > 0 && currentUserId !== userId && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleWriteReview}
-                    >
-                      <PenLine className="h-4 w-4 mr-2" />
-                      Escrever avaliação
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleWriteReview}
+                      >
+                        <PenLine className="h-4 w-4 mr-2" />
+                        Escrever avaliação
+                      </Button>
+                      {userId && (
+                        <ReportUserDialog
+                          reportedUserId={userId}
+                          reportedUserName={provider?.full_name}
+                          trigger={
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Flag className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
                 <ReviewsList reviews={allReviews} />
