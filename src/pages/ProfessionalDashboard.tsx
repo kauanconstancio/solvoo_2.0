@@ -228,6 +228,8 @@ const ProfessionalDashboard = () => {
                           <YAxis 
                             className="text-xs"
                             tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                            domain={[0, (dataMax: number) => Math.max(dataMax, 1)]}
+                            allowDecimals={false}
                           />
                           <Tooltip 
                             contentStyle={{ 
