@@ -232,8 +232,19 @@ export const useMessages = (conversationId: string | undefined) => {
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMessage = payload.new as Message;
+          
+          // Fetch reply_to message if exists
+          if (newMessage.reply_to_id) {
+            const { data: replyMsg } = await supabase
+              .from('messages')
+              .select('id, content, sender_id, message_type, file_name')
+              .eq('id', newMessage.reply_to_id)
+              .maybeSingle();
+            newMessage.reply_to = replyMsg;
+          }
+          
           setMessages((prev) => [...prev, newMessage]);
         }
       )
