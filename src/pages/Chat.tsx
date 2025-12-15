@@ -188,7 +188,7 @@ const Chat = () => {
                 {filteredConversations.map((conversation) => (
                   <Card
                     key={conversation.id}
-                    className="cursor-pointer hover:bg-accent/50 border-border/50 transition-all duration-200 group"
+                    className="cursor-pointer hover:shadow-soft hover:border-primary/20 transition-all duration-300 group"
                     onClick={() => navigate(`/chat/${conversation.id}`)}
                   >
                     <CardContent className="p-3 md:p-4">
