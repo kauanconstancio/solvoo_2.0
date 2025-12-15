@@ -267,16 +267,52 @@ export const useCreateConversation = () => {
         return null;
       }
 
-      // Check if conversation already exists (only by client/professional pair, ignore service_id)
-      const { data: existingConv } = await supabase
+      // Check if conversation already exists between these two users (in either direction)
+      const { data: existingConvAsClient } = await supabase
         .from('conversations')
         .select('id')
         .eq('client_id', user.id)
         .eq('professional_id', professionalId)
         .maybeSingle();
 
-      if (existingConv) {
-        return existingConv.id;
+      if (existingConvAsClient) {
+        // If auto message provided, send it to existing conversation
+        if (autoMessage) {
+          await supabase.from('messages').insert({
+            conversation_id: existingConvAsClient.id,
+            sender_id: user.id,
+            content: autoMessage,
+          });
+          // Update last_message_at
+          await supabase
+            .from('conversations')
+            .update({ last_message_at: new Date().toISOString() })
+            .eq('id', existingConvAsClient.id);
+        }
+        return existingConvAsClient.id;
+      }
+
+      // Also check if user is the professional in an existing conversation
+      const { data: existingConvAsProfessional } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('professional_id', user.id)
+        .eq('client_id', professionalId)
+        .maybeSingle();
+
+      if (existingConvAsProfessional) {
+        if (autoMessage) {
+          await supabase.from('messages').insert({
+            conversation_id: existingConvAsProfessional.id,
+            sender_id: user.id,
+            content: autoMessage,
+          });
+          await supabase
+            .from('conversations')
+            .update({ last_message_at: new Date().toISOString() })
+            .eq('id', existingConvAsProfessional.id);
+        }
+        return existingConvAsProfessional.id;
       }
 
       // Create new conversation

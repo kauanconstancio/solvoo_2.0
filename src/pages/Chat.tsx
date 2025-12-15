@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Trash2,
   MoreVertical,
+  MessagesSquare,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -43,16 +44,12 @@ const Chat = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [conversationToDelete, setConversationToDelete] = useState<
-    string | null
-  >(null);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -75,10 +72,7 @@ const Chat = () => {
     });
   };
 
-  const truncateMessage = (
-    message: string | undefined,
-    maxLength: number = 45
-  ) => {
+  const truncateMessage = (message: string | undefined, maxLength: number = 50) => {
     if (!message) return "Nenhuma mensagem ainda";
     if (message.length <= maxLength) return message;
     return message.slice(0, maxLength) + "...";
@@ -110,14 +104,14 @@ const Chat = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1 flex items-center justify-center bg-gradient-hero">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">
-              Carregando conversas...
-            </p>
+        <main className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+            <p className="text-muted-foreground font-medium">Carregando conversas...</p>
           </div>
         </main>
         <Footer />
@@ -126,156 +120,153 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-hero">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1 py-6 md:py-10">
-        <div className="container px-4 md:px-6">
-          <div className="max-w-3xl mx-auto">
+      <main className="flex-1">
+        <div className="container px-4 md:px-6 py-6 md:py-8">
+          <div className="max-w-4xl mx-auto">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Mensagens</h1>
-                <p className="text-muted-foreground text-sm mt-1">
-                  {conversations.length}{" "}
-                  {conversations.length === 1 ? "conversa" : "conversas"}
-                </p>
+            <div className="mb-6 md:mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <MessagesSquare className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-xl md:text-2xl font-bold">Mensagens</h1>
+                  <p className="text-muted-foreground text-sm">
+                    {conversations.length} {conversations.length === 1 ? "conversa" : "conversas"}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              {conversations.length > 0 && (
-                <div className="relative w-full md:w-72">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* Search Bar */}
+            {conversations.length > 0 && (
+              <div className="mb-4 md:mb-6">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar conversas..."
+                    placeholder="Buscar por nome ou serviço..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 bg-background"
+                    className="pl-11 h-12 bg-card border-border/50 rounded-xl text-base"
                   />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Empty State */}
             {conversations.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-16 text-center">
-                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <Card className="border-dashed border-2 bg-card/50">
+                <CardContent className="py-16 md:py-20 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
                     <Inbox className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    Sua caixa de entrada está vazia
-                  </h3>
-                  <p className="text-muted-foreground max-w-sm mx-auto mb-6">
-                    Encontre um serviço e solicite um orçamento para iniciar uma
-                    conversa com o profissional.
+                  <h3 className="text-xl font-semibold mb-3">Sua caixa de entrada está vazia</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-8">
+                    Encontre um serviço e solicite um orçamento para iniciar uma conversa com o profissional.
                   </p>
-                  <Button onClick={() => navigate("/categorias")}>
+                  <Button size="lg" onClick={() => navigate("/categorias")} className="rounded-xl">
                     Explorar Serviços
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>
             ) : filteredConversations.length === 0 ? (
-              <Card>
+              <Card className="bg-card/50">
                 <CardContent className="py-12 text-center">
-                  <Search className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    Nenhum resultado encontrado
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Tente buscar por outro nome ou serviço.
-                  </p>
+                  <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Nenhum resultado encontrado</h3>
+                  <p className="text-muted-foreground">Tente buscar por outro nome ou serviço.</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {filteredConversations.map((conversation) => (
                   <Card
                     key={conversation.id}
-                    className="cursor-pointer hover:shadow-soft hover:border-primary/20 transition-all duration-300 group overflow-hidden"
+                    className="cursor-pointer hover:bg-accent/50 border-border/50 transition-all duration-200 group"
                     onClick={() => navigate(`/chat/${conversation.id}`)}
                   >
-                    <CardContent className="p-0">
-                      <div className="flex items-stretch">
-                        <div className="flex-1 p-4 flex items-center gap-4">
-                          {/* Avatar */}
-                          <div className="relative">
-                            <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-background shadow-sm">
-                              <AvatarImage
-                                src={
-                                  conversation.other_user?.avatar_url ||
-                                  undefined
-                                }
-                              />
-                              <AvatarFallback className="bg-primary text-primary-foreground font-medium">
-                                {getInitials(
-                                  conversation.other_user?.full_name
-                                )}
-                              </AvatarFallback>
-                            </Avatar>
-                            {/* Online indicator could go here */}
+                    <CardContent className="p-3 md:p-4">
+                      <div className="flex items-center gap-3 md:gap-4">
+                        {/* Avatar */}
+                        <Avatar className="h-12 w-12 md:h-14 md:w-14 flex-shrink-0 ring-2 ring-border/50">
+                          <AvatarImage src={conversation.other_user?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm md:text-base">
+                            {getInitials(conversation.other_user?.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-0.5">
+                            <h3 className="font-semibold text-sm md:text-base truncate group-hover:text-primary transition-colors">
+                              {conversation.other_user?.full_name || "Usuário"}
+                            </h3>
+                            <span className="text-[11px] md:text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
+                              {formatDate(conversation.last_message_at)}
+                            </span>
                           </div>
 
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
-                                {conversation.other_user?.full_name ||
-                                  "Usuário"}
-                              </h3>
-                              <span className="text-xs text-muted-foreground flex-shrink-0 bg-muted px-2 py-0.5 rounded-full">
-                                {formatDate(conversation.last_message_at)}
-                              </span>
-                            </div>
+                          {conversation.service && (
+                            <Badge variant="secondary" className="mb-1 text-[10px] md:text-xs font-normal h-5 px-2">
+                              {conversation.service.title.length > 25
+                                ? conversation.service.title.slice(0, 25) + "..."
+                                : conversation.service.title}
+                            </Badge>
+                          )}
 
-                            {conversation.service && (
-                              <Badge
-                                variant="secondary"
-                                className="mb-1.5 text-xs font-normal"
-                              >
-                                {conversation.service.title.length > 30
-                                  ? conversation.service.title.slice(0, 30) +
-                                    "..."
-                                  : conversation.service.title}
-                              </Badge>
+                          <p className="text-xs md:text-sm text-muted-foreground truncate">
+                            {conversation.last_message?.sender_id === currentUserId && (
+                              <span className="text-foreground/70">Você: </span>
                             )}
+                            {truncateMessage(conversation.last_message?.content)}
+                          </p>
+                        </div>
 
-                            <p className="text-sm text-muted-foreground truncate">
-                              {conversation.last_message?.sender_id ===
-                                currentUserId && (
-                                <span className="text-foreground font-medium">
-                                  Você:{" "}
-                                </span>
-                              )}
-                              {truncateMessage(
-                                conversation.last_message?.content
-                              )}
-                            </p>
-                          </div>
-
-                          {/* Actions */}
+                        {/* Actions - Desktop */}
+                        <div className="hidden md:block">
                           <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground transition-smooth"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                onClick={(e) =>
-                                  handleDeleteClick(e, conversation.id)
-                                }
-                                className="hover:bg-destructive hover:text-white focus:bg-destructive focus:text-white transition-smooth"
+                                onClick={(e) => handleDeleteClick(e, conversation.id)}
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Excluir conversa
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        {/* Actions - Mobile */}
+                        <div className="md:hidden">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={(e) => handleDeleteClick(e, conversation.id)}
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -294,25 +285,21 @@ const Chat = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] md:max-w-md rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Todas as mensagens desta conversa
-              serão permanentemente excluídas.
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão permanentemente excluídas.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isDeleting}
-              className="hover:gradient-primary transition-all duration-300"
-            >
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               disabled={isDeleting}
-              className=""
+              className="bg-destructive hover:bg-destructive/90 rounded-xl"
             >
               {isDeleting ? (
                 <>
