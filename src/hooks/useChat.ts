@@ -9,6 +9,9 @@ export interface Message {
   content: string;
   read_at: string | null;
   created_at: string;
+  message_type?: string;
+  file_url?: string | null;
+  file_name?: string | null;
 }
 
 export interface Conversation {
@@ -215,7 +218,12 @@ export const useMessages = (conversationId: string | undefined) => {
     };
   }, [conversationId]);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (
+    content: string,
+    messageType: string = 'text',
+    fileUrl?: string,
+    fileName?: string
+  ) => {
     if (!conversationId) return;
 
     try {
@@ -226,6 +234,9 @@ export const useMessages = (conversationId: string | undefined) => {
         conversation_id: conversationId,
         sender_id: user.id,
         content,
+        message_type: messageType,
+        file_url: fileUrl || null,
+        file_name: fileName || null,
       });
 
       if (error) throw error;
@@ -246,7 +257,51 @@ export const useMessages = (conversationId: string | undefined) => {
     }
   };
 
-  return { messages, isLoading, sendMessage, refetch: fetchMessages };
+  const sendFile = async (file: File) => {
+    if (!conversationId) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${conversationId}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('chat-files')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('chat-files')
+        .getPublicUrl(filePath);
+
+      // Determine message type based on file type
+      const isImage = file.type.startsWith('image/');
+      const messageType = isImage ? 'image' : 'file';
+
+      // Send message with file
+      await sendMessage(
+        isImage ? '📷 Imagem' : `📎 ${file.name}`,
+        messageType,
+        publicUrl,
+        file.name
+      );
+
+    } catch (error: any) {
+      console.error('Error sending file:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar o arquivo.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return { messages, isLoading, sendMessage, sendFile, refetch: fetchMessages };
 };
 
 export const useCreateConversation = () => {

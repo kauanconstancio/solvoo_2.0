@@ -7,6 +7,11 @@ import {
   MoreVertical,
   Trash2,
   MessageCircle,
+  Paperclip,
+  Image as ImageIcon,
+  X,
+  FileIcon,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,11 +33,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useMessages, useConversations } from "@/hooks/useChat";
+import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface ServiceInfo {
   id: string;
@@ -41,15 +48,29 @@ interface ServiceInfo {
   price: string;
 }
 
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1 px-3 py-2">
+    <div className="flex gap-1">
+      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+    </div>
+  </div>
+);
+
 const ChatConversation = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
-  const { messages, isLoading, sendMessage } = useMessages(conversationId);
+  const { toast } = useToast();
+  const { messages, isLoading, sendMessage, sendFile } = useMessages(conversationId);
   const { deleteConversation } = useConversations();
   const { markAsRead } = useMarkMessagesAsRead();
+  const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(conversationId);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserName, setCurrentUserName] = useState<string | null>(null);
   const [otherUser, setOtherUser] = useState<{
     user_id: string;
     full_name: string | null;
@@ -58,13 +79,24 @@ const ChatConversation = () => {
   const [service, setService] = useState<ServiceInfo | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
+      
+      if (user?.id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setCurrentUserName(profile?.full_name || null);
+      }
     };
     getUser();
   }, []);
@@ -127,6 +159,7 @@ const ChatConversation = () => {
     if (!newMessage.trim() || isSending) return;
 
     setIsSending(true);
+    setTyping(false, currentUserName || undefined);
     await sendMessage(newMessage.trim());
     setNewMessage("");
     setIsSending(false);
@@ -137,6 +170,39 @@ const ChatConversation = () => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+    if (e.target.value.trim()) {
+      setTyping(true, currentUserName || undefined);
+    } else {
+      setTyping(false, currentUserName || undefined);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingFile(true);
+    await sendFile(file);
+    setIsUploadingFile(false);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -166,6 +232,84 @@ const ChatConversation = () => {
     const currentDate = new Date(messages[currentIndex].created_at);
     const prevDate = new Date(messages[currentIndex - 1].created_at);
     return !isSameDay(currentDate, prevDate);
+  };
+
+  const renderMessageContent = (message: typeof messages[0], isOwn: boolean) => {
+    const messageType = message.message_type || 'text';
+
+    if (messageType === 'image' && message.file_url) {
+      return (
+        <div className="space-y-1">
+          <img
+            src={message.file_url}
+            alt={message.file_name || "Imagem"}
+            className="max-w-[250px] md:max-w-[300px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => setPreviewImage(message.file_url!)}
+          />
+          <p
+            className={cn(
+              "text-[10px] text-right",
+              isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+            )}
+          >
+            {formatMessageTime(message.created_at)}
+          </p>
+        </div>
+      );
+    }
+
+    if (messageType === 'file' && message.file_url) {
+      return (
+        <div className="space-y-1">
+          <a
+            href={message.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "flex items-center gap-2 p-2 rounded-lg transition-colors",
+              isOwn ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" : "bg-muted hover:bg-muted/80"
+            )}
+          >
+            <FileIcon className="h-8 w-8 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{message.file_name || "Arquivo"}</p>
+              <p className={cn(
+                "text-xs",
+                isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+              )}>
+                Clique para baixar
+              </p>
+            </div>
+            <Download className="h-4 w-4 flex-shrink-0" />
+          </a>
+          <p
+            className={cn(
+              "text-[10px] text-right",
+              isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+            )}
+          >
+            {formatMessageTime(message.created_at)}
+          </p>
+        </div>
+      );
+    }
+
+    // Default text message
+    return (
+      <>
+        <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+          {message.content}
+        </p>
+        <p
+          className={cn(
+            "text-[10px] mt-1 text-right",
+            isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+          )}
+        >
+          {formatMessageTime(message.created_at)}
+        </p>
+      </>
+    );
   };
 
   if (isLoading) {
@@ -209,7 +353,11 @@ const ChatConversation = () => {
               <h1 className="font-semibold text-sm md:text-base truncate">
                 {otherUser?.full_name || "Usuário"}
               </h1>
-              <p className="text-xs text-muted-foreground">Online</p>
+              {isOtherUserTyping ? (
+                <p className="text-xs text-primary font-medium">Digitando...</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Online</p>
+              )}
             </div>
           </div>
 
@@ -250,62 +398,67 @@ const ChatConversation = () => {
               </p>
             </div>
           ) : (
-            messages.map((message, index) => {
-              const isOwn = message.sender_id === currentUserId;
-              const showDateDivider = shouldShowDateDivider(index);
+            <>
+              {messages.map((message, index) => {
+                const isOwn = message.sender_id === currentUserId;
+                const showDateDivider = shouldShowDateDivider(index);
 
-              return (
-                <div key={message.id}>
-                  {/* Date Divider */}
-                  {showDateDivider && (
-                    <div className="flex items-center justify-center my-4 md:my-6">
-                      <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
-                        {formatDateDivider(message.created_at)}
+                return (
+                  <div key={message.id}>
+                    {/* Date Divider */}
+                    {showDateDivider && (
+                      <div className="flex items-center justify-center my-4 md:my-6">
+                        <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
+                          {formatDateDivider(message.created_at)}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Message */}
-                  <div
-                    className={cn(
-                      "flex gap-2 animate-fade-in",
-                      isOwn ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    {!isOwn && (
-                      <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
-                        <AvatarImage src={otherUser?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                          {getInitials(otherUser?.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
+                    {/* Message */}
                     <div
                       className={cn(
-                        "max-w-[80%] md:max-w-[65%] rounded-2xl px-4 py-2.5 shadow-sm",
-                        isOwn
-                          ? "bg-primary text-primary-foreground rounded-br-md"
-                          : "bg-card border border-border/50 rounded-bl-md"
+                        "flex gap-2 animate-fade-in",
+                        isOwn ? "justify-end" : "justify-start"
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                        {message.content}
-                      </p>
-                      <p
+                      {!isOwn && (
+                        <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
+                          <AvatarImage src={otherUser?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                            {getInitials(otherUser?.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div
                         className={cn(
-                          "text-[10px] mt-1 text-right",
+                          "max-w-[80%] md:max-w-[65%] rounded-2xl px-4 py-2.5 shadow-sm",
                           isOwn
-                            ? "text-primary-foreground/60"
-                            : "text-muted-foreground"
+                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            : "bg-card border border-border/50 rounded-bl-md"
                         )}
                       >
-                        {formatMessageTime(message.created_at)}
-                      </p>
+                        {renderMessageContent(message, isOwn)}
+                      </div>
                     </div>
                   </div>
+                );
+              })}
+              
+              {/* Typing Indicator */}
+              {isOtherUserTyping && (
+                <div className="flex gap-2 justify-start animate-fade-in">
+                  <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
+                    <AvatarImage src={otherUser?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                      {getInitials(otherUser?.full_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md shadow-sm">
+                    <TypingIndicator />
+                  </div>
                 </div>
-              );
-            })
+              )}
+            </>
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -315,21 +468,43 @@ const ChatConversation = () => {
       <footer className="sticky bottom-0 border-t bg-card/95 backdrop-blur-sm p-3 md:p-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end gap-2 md:gap-3">
+            {/* File Upload Button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx,.txt,.xls,.xlsx"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingFile || isSending}
+              className="h-12 w-12 flex-shrink-0 rounded-xl hover:bg-muted"
+            >
+              {isUploadingFile ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Paperclip className="h-5 w-5" />
+              )}
+            </Button>
+
             <div className="flex-1 relative">
               <Textarea
                 ref={textareaRef}
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Digite sua mensagem..."
                 className="min-h-[48px] max-h-32 resize-none bg-muted/50 border-border/50 rounded-xl pr-4 text-sm md:text-base focus-visible:ring-primary/50"
-                disabled={isSending}
+                disabled={isSending || isUploadingFile}
                 rows={1}
               />
             </div>
             <Button
               onClick={handleSend}
-              disabled={!newMessage.trim() || isSending}
+              disabled={!newMessage.trim() || isSending || isUploadingFile}
               size="icon"
               className="h-12 w-12 flex-shrink-0 rounded-xl shadow-sm"
             >
@@ -345,6 +520,29 @@ const ChatConversation = () => {
           </p>
         </div>
       </footer>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-white hover:bg-white/20"
+            onClick={() => setPreviewImage(null)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+          <img
+            src={previewImage}
+            alt="Preview"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
