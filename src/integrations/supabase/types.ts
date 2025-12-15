@@ -214,18 +214,21 @@ export type Database = {
         Row: {
           id: string
           service_id: string
+          view_date: string | null
           viewed_at: string
           viewer_id: string | null
         }
         Insert: {
           id?: string
           service_id: string
+          view_date?: string | null
           viewed_at?: string
           viewer_id?: string | null
         }
         Update: {
           id?: string
           service_id?: string
+          view_date?: string | null
           viewed_at?: string
           viewer_id?: string | null
         }
