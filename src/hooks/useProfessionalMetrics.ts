@@ -28,7 +28,7 @@ export interface DashboardMetrics {
   recent_conversations: number;
 }
 
-export const useProfessionalMetrics = () => {
+export const useProfessionalMetrics = (periodDays: number = 7) => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [serviceMetrics, setServiceMetrics] = useState<ServiceMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,19 +79,19 @@ export const useProfessionalMetrics = () => {
         .select('id, service_id, created_at')
         .eq('professional_id', user.id);
 
-      // Fetch recent conversations (last 7 days)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      // Fetch recent conversations based on period
+      const periodAgo = new Date();
+      periodAgo.setDate(periodAgo.getDate() - periodDays);
       const recentConversations = conversations?.filter(
-        c => new Date(c.created_at) >= sevenDaysAgo
+        c => new Date(c.created_at) >= periodAgo
       ).length || 0;
 
-      // Fetch real views data from analytics table (last 7 days)
+      // Fetch real views data from analytics table based on period
       const { data: viewsData } = await supabase
         .from('service_views')
         .select('service_id, viewed_at')
         .in('service_id', serviceIds)
-        .gte('viewed_at', sevenDaysAgo.toISOString());
+        .gte('viewed_at', periodAgo.toISOString());
 
       // Fetch reviews for all services
       const { data: reviews } = await supabase
@@ -137,7 +137,7 @@ export const useProfessionalMetrics = () => {
         .slice(0, 5);
 
       // Generate views trend from real analytics data
-      const viewsTrend = generateViewsTrend(viewsData || []);
+      const viewsTrend = generateViewsTrend(viewsData || [], periodDays);
 
       setMetrics({
         total_views: totalViews,
@@ -160,7 +160,7 @@ export const useProfessionalMetrics = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [periodDays]);
 
   useEffect(() => {
     fetchMetrics();
@@ -170,15 +170,15 @@ export const useProfessionalMetrics = () => {
 };
 
 // Helper function to generate trend data from real analytics
-function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }[]): { date: string; views: number }[] {
+function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }[], periodDays: number): { date: string; views: number }[] {
   const trend: { date: string; views: number }[] = [];
   const today = new Date();
   
   // Create a map to count views per day
   const viewsByDay: { [key: string]: number } = {};
   
-  // Initialize last 7 days with 0
-  for (let i = 6; i >= 0; i--) {
+  // Initialize days with 0
+  for (let i = periodDays - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateKey = date.toISOString().split('T')[0];
@@ -193,14 +193,19 @@ function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }
     }
   });
   
-  // Convert to trend array
-  for (let i = 6; i >= 0; i--) {
+  // Convert to trend array with appropriate date format based on period
+  for (let i = periodDays - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateKey = date.toISOString().split('T')[0];
     
+    // Use shorter format for longer periods
+    const dateFormat: Intl.DateTimeFormatOptions = periodDays <= 14 
+      ? { weekday: 'short', day: 'numeric' }
+      : { day: 'numeric', month: 'short' };
+    
     trend.push({
-      date: date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' }),
+      date: date.toLocaleDateString('pt-BR', dateFormat),
       views: viewsByDay[dateKey] || 0,
     });
   }

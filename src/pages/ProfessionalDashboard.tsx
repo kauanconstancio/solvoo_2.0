@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Eye,
@@ -13,6 +13,7 @@ import {
   BarChart3,
   Users,
   Zap,
+  Calendar,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -20,6 +21,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AreaChart,
   Area,
@@ -34,9 +42,17 @@ import {
 import { useProfessionalMetrics } from "@/hooks/useProfessionalMetrics";
 import { getServiceLabel } from "@/data/services";
 
+const PERIOD_OPTIONS = [
+  { value: "7", label: "Últimos 7 dias" },
+  { value: "14", label: "Últimos 14 dias" },
+  { value: "30", label: "Últimos 30 dias" },
+  { value: "90", label: "Últimos 90 dias" },
+];
+
 const ProfessionalDashboard = () => {
   const navigate = useNavigate();
-  const { metrics, serviceMetrics, isLoading, error } = useProfessionalMetrics();
+  const [periodDays, setPeriodDays] = useState(7);
+  const { metrics, serviceMetrics, isLoading, error } = useProfessionalMetrics(periodDays);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -108,10 +124,28 @@ const ProfessionalDashboard = () => {
                 Acompanhe o desempenho dos seus serviços
               </p>
             </div>
-            <Button onClick={() => navigate("/anunciar")} className="w-fit">
-              <Package className="h-4 w-4 mr-2" />
-              Gerenciar Anúncios
-            </Button>
+            <div className="flex items-center gap-3">
+              <Select
+                value={String(periodDays)}
+                onValueChange={(value) => setPeriodDays(Number(value))}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIOD_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button onClick={() => navigate("/anunciar")} className="w-fit">
+                <Package className="h-4 w-4 mr-2" />
+                Gerenciar Anúncios
+              </Button>
+            </div>
           </div>
 
           {/* Empty State */}
@@ -207,7 +241,9 @@ const ProfessionalDashboard = () => {
                       <TrendingUp className="h-5 w-5 text-primary" />
                       Tendência de Visualizações
                     </CardTitle>
-                    <CardDescription>Últimos 7 dias</CardDescription>
+                    <CardDescription>
+                      {PERIOD_OPTIONS.find(o => o.value === String(periodDays))?.label}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="h-[250px]">
