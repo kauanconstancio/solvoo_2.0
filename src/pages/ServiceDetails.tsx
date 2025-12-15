@@ -186,10 +186,7 @@ const ServiceDetails = () => {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user || user.id !== serviceData.user_id) {
-          await supabase
-            .from("services")
-            .update({ views_count: (serviceData.views_count || 0) + 1 })
-            .eq("id", id);
+          await supabase.rpc('increment_views', { service_id: id });
         }
       } catch (err: any) {
         console.error("Error fetching service:", err);
