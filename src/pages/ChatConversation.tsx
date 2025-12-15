@@ -451,7 +451,7 @@ const ChatConversation = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity self-center hover:bg-accent hover:text-accent-foreground"
+                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-accent hover:text-accent-foreground"
                           onClick={() => handleReply(message)}
                         >
                           <Reply className="h-4 w-4" />
@@ -503,7 +503,7 @@ const ChatConversation = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity self-center hover:bg-accent hover:text-accent-foreground"
+                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-accent hover:text-accent-foreground"
                           onClick={() => handleReply(message)}
                         >
                           <Reply className="h-4 w-4" />
