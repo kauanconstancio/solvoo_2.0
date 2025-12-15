@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
 import ChatNotificationProvider from "./components/ChatNotificationProvider";
 import Index from "./pages/Index";
 import ForProfessionals from "./pages/ForProfessionals";
@@ -27,6 +28,13 @@ import SearchResults from "./pages/SearchResults";
 import Chat from "./pages/Chat";
 import ChatConversation from "./pages/ChatConversation";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminServices from "./pages/admin/AdminServices";
+import AdminReviews from "./pages/admin/AdminReviews";
+import AdminReports from "./pages/admin/AdminReports";
+import AdminRoles from "./pages/admin/AdminRoles";
+import AdminLogs from "./pages/admin/AdminLogs";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +125,64 @@ const App = () => (
               <ProtectedRoute>
                 <ProfessionalDashboard />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/usuarios"
+            element={
+              <AdminProtectedRoute requiredPermission="admin">
+                <AdminUsers />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/servicos"
+            element={
+              <AdminProtectedRoute requiredPermission="moderator">
+                <AdminServices />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/avaliacoes"
+            element={
+              <AdminProtectedRoute requiredPermission="moderator">
+                <AdminReviews />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/denuncias"
+            element={
+              <AdminProtectedRoute>
+                <AdminReports />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/funcoes"
+            element={
+              <AdminProtectedRoute requiredPermission="admin">
+                <AdminRoles />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/logs"
+            element={
+              <AdminProtectedRoute requiredPermission="admin">
+                <AdminLogs />
+              </AdminProtectedRoute>
             }
           />
 
