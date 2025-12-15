@@ -86,6 +86,13 @@ export const useProfessionalMetrics = () => {
         c => new Date(c.created_at) >= sevenDaysAgo
       ).length || 0;
 
+      // Fetch real views data from analytics table (last 7 days)
+      const { data: viewsData } = await supabase
+        .from('service_views')
+        .select('service_id, viewed_at')
+        .in('service_id', serviceIds)
+        .gte('viewed_at', sevenDaysAgo.toISOString());
+
       // Fetch reviews for all services
       const { data: reviews } = await supabase
         .from('reviews')
@@ -129,8 +136,8 @@ export const useProfessionalMetrics = () => {
         .sort((a, b) => b.views_count - a.views_count)
         .slice(0, 5);
 
-      // Generate views trend (simulated based on total views distributed over 7 days)
-      const viewsTrend = generateViewsTrend(totalViews);
+      // Generate views trend from real analytics data
+      const viewsTrend = generateViewsTrend(viewsData || []);
 
       setMetrics({
         total_views: totalViews,
@@ -162,31 +169,39 @@ export const useProfessionalMetrics = () => {
   return { metrics, serviceMetrics, isLoading, error, refetch: fetchMetrics };
 };
 
-// Helper function to generate simulated trend data
-function generateViewsTrend(totalViews: number): { date: string; views: number }[] {
+// Helper function to generate trend data from real analytics
+function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }[]): { date: string; views: number }[] {
   const trend: { date: string; views: number }[] = [];
   const today = new Date();
   
-  // Distribute views over the last 7 days, ensuring the sum equals totalViews
-  const weights = [0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.22];
-  let remaining = totalViews;
+  // Create a map to count views per day
+  const viewsByDay: { [key: string]: number } = {};
   
+  // Initialize last 7 days with 0
   for (let i = 6; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    
-    // For the last day, assign all remaining views to ensure sum is correct
-    let dayViews: number;
-    if (i === 0) {
-      dayViews = remaining;
-    } else {
-      dayViews = Math.floor(totalViews * weights[6 - i]);
-      remaining -= dayViews;
+    const dateKey = date.toISOString().split('T')[0];
+    viewsByDay[dateKey] = 0;
+  }
+  
+  // Count actual views per day
+  viewsData.forEach(view => {
+    const dateKey = new Date(view.viewed_at).toISOString().split('T')[0];
+    if (viewsByDay[dateKey] !== undefined) {
+      viewsByDay[dateKey]++;
     }
+  });
+  
+  // Convert to trend array
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateKey = date.toISOString().split('T')[0];
     
     trend.push({
       date: date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' }),
-      views: Math.max(0, dayViews),
+      views: viewsByDay[dateKey] || 0,
     });
   }
   
