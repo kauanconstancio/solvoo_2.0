@@ -202,7 +202,7 @@ const ChatConversation = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/chat")}
-            className="flex-shrink-0 hover:bg-primary hover:text-primary-foreground"
+            className="flex-shrink-0 hover:bg-primary hover:text-primary-foreground transition-smooth"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -231,7 +231,7 @@ const ChatConversation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-shrink-0 hover:gradient-primary hover:text-primary-foreground"
+                className="flex-shrink-0 hover:bg-primary hover:text-primary-foreground transition-smooth"
               >
                 <MoreVertical className="h-5 w-5" />
               </Button>

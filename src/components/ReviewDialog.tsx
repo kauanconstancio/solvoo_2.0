@@ -14,7 +14,10 @@ import { Label } from "@/components/ui/label";
 interface ReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (rating: number, comment: string) => Promise<{ error: string | null }>;
+  onSubmit: (
+    rating: number,
+    comment: string
+  ) => Promise<{ error: string | null }>;
   serviceTitle: string;
 }
 
@@ -104,11 +107,12 @@ const ReviewDialog = ({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
+            className="flex-1 hover:bg-transparent hover:text-black transition-smooth"
           >
             Cancelar
           </Button>

@@ -208,7 +208,7 @@ const MyServices = () => {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="flex-1 sm:flex-none hover:gradient-primary"
+                  className="flex-1 sm:flex-none hover:bg-primary hover:text-primary-foreground transition-smooth"
                 >
                   <Link to={`/servico/${service.id}`}>
                     <Eye className="w-4 h-4 sm:mr-2" />
@@ -219,7 +219,7 @@ const MyServices = () => {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="flex-1 sm:flex-none hover:gradient-primary"
+                  className="flex-1 sm:flex-none hover:bg-primary hover:text-primary-foreground transition-smooth"
                 >
                   <Link to={`/editar-servico/${service.id}`}>
                     <Edit className="w-4 h-4 sm:mr-2" />
@@ -231,7 +231,7 @@ const MyServices = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 sm:flex-none text-destructive hover:text-white hover:bg-destructive"
+                      className="flex-1 sm:flex-none text-destructive hover:text-white hover:bg-destructive transition-smooth"
                     >
                       <Trash2 className="w-4 h-4 sm:mr-2" />
                       <span className="hidden sm:inline">Excluir</span>

@@ -95,7 +95,8 @@ const ServiceDetails = () => {
         await navigator.clipboard.writeText(ogShareUrl);
         toast({
           title: "Link copiado!",
-          description: "O link do serviço foi copiado para a área de transferência.",
+          description:
+            "O link do serviço foi copiado para a área de transferência.",
         });
       }
     } catch (err) {
@@ -104,7 +105,8 @@ const ServiceDetails = () => {
         await navigator.clipboard.writeText(ogShareUrl);
         toast({
           title: "Link copiado!",
-          description: "O link do serviço foi copiado para a área de transferência.",
+          description:
+            "O link do serviço foi copiado para a área de transferência.",
         });
       }
     }
@@ -112,19 +114,19 @@ const ServiceDetails = () => {
 
   const handleRequestQuote = async () => {
     if (!service || !provider) return;
-    
+
     setIsRequestingQuote(true);
-    
+
     const autoMessage = `Olá! Tenho interesse no serviço "${service.title}" e gostaria de solicitar um orçamento.\n\nPoderia me passar mais informações sobre valores e disponibilidade?`;
-    
+
     const conversationId = await createOrGetConversation(
       service.user_id,
       service.id,
       autoMessage
     );
-    
+
     setIsRequestingQuote(false);
-    
+
     if (conversationId) {
       navigate(`/chat/${conversationId}`);
     }
@@ -136,7 +138,9 @@ const ServiceDetails = () => {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -178,7 +182,9 @@ const ServiceDetails = () => {
         setProvider(profileData || null);
 
         // Incrementar views_count (apenas se não for o próprio dono)
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user || user.id !== serviceData.user_id) {
           await supabase
             .from("services")
@@ -236,7 +242,8 @@ const ServiceDetails = () => {
     });
   };
 
-  const canWriteReview = currentUserId && service && currentUserId !== service.user_id;
+  const canWriteReview =
+    currentUserId && service && currentUserId !== service.user_id;
 
   const defaultImage =
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
@@ -406,7 +413,9 @@ const ServiceDetails = () => {
                           {serviceRating && (
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span className="font-semibold">{serviceRating.average_rating}</span>
+                              <span className="font-semibold">
+                                {serviceRating.average_rating}
+                              </span>
                               <span className="text-muted-foreground">
                                 ({serviceRating.review_count} avaliações)
                               </span>
@@ -444,6 +453,7 @@ const ServiceDetails = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => setIsReviewDialogOpen(true)}
+                          className="cursor-pointer hover:bg-primary hover:text-white focus:bg-transparent focus:text-black transition-smooth"
                         >
                           <PenLine className="h-4 w-4 mr-2" />
                           Escrever avaliação
@@ -477,10 +487,12 @@ const ServiceDetails = () => {
                     <Separator />
 
                     <div className="space-y-2">
-                      <Button 
+                      <Button
                         className="w-full h-12 text-base hover:brightness-110"
                         onClick={handleRequestQuote}
-                        disabled={isRequestingQuote || currentUserId === service.user_id}
+                        disabled={
+                          isRequestingQuote || currentUserId === service.user_id
+                        }
                       >
                         {isRequestingQuote ? (
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -510,10 +522,12 @@ const ServiceDetails = () => {
                           {service.price}
                         </p>
                       </div>
-                      <Button 
+                      <Button
                         className="w-full h-12 text-sm hover:brightness-110"
                         onClick={handleRequestQuote}
-                        disabled={isRequestingQuote || currentUserId === service.user_id}
+                        disabled={
+                          isRequestingQuote || currentUserId === service.user_id
+                        }
                       >
                         {isRequestingQuote ? (
                           <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -554,7 +568,9 @@ const ServiceDetails = () => {
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span className="font-semibold text-sm">{providerRating.average_rating}</span>
+                              <span className="font-semibold text-sm">
+                                {providerRating.average_rating}
+                              </span>
                             </div>
                             <span className="text-xs text-muted-foreground">
                               ({providerRating.total_reviews} avaliações)
@@ -587,7 +603,7 @@ const ServiceDetails = () => {
 
                     <Button
                       variant="outline"
-                      className="w-full hover:gradient-primary"
+                      className="w-full hover:bg-primary transition-smooth"
                       onClick={() => setIsProfileDialogOpen(true)}
                     >
                       Ver perfil completo
