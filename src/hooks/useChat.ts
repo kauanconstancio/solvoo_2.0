@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface ReplyToMessage {
+  id: string;
+  content: string;
+  sender_id: string;
+  message_type?: string | null;
+  file_name?: string | null;
+}
+
 export interface Message {
   id: string;
   conversation_id: string;
@@ -12,6 +20,8 @@ export interface Message {
   message_type?: string;
   file_url?: string | null;
   file_name?: string | null;
+  reply_to_id?: string | null;
+  reply_to?: ReplyToMessage | null;
 }
 
 export interface Conversation {
@@ -175,7 +185,23 @@ export const useMessages = (conversationId: string | undefined) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Fetch reply_to messages for those that have replies
+      const messagesWithReplies = await Promise.all(
+        (data || []).map(async (msg) => {
+          if (msg.reply_to_id) {
+            const { data: replyMsg } = await supabase
+              .from('messages')
+              .select('id, content, sender_id, message_type, file_name')
+              .eq('id', msg.reply_to_id)
+              .maybeSingle();
+            return { ...msg, reply_to: replyMsg };
+          }
+          return msg;
+        })
+      );
+      
+      setMessages(messagesWithReplies);
     } catch (error: any) {
       console.error('Error fetching messages:', error);
       toast({
@@ -222,7 +248,8 @@ export const useMessages = (conversationId: string | undefined) => {
     content: string,
     messageType: string = 'text',
     fileUrl?: string,
-    fileName?: string
+    fileName?: string,
+    replyToId?: string
   ) => {
     if (!conversationId) return;
 
@@ -237,6 +264,7 @@ export const useMessages = (conversationId: string | undefined) => {
         message_type: messageType,
         file_url: fileUrl || null,
         file_name: fileName || null,
+        reply_to_id: replyToId || null,
       });
 
       if (error) throw error;

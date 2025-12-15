@@ -12,6 +12,8 @@ import {
   X,
   FileIcon,
   Download,
+  Reply,
+  CornerDownRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useMessages, useConversations } from "@/hooks/useChat";
+import { useMessages, useConversations, Message, ReplyToMessage } from "@/hooks/useChat";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,6 +82,7 @@ const ChatConversation = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -160,10 +163,32 @@ const ChatConversation = () => {
 
     setIsSending(true);
     setTyping(false, currentUserName || undefined);
-    await sendMessage(newMessage.trim());
+    await sendMessage(newMessage.trim(), 'text', undefined, undefined, replyingTo?.id);
     setNewMessage("");
+    setReplyingTo(null);
     setIsSending(false);
     textareaRef.current?.focus();
+  };
+
+  const handleReply = (message: Message) => {
+    setReplyingTo(message);
+    textareaRef.current?.focus();
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  const getReplyPreviewText = (message: Message | ReplyToMessage) => {
+    const messageType = message.message_type || 'text';
+    if (messageType === 'image') return '📷 Imagem';
+    if (messageType === 'file') return `📎 ${message.file_name || 'Arquivo'}`;
+    return message.content.length > 50 ? message.content.slice(0, 50) + '...' : message.content;
+  };
+
+  const getReplyingSenderName = (senderId: string) => {
+    if (senderId === currentUserId) return 'Você';
+    return otherUser?.full_name || 'Usuário';
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -417,10 +442,22 @@ const ChatConversation = () => {
                     {/* Message */}
                     <div
                       className={cn(
-                        "flex gap-2 animate-fade-in",
+                        "flex gap-2 animate-fade-in group",
                         isOwn ? "justify-end" : "justify-start"
                       )}
                     >
+                      {/* Reply button - left side for own messages */}
+                      {isOwn && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity self-center hover:bg-accent hover:text-accent-foreground"
+                          onClick={() => handleReply(message)}
+                        >
+                          <Reply className="h-4 w-4" />
+                        </Button>
+                      )}
+
                       {!isOwn && (
                         <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
                           <AvatarImage src={otherUser?.avatar_url || undefined} />
@@ -437,8 +474,41 @@ const ChatConversation = () => {
                             : "bg-card border border-border/50 rounded-bl-md"
                         )}
                       >
+                        {/* Reply quote */}
+                        {message.reply_to && (
+                          <div
+                            className={cn(
+                              "mb-2 p-2 rounded-lg border-l-2 text-xs",
+                              isOwn
+                                ? "bg-primary-foreground/10 border-primary-foreground/40"
+                                : "bg-muted/50 border-primary/40"
+                            )}
+                          >
+                            <div className="flex items-center gap-1 mb-0.5">
+                              <CornerDownRight className="h-3 w-3" />
+                              <span className="font-medium">
+                                {getReplyingSenderName(message.reply_to.sender_id)}
+                              </span>
+                            </div>
+                            <p className="truncate opacity-80">
+                              {getReplyPreviewText(message.reply_to)}
+                            </p>
+                          </div>
+                        )}
                         {renderMessageContent(message, isOwn)}
                       </div>
+
+                      {/* Reply button - right side for other's messages */}
+                      {!isOwn && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity self-center hover:bg-accent hover:text-accent-foreground"
+                          onClick={() => handleReply(message)}
+                        >
+                          <Reply className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
@@ -491,6 +561,28 @@ const ChatConversation = () => {
             </Button>
 
             <div className="flex-1 relative">
+              {/* Reply preview bar */}
+              {replyingTo && (
+                <div className="mb-2 flex items-center gap-2 p-2 bg-muted/50 rounded-lg border border-border/50">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1 text-xs text-primary font-medium">
+                      <Reply className="h-3 w-3" />
+                      <span>Respondendo a {getReplyingSenderName(replyingTo.sender_id)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {getReplyPreviewText(replyingTo)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 flex-shrink-0 hover:bg-accent hover:text-accent-foreground"
+                    onClick={cancelReply}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
               <Textarea
                 ref={textareaRef}
                 value={newMessage}
