@@ -184,7 +184,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-gray-200 hover:bg-transparent hover:text-black transition-smooth"
+                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-gray-200 hover:bg-transparent hover:text-black transition-smooth focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
@@ -202,12 +202,12 @@ const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-56 flex flex-col gap-1"
+                className="w-52 flex flex-col gap-1"
                 align="end"
               >
                 <DropdownMenuItem
                   asChild
-                  className="hover:bg-primary hover:text-primary-foreground transition-smooth cursor-pointer"
+                  className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
                 >
                   <Link to="/perfil">
                     <User className="mr-2 h-4 w-4" />
@@ -216,7 +216,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   asChild
-                  className="hover:bg-primary hover:text-primary-foreground transition-smooth cursor-pointer"
+                  className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
                 >
                   <Link to="/dashboard">
                     <BarChart3 className="mr-2 h-4 w-4" />
@@ -225,7 +225,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   asChild
-                  className="hover:bg-primary hover:text-primary-foreground transition-smooth cursor-pointer"
+                  className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
                 >
                   <Link to="/anunciar">
                     <Pencil className="mr-2 h-4 w-4" />
@@ -237,7 +237,7 @@ const Header = () => {
 
                 <DropdownMenuItem
                   onClick={handleLogout}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive hover:text-destructive-foreground transition-smooth focus:bg-destructive focus:text-destructive-foreground"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive hover:text-destructive-foreground transition-smooth focus:bg-destructive focus:text-destructive-foreground cursor-pointer"
                 >
                   <Button
                     variant="ghost"
@@ -267,7 +267,7 @@ const Header = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden hover:gradient-primary transition-smooth hover:text-white"
+                className="lg:hidden hover:bg-primary hover:text-primary-foreground transition-smooth"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -333,11 +333,6 @@ const Header = () => {
                   </Link>
                 </div>
                 <div className="pt-4 space-y-2 border-t">
-                  {/* <Link to="/anunciar">
-                    <Button className="w-full hover:brightness-110 transition-smooth text-sm md:text-base ">
-                      Meus Anuncios
-                    </Button>
-                  </Link> */}
                   <div>
                     {user ? (
                       <>
@@ -364,7 +359,7 @@ const Header = () => {
                           <Link to="/perfil">
                             <Button
                               variant="outline"
-                              className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                              className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
                             >
                               <User className="h-4 w-4 mr-2" />
                               Meu Perfil
@@ -373,7 +368,7 @@ const Header = () => {
                           <Link to="/dashboard">
                             <Button
                               variant="outline"
-                              className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                              className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
                             >
                               <BarChart3 className="h-4 w-4 mr-2" />
                               Dashboard
@@ -382,7 +377,7 @@ const Header = () => {
                           <Link to="/anunciar">
                             <Button
                               variant="outline"
-                              className="w-full justify-start hover:gradient-primary transition-smooth hover:text-white"
+                              className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
                             >
                               <Pencil className="mr-2 h-4 w-4" />
                               Meus Anuncios

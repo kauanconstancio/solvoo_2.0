@@ -262,17 +262,17 @@ const Chat = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:gradient-primary"
+                                className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground transition-smooth"
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                className="text-destructive hover:bg-destructive hover:text-white focus:bg-destructive focus:text-white"
                                 onClick={(e) =>
                                   handleDeleteClick(e, conversation.id)
                                 }
+                                className="hover:bg-destructive hover:text-white focus:bg-destructive focus:text-white transition-smooth"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Excluir conversa
