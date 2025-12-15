@@ -30,6 +30,7 @@ export interface Conversation {
     images: string[] | null;
   } | null;
   last_message?: Message;
+  unread_count?: number;
 }
 
 export const useConversations = () => {
@@ -81,11 +82,20 @@ export const useConversations = () => {
             .order('created_at', { ascending: false })
             .limit(1);
 
+          // Fetch unread count (messages not sent by current user and not read)
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', conv.id)
+            .neq('sender_id', user.id)
+            .is('read_at', null);
+
           return {
             ...conv,
             other_user: profile || undefined,
             service,
             last_message: messages?.[0] || undefined,
+            unread_count: unreadCount || 0,
           };
         })
       );
