@@ -167,17 +167,26 @@ function generateViewsTrend(totalViews: number): { date: string; views: number }
   const trend: { date: string; views: number }[] = [];
   const today = new Date();
   
-  // Distribute views somewhat randomly over the last 7 days
+  // Distribute views over the last 7 days, ensuring the sum equals totalViews
   const weights = [0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.22];
+  let remaining = totalViews;
   
   for (let i = 6; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dayViews = Math.floor(totalViews * weights[6 - i]);
+    
+    // For the last day, assign all remaining views to ensure sum is correct
+    let dayViews: number;
+    if (i === 0) {
+      dayViews = remaining;
+    } else {
+      dayViews = Math.floor(totalViews * weights[6 - i]);
+      remaining -= dayViews;
+    }
     
     trend.push({
       date: date.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' }),
-      views: dayViews,
+      views: Math.max(0, dayViews),
     });
   }
   
