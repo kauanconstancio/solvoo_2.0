@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import ChatNotificationProvider from "./components/ChatNotificationProvider";
 import Index from "./pages/Index";
 import ForProfessionals from "./pages/ForProfessionals";
 import Categories from "./pages/Categories";
@@ -35,6 +36,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ChatNotificationProvider />
         <Routes>
           {/* Páginas Públicas */}
           <Route path="/" element={<Index />} />
