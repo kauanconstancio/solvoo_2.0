@@ -192,11 +192,6 @@ const ProfessionalDashboard = () => {
                       <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                         <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
                       </div>
-                      {metrics.recent_conversations > 0 && (
-                        <Badge className="text-xs bg-green-500">
-                          +{metrics.recent_conversations} esta semana
-                        </Badge>
-                      )}
                     </div>
                     <p className="text-2xl md:text-3xl font-bold">{metrics.total_conversations}</p>
                     <p className="text-sm text-muted-foreground">Contatos</p>
