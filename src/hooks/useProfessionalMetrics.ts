@@ -169,54 +169,74 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
   return { metrics, serviceMetrics, isLoading, error, refetch: fetchMetrics };
 };
 
-// Helper function to format date as local YYYY-MM-DD
-function getLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+// Use a fixed timezone for analytics labels (Brazil)
+const BRAZIL_TIMEZONE = 'America/Sao_Paulo';
+
+function getDateKeyInTimeZone(date: Date, timeZone: string = BRAZIL_TIMEZONE): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  const year = parts.find((p) => p.type === 'year')?.value ?? '0000';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '00';
+  const day = parts.find((p) => p.type === 'day')?.value ?? '00';
+
   return `${year}-${month}-${day}`;
 }
 
+function formatDayMonthInTimeZone(date: Date, timeZone: string = BRAZIL_TIMEZONE): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    day: '2-digit',
+    month: '2-digit',
+  }).formatToParts(date);
+
+  const day = parts.find((p) => p.type === 'day')?.value ?? '00';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '00';
+
+  return `${parseInt(day, 10)}/${parseInt(month, 10)}`;
+}
+
 // Helper function to generate trend data from real analytics
-function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }[], periodDays: number): { date: string; views: number }[] {
+function generateViewsTrend(
+  viewsData: { service_id: string; viewed_at: string }[],
+  periodDays: number
+): { date: string; views: number }[] {
   const trend: { date: string; views: number }[] = [];
-  const today = new Date();
-  
-  // Create a map to count views per day
-  const viewsByDay: { [key: string]: number } = {};
-  
+  const now = new Date();
+
+  // Create a map to count views per day (in Brazil timezone)
+  const viewsByDay: Record<string, number> = {};
+
   // Initialize days with 0
   for (let i = periodDays - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateKey = getLocalDateKey(date);
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateKey = getDateKeyInTimeZone(date);
     viewsByDay[dateKey] = 0;
   }
-  
+
   // Count actual views per day
-  viewsData.forEach(view => {
-    const dateKey = getLocalDateKey(new Date(view.viewed_at));
+  viewsData.forEach((view) => {
+    const dateKey = getDateKeyInTimeZone(new Date(view.viewed_at));
     if (viewsByDay[dateKey] !== undefined) {
       viewsByDay[dateKey]++;
     }
   });
-  
-  // Convert to trend array with appropriate date format based on period
+
+  // Convert to trend array
   for (let i = periodDays - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateKey = getLocalDateKey(date);
-    
-    // Use simple day/month format
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const formattedDate = `${day}/${month}`;
-    
+    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const dateKey = getDateKeyInTimeZone(date);
+
     trend.push({
-      date: formattedDate,
+      date: formatDayMonthInTimeZone(date),
       views: viewsByDay[dateKey] || 0,
     });
   }
-  
+
   return trend;
 }
+
