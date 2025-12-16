@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import { AdminProtectedRoute } from "./components/admin/AdminProtectedRoute";
 import ChatNotificationProvider from "./components/ChatNotificationProvider";
+import { SupportChatbot } from "./components/SupportChatbot";
 import Index from "./pages/Index";
 import ForProfessionals from "./pages/ForProfessionals";
 import Categories from "./pages/Categories";
@@ -189,6 +190,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <SupportChatbot />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
