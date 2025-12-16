@@ -369,6 +369,40 @@ const ProfessionalDashboard = () => {
                               border: '1px solid hsl(var(--border))',
                               borderRadius: '8px',
                             }}
+                            content={({ active, payload, label }) => {
+                              if (active && payload && payload.length) {
+                                const views = payload[0]?.value as number;
+                                const contacts = payload[1]?.value as number;
+                                const convRate = views > 0 ? ((contacts / views) * 100).toFixed(1) : "0";
+                                return (
+                                  <div className="bg-background border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
+                                    <p className="font-semibold text-foreground mb-2 text-sm">{label}</p>
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                          <span className="text-xs text-muted-foreground">Visualizações</span>
+                                        </div>
+                                        <span className="font-bold text-sm">{views}</span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+                                          <span className="text-xs text-muted-foreground">Contatos</span>
+                                        </div>
+                                        <span className="font-bold text-sm">{contacts}</span>
+                                      </div>
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-border">
+                                      <p className="text-xs text-muted-foreground">
+                                        Taxa de conversão: <span className="font-semibold text-primary">{convRate}%</span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
                           />
                           <Bar dataKey="visualizações" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                           <Bar dataKey="contatos" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
