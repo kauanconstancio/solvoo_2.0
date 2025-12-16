@@ -32,14 +32,17 @@ import {
   Loader2,
   ArrowLeft,
   Wand2,
+  BarChart3,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGenerateDescription } from "@/hooks/useGenerateDescription";
 import { useContentModeration } from "@/hooks/useContentModeration";
+import { usePriceSuggestion } from "@/hooks/usePriceSuggestion";
 import { states, getCitiesByState } from "@/data/locations";
 import { categoryConfig } from "@/data/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PriceSuggestionPanel } from "@/components/PriceSuggestionPanel";
 
 const EditService = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +50,7 @@ const EditService = () => {
   const navigate = useNavigate();
   const { generateDescription, isGenerating } = useGenerateDescription();
   const { moderateServiceContent, isChecking: isModerating } = useContentModeration();
+  const { suggestPrice, suggestion: priceSuggestion, isLoading: isPriceSuggesting, clearSuggestion } = usePriceSuggestion();
   const [images, setImages] = useState<string[]>([]);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -71,6 +75,15 @@ const EditService = () => {
     if (generated) {
       setDescription(generated);
     }
+  };
+
+  const handleSuggestPrice = async () => {
+    await suggestPrice(category, subcategory, selectedState, selectedCity);
+  };
+
+  const handleApplyPrice = (suggestedPrice: number) => {
+    setPrice(suggestedPrice.toString());
+    clearSuggestion();
   };
 
   useEffect(() => {
@@ -590,7 +603,24 @@ const EditService = () => {
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Preço Base (R$) *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="price">Preço Base (R$) *</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSuggestPrice}
+                      disabled={isPriceSuggesting || !category}
+                      className="gap-2"
+                    >
+                      {isPriceSuggesting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <BarChart3 className="h-4 w-4" />
+                      )}
+                      {isPriceSuggesting ? "Analisando..." : "Sugerir preço"}
+                    </Button>
+                  </div>
                   <Input
                     id="price"
                     type="number"
@@ -622,6 +652,18 @@ const EditService = () => {
                   </Select>
                 </div>
               </div>
+
+              {/* Price Suggestion Panel */}
+              {priceSuggestion?.suggestion && (
+                <PriceSuggestionPanel
+                  suggestion={priceSuggestion.suggestion}
+                  insight={priceSuggestion.insight}
+                  servicesAnalyzed={priceSuggestion.servicesAnalyzed}
+                  currentPrice={price}
+                  onApplyPrice={handleApplyPrice}
+                  onClose={clearSuggestion}
+                />
+              )}
             </CardContent>
           </Card>
 
