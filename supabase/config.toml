@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.moderate-content]
 verify_jwt = false
+
+[functions.suggest-price]
+verify_jwt = false
