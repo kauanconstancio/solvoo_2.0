@@ -169,6 +169,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
   return { metrics, serviceMetrics, isLoading, error, refetch: fetchMetrics };
 };
 
+// Helper function to format date as local YYYY-MM-DD
+function getLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // Helper function to generate trend data from real analytics
 function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }[], periodDays: number): { date: string; views: number }[] {
   const trend: { date: string; views: number }[] = [];
@@ -181,13 +189,13 @@ function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }
   for (let i = periodDays - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = getLocalDateKey(date);
     viewsByDay[dateKey] = 0;
   }
   
   // Count actual views per day
   viewsData.forEach(view => {
-    const dateKey = new Date(view.viewed_at).toISOString().split('T')[0];
+    const dateKey = getLocalDateKey(new Date(view.viewed_at));
     if (viewsByDay[dateKey] !== undefined) {
       viewsByDay[dateKey]++;
     }
@@ -197,7 +205,7 @@ function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }
   for (let i = periodDays - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split('T')[0];
+    const dateKey = getLocalDateKey(date);
     
     // Use simple day/month format
     const day = date.getDate();
