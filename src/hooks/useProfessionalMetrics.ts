@@ -76,14 +76,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
       // Fetch conversations count
       const { data: conversations } = await supabase
         .from('conversations')
-        .select('id, service_id, created_at')
+        .select('id, service_id, created_at, last_message_at')
         .eq('professional_id', user.id);
 
-      // Fetch recent conversations based on period
+      // Fetch recent conversations based on period (using last_message_at for accurate recent activity)
       const periodAgo = new Date();
       periodAgo.setDate(periodAgo.getDate() - periodDays);
       const recentConversations = conversations?.filter(
-        c => new Date(c.created_at) >= periodAgo
+        c => new Date(c.last_message_at) >= periodAgo
       ).length || 0;
 
       // Fetch real views data from analytics table based on period
