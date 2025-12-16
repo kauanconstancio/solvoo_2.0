@@ -166,6 +166,115 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
     fetchMetrics();
   }, [fetchMetrics]);
 
+  // Subscribe to realtime updates for metrics
+  useEffect(() => {
+    const setupRealtimeSubscriptions = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Subscribe to conversations changes (new contacts)
+      const conversationsChannel = supabase
+        .channel('dashboard-conversations')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'conversations',
+            filter: `professional_id=eq.${user.id}`,
+          },
+          () => {
+            console.log('Conversation change detected, refreshing metrics...');
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to service_views changes (new views)
+      const viewsChannel = supabase
+        .channel('dashboard-views')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'service_views',
+          },
+          () => {
+            console.log('View change detected, refreshing metrics...');
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to reviews changes
+      const reviewsChannel = supabase
+        .channel('dashboard-reviews')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'reviews',
+          },
+          () => {
+            console.log('Review change detected, refreshing metrics...');
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to favorites changes
+      const favoritesChannel = supabase
+        .channel('dashboard-favorites')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'favorites',
+          },
+          () => {
+            console.log('Favorites change detected, refreshing metrics...');
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      // Subscribe to services changes (status, etc)
+      const servicesChannel = supabase
+        .channel('dashboard-services')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'services',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            console.log('Service change detected, refreshing metrics...');
+            fetchMetrics();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(conversationsChannel);
+        supabase.removeChannel(viewsChannel);
+        supabase.removeChannel(reviewsChannel);
+        supabase.removeChannel(favoritesChannel);
+        supabase.removeChannel(servicesChannel);
+      };
+    };
+
+    const cleanup = setupRealtimeSubscriptions();
+    
+    return () => {
+      cleanup.then(cleanupFn => cleanupFn?.());
+    };
+  }, [fetchMetrics]);
+
   return { metrics, serviceMetrics, isLoading, error, refetch: fetchMetrics };
 };
 
