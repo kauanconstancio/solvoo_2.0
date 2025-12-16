@@ -170,7 +170,12 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
   useEffect(() => {
     const setupRealtimeSubscriptions = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log('[Dashboard Realtime] No user found, skipping subscriptions');
+        return;
+      }
+
+      console.log('[Dashboard Realtime] Setting up subscriptions for user:', user.id);
 
       // Subscribe to conversations changes (new contacts)
       const conversationsChannel = supabase
@@ -183,12 +188,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
             table: 'conversations',
             filter: `professional_id=eq.${user.id}`,
           },
-          () => {
-            console.log('Conversation change detected, refreshing metrics...');
+          (payload) => {
+            console.log('[Dashboard Realtime] Conversation change:', payload);
             fetchMetrics();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[Dashboard Realtime] Conversations channel status:', status);
+        });
 
       // Subscribe to service_views changes (new views)
       const viewsChannel = supabase
@@ -200,12 +207,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
             schema: 'public',
             table: 'service_views',
           },
-          () => {
-            console.log('View change detected, refreshing metrics...');
+          (payload) => {
+            console.log('[Dashboard Realtime] View change:', payload);
             fetchMetrics();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[Dashboard Realtime] Views channel status:', status);
+        });
 
       // Subscribe to reviews changes
       const reviewsChannel = supabase
@@ -217,12 +226,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
             schema: 'public',
             table: 'reviews',
           },
-          () => {
-            console.log('Review change detected, refreshing metrics...');
+          (payload) => {
+            console.log('[Dashboard Realtime] Review change:', payload);
             fetchMetrics();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[Dashboard Realtime] Reviews channel status:', status);
+        });
 
       // Subscribe to favorites changes
       const favoritesChannel = supabase
@@ -234,12 +245,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
             schema: 'public',
             table: 'favorites',
           },
-          () => {
-            console.log('Favorites change detected, refreshing metrics...');
+          (payload) => {
+            console.log('[Dashboard Realtime] Favorites change:', payload);
             fetchMetrics();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[Dashboard Realtime] Favorites channel status:', status);
+        });
 
       // Subscribe to services changes (status, etc)
       const servicesChannel = supabase
@@ -252,14 +265,17 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
             table: 'services',
             filter: `user_id=eq.${user.id}`,
           },
-          () => {
-            console.log('Service change detected, refreshing metrics...');
+          (payload) => {
+            console.log('[Dashboard Realtime] Service change:', payload);
             fetchMetrics();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[Dashboard Realtime] Services channel status:', status);
+        });
 
       return () => {
+        console.log('[Dashboard Realtime] Cleaning up subscriptions');
         supabase.removeChannel(conversationsChannel);
         supabase.removeChannel(viewsChannel);
         supabase.removeChannel(reviewsChannel);
