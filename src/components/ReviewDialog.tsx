@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useContentModeration } from "@/hooks/useContentModeration";
 
 interface ReviewDialogProps {
   open: boolean;
@@ -31,11 +32,22 @@ const ReviewDialog = ({
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { moderateReview, isChecking: isModerating } = useContentModeration();
 
   const handleSubmit = async () => {
     if (rating === 0) return;
 
     setIsSubmitting(true);
+
+    // Moderation check for comment
+    if (comment.trim()) {
+      const moderationResult = await moderateReview(comment);
+      if (!moderationResult.approved) {
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const result = await onSubmit(rating, comment);
     setIsSubmitting(false);
 
@@ -47,6 +59,7 @@ const ReviewDialog = ({
   };
 
   const displayRating = hoverRating || rating;
+  const isLoading = isSubmitting || isModerating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,16 +124,18 @@ const ReviewDialog = ({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
+            disabled={isLoading}
             className="flex-1 hover:bg-transparent hover:text-black transition-smooth"
           >
             Cancelar
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={rating === 0 || isSubmitting}
+            disabled={rating === 0 || isLoading}
+            className="gap-2"
           >
-            {isSubmitting ? "Enviando..." : "Enviar Avaliação"}
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isModerating ? "Verificando..." : isSubmitting ? "Enviando..." : "Enviar Avaliação"}
           </Button>
         </DialogFooter>
       </DialogContent>

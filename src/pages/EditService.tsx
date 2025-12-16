@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useGenerateDescription } from "@/hooks/useGenerateDescription";
+import { useContentModeration } from "@/hooks/useContentModeration";
 import { states, getCitiesByState } from "@/data/locations";
 import { categoryConfig } from "@/data/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ const EditService = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { generateDescription, isGenerating } = useGenerateDescription();
+  const { moderateServiceContent, isChecking: isModerating } = useContentModeration();
   const [images, setImages] = useState<string[]>([]);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -242,6 +244,13 @@ const EditService = () => {
     setIsSubmitting(true);
 
     try {
+      // Moderation check
+      const moderationResult = await moderateServiceContent(title, description);
+      if (!moderationResult.approved) {
+        setIsSubmitting(false);
+        return;
+      }
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
