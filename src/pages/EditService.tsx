@@ -31,8 +31,10 @@ import {
   Info,
   Loader2,
   ArrowLeft,
+  Wand2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useGenerateDescription } from "@/hooks/useGenerateDescription";
 import { states, getCitiesByState } from "@/data/locations";
 import { categoryConfig } from "@/data/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +44,7 @@ const EditService = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { generateDescription, isGenerating } = useGenerateDescription();
   const [images, setImages] = useState<string[]>([]);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -60,6 +63,13 @@ const EditService = () => {
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [status, setStatus] = useState("active");
+
+  const handleGenerateDescription = async () => {
+    const generated = await generateDescription(title, category, subcategory);
+    if (generated) {
+      setDescription(generated);
+    }
+  };
 
   useEffect(() => {
     const fetchService = async () => {
@@ -453,7 +463,24 @@ const EditService = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição do Serviço *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Descrição do Serviço *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateDescription}
+                    disabled={isGenerating || !title || !category}
+                    className="gap-2"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="h-4 w-4" />
+                    )}
+                    {isGenerating ? "Gerando..." : "Gerar com IA"}
+                  </Button>
+                </div>
                 <Textarea
                   id="description"
                   placeholder="Descreva detalhadamente o serviço que você oferece..."
@@ -462,6 +489,9 @@ const EditService = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Use o botão "Gerar com IA" para criar uma descrição automaticamente.
+                </p>
               </div>
             </CardContent>
           </Card>
