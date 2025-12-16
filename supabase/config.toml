@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.generate-description]
 verify_jwt = false
+
+[functions.moderate-content]
+verify_jwt = false
