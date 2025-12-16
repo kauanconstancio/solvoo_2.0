@@ -2,3 +2,6 @@ project_id = "hgixhlcxvjvonmcxfvlc"
 
 [functions.og-service]
 verify_jwt = false
+
+[functions.support-chatbot]
+verify_jwt = false
