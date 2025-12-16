@@ -199,13 +199,13 @@ function generateViewsTrend(viewsData: { service_id: string; viewed_at: string }
     date.setDate(date.getDate() - i);
     const dateKey = date.toISOString().split('T')[0];
     
-    // Use shorter format for longer periods
-    const dateFormat: Intl.DateTimeFormatOptions = periodDays <= 14 
-      ? { weekday: 'short', day: 'numeric' }
-      : { day: 'numeric', month: 'short' };
+    // Use simple day/month format
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const formattedDate = `${day}/${month}`;
     
     trend.push({
-      date: date.toLocaleDateString('pt-BR', dateFormat),
+      date: formattedDate,
       views: viewsByDay[dateKey] || 0,
     });
   }
