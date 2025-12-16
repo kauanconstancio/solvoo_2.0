@@ -252,6 +252,28 @@ const ProfessionalDashboard = () => {
                               backgroundColor: 'hsl(var(--background))',
                               border: '1px solid hsl(var(--border))',
                               borderRadius: '8px',
+                              padding: '12px',
+                            }}
+                            content={({ active, payload, label }) => {
+                              if (active && payload && payload.length) {
+                                const views = payload[0].value as number;
+                                return (
+                                  <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                                    <p className="font-semibold text-foreground mb-1">{label}</p>
+                                    <div className="flex items-center gap-2">
+                                      <Eye className="h-4 w-4 text-primary" />
+                                      <span className="text-sm text-muted-foreground">Visualizações:</span>
+                                      <span className="font-bold text-primary">{views}</span>
+                                    </div>
+                                    {views > 0 && (
+                                      <p className="text-xs text-muted-foreground mt-2">
+                                        {views === 1 ? '1 pessoa visualizou seus serviços' : `${views} pessoas visualizaram seus serviços`}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              }
+                              return null;
                             }}
                           />
                           <Area
