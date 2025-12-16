@@ -19,6 +19,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AnimatedMetricCard } from "@/components/AnimatedMetricCard";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -171,60 +172,34 @@ const ProfessionalDashboard = () => {
             <>
               {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <Card className="hover:shadow-soft transition-shadow">
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        Total
-                      </Badge>
-                    </div>
-                    <p className="text-2xl md:text-3xl font-bold">{metrics.total_views.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Visualizações</p>
-                  </CardContent>
-                </Card>
+                <AnimatedMetricCard
+                  value={metrics.total_views.toLocaleString()}
+                  label="Visualizações"
+                  icon={<Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+                  iconBgClass="bg-blue-100 dark:bg-blue-900/30"
+                  badge="Total"
+                />
 
-                <Card className="hover:shadow-soft transition-shadow">
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                        <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      </div>
-                    </div>
-                    <p className="text-2xl md:text-3xl font-bold">{metrics.total_conversations}</p>
-                    <p className="text-sm text-muted-foreground">Contatos</p>
-                  </CardContent>
-                </Card>
+                <AnimatedMetricCard
+                  value={metrics.total_conversations}
+                  label="Contatos"
+                  icon={<MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />}
+                  iconBgClass="bg-green-100 dark:bg-green-900/30"
+                />
 
-                <Card className="hover:shadow-soft transition-shadow">
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                        <Heart className="h-5 w-5 text-red-500" />
-                      </div>
-                    </div>
-                    <p className="text-2xl md:text-3xl font-bold">{metrics.total_favorites}</p>
-                    <p className="text-sm text-muted-foreground">Favoritos</p>
-                  </CardContent>
-                </Card>
+                <AnimatedMetricCard
+                  value={metrics.total_favorites}
+                  label="Favoritos"
+                  icon={<Heart className="h-5 w-5 text-red-500" />}
+                  iconBgClass="bg-red-100 dark:bg-red-900/30"
+                />
 
-                <Card className="hover:shadow-soft transition-shadow">
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                        <Star className="h-5 w-5 text-yellow-500" />
-                      </div>
-                    </div>
-                    <p className="text-2xl md:text-3xl font-bold">
-                      {metrics.average_rating > 0 ? metrics.average_rating : "-"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Avaliação ({metrics.total_reviews} reviews)
-                    </p>
-                  </CardContent>
-                </Card>
+                <AnimatedMetricCard
+                  value={metrics.average_rating > 0 ? metrics.average_rating : "-"}
+                  label={`Avaliação (${metrics.total_reviews} reviews)`}
+                  icon={<Star className="h-5 w-5 text-yellow-500" />}
+                  iconBgClass="bg-yellow-100 dark:bg-yellow-900/30"
+                />
               </div>
 
               {/* Charts Row */}
