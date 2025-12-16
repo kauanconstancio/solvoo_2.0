@@ -1,27 +1,133 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Loader2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+interface UserProfile {
+  avatar_url: string | null;
+  full_name: string | null;
+}
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chatbot`;
+
+// Simple markdown parser
+const renderMarkdown = (text: string) => {
+  // Process line by line
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let listItems: string[] = [];
+  let inList = false;
+
+  const processInline = (line: string) => {
+    // Bold: **text** or __text__
+    line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    line = line.replace(/__(.*?)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_
+    line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    line = line.replace(/_([^_]+)_/g, '<em>$1</em>');
+    // Code: `text`
+    line = line.replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-xs">$1</code>');
+    // Links: [text](url)
+    line = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-primary underline">$1</a>');
+    return line;
+  };
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`list-${elements.length}`} className="list-disc list-inside space-y-1 my-2">
+          {listItems.map((item, i) => (
+            <li key={i} dangerouslySetInnerHTML={{ __html: processInline(item) }} />
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
+    inList = false;
+  };
+
+  lines.forEach((line, index) => {
+    // Headers
+    if (line.startsWith('### ')) {
+      flushList();
+      elements.push(
+        <h4 key={index} className="font-semibold text-sm mt-2" dangerouslySetInnerHTML={{ __html: processInline(line.slice(4)) }} />
+      );
+    } else if (line.startsWith('## ')) {
+      flushList();
+      elements.push(
+        <h3 key={index} className="font-semibold mt-2" dangerouslySetInnerHTML={{ __html: processInline(line.slice(3)) }} />
+      );
+    } else if (line.startsWith('# ')) {
+      flushList();
+      elements.push(
+        <h2 key={index} className="font-bold mt-2" dangerouslySetInnerHTML={{ __html: processInline(line.slice(2)) }} />
+      );
+    }
+    // List items
+    else if (line.match(/^[-*]\s/)) {
+      inList = true;
+      listItems.push(line.slice(2));
+    } else if (line.match(/^\d+\.\s/)) {
+      inList = true;
+      listItems.push(line.replace(/^\d+\.\s/, ''));
+    }
+    // Empty line
+    else if (line.trim() === '') {
+      flushList();
+      elements.push(<br key={index} />);
+    }
+    // Regular paragraph
+    else {
+      flushList();
+      elements.push(
+        <p key={index} className="my-1" dangerouslySetInnerHTML={{ __html: processInline(line) }} />
+      );
+    }
+  });
+
+  flushList();
+  return <div className="space-y-1">{elements}</div>;
+};
 
 export const SupportChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Olá! 👋 Sou o assistente virtual do Solvoo. Como posso ajudar você hoje?' }
+    { role: 'assistant', content: 'Olá! 👋 Sou o assistente virtual do **Solvoo**. Como posso ajudar você hoje?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profile) {
+          setUserProfile(profile);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -34,6 +140,13 @@ export const SupportChatbot = () => {
       inputRef.current.focus();
     }
   }, [isOpen, isMinimized]);
+
+  const getUserInitials = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return 'U';
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -107,7 +220,7 @@ export const SupportChatbot = () => {
       console.error('Chatbot error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Desculpe, ocorreu um erro. Tente novamente ou entre em contato pelo email suporte@solvoo.com.br' 
+        content: 'Desculpe, ocorreu um erro. Tente novamente ou entre em contato pelo email **suporte@solvoo.com.br**' 
       }]);
     } finally {
       setIsLoading(false);
@@ -198,12 +311,15 @@ export const SupportChatbot = () => {
                           : "bg-muted text-foreground rounded-bl-sm"
                       )}
                     >
-                      {message.content}
+                      {message.role === 'assistant' ? renderMarkdown(message.content) : message.content}
                     </div>
                     {message.role === 'user' && (
-                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-secondary-foreground" />
-                      </div>
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage src={userProfile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
                     )}
                   </div>
                 ))}
