@@ -15,6 +15,8 @@ import {
   Reply,
   CornerDownRight,
   Flag,
+  Check,
+  CheckCheck,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
@@ -261,6 +263,16 @@ const ChatConversation = () => {
     return !isSameDay(currentDate, prevDate);
   };
 
+  const renderReadStatus = (message: typeof messages[0], isOwn: boolean) => {
+    if (!isOwn) return null;
+    
+    return message.read_at ? (
+      <CheckCheck className="h-3.5 w-3.5 text-sky-400" />
+    ) : (
+      <Check className="h-3.5 w-3.5" />
+    );
+  };
+
   const renderMessageContent = (message: typeof messages[0], isOwn: boolean) => {
     const messageType = message.message_type || 'text';
 
@@ -273,14 +285,15 @@ const ChatConversation = () => {
             className="max-w-[250px] md:max-w-[300px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
             onClick={() => setPreviewImage(message.file_url!)}
           />
-          <p
+          <div
             className={cn(
-              "text-[10px] text-right",
+              "flex items-center justify-end gap-1 text-[10px]",
               isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
             )}
           >
-            {formatMessageTime(message.created_at)}
-          </p>
+            <span>{formatMessageTime(message.created_at)}</span>
+            {renderReadStatus(message, isOwn)}
+          </div>
         </div>
       );
     }
@@ -309,14 +322,15 @@ const ChatConversation = () => {
             </div>
             <Download className="h-4 w-4 flex-shrink-0" />
           </a>
-          <p
+          <div
             className={cn(
-              "text-[10px] text-right",
+              "flex items-center justify-end gap-1 text-[10px]",
               isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
             )}
           >
-            {formatMessageTime(message.created_at)}
-          </p>
+            <span>{formatMessageTime(message.created_at)}</span>
+            {renderReadStatus(message, isOwn)}
+          </div>
         </div>
       );
     }
@@ -327,14 +341,15 @@ const ChatConversation = () => {
         <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
           {message.content}
         </p>
-        <p
+        <div
           className={cn(
-            "text-[10px] mt-1 text-right",
+            "flex items-center justify-end gap-1 text-[10px] mt-1",
             isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
           )}
         >
-          {formatMessageTime(message.created_at)}
-        </p>
+          <span>{formatMessageTime(message.created_at)}</span>
+          {renderReadStatus(message, isOwn)}
+        </div>
       </>
     );
   };
