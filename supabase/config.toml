@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.support-chatbot]
 verify_jwt = false
+
+[functions.generate-description]
+verify_jwt = false
