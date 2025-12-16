@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Pencil,
   Shield,
+  Map,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,6 +157,16 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
+          <Link to="/mapa">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+              title="Mapa de Serviços"
+            >
+              <Map className="h-5 w-5" />
+            </Button>
+          </Link>
           <Link to="/favoritos">
             <Button
               variant="ghost"
@@ -319,6 +330,15 @@ const Header = () => {
                   </a>
                 </nav>
                 <div className="flex flex-col gap-2">
+                  <Link to="/mapa">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
+                    >
+                      <Map className="h-4 w-4 mr-2" />
+                      Mapa de Serviços
+                    </Button>
+                  </Link>
                   <Link to="/favoritos">
                     <Button
                       variant="outline"
