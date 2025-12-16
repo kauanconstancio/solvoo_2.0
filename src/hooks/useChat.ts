@@ -248,6 +248,25 @@ export const useMessages = (conversationId: string | undefined) => {
           setMessages((prev) => [...prev, newMessage]);
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const updatedMessage = payload.new as Message;
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === updatedMessage.id
+                ? { ...msg, read_at: updatedMessage.read_at }
+                : msg
+            )
+          );
+        }
+      )
       .subscribe();
 
     return () => {
