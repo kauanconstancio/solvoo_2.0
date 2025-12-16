@@ -12,19 +12,18 @@ DIRETRIZES:
 - Use linguagem clara e profissional
 - Destaque benefícios e diferenciais
 - Inclua chamadas para ação sutis
-- Mantenha entre 150-300 palavras
+- LIMITE: Máximo 500 caracteres (MUITO IMPORTANTE!)
 - Use parágrafos curtos para facilitar leitura
 - Mencione experiência e qualidade
 - Não invente informações específicas (anos de experiência, certificações)
 - Foque em gerar confiança e credibilidade
 
-ESTRUTURA SUGERIDA:
+ESTRUTURA SUGERIDA (mantenha conciso):
 1. Abertura atraente sobre o serviço
-2. Principais benefícios e diferenciais
-3. O que está incluso/metodologia
-4. Fechamento com chamada para ação
+2. Principais benefícios
+3. Fechamento com chamada para ação
 
-Gere APENAS a descrição, sem títulos ou formatação especial.`;
+Gere APENAS a descrição, sem títulos ou formatação especial. Máximo 500 caracteres.`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
