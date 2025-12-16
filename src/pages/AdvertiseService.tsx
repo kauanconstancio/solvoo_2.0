@@ -48,6 +48,7 @@ import { categoryConfig } from "@/data/categoryIcons";
 import { supabase } from "@/integrations/supabase/client";
 import MyServices from "@/components/MyServices";
 import { PriceSuggestionPanel } from "@/components/PriceSuggestionPanel";
+import { ServicePreview } from "@/components/ServicePreview";
 
 const AdvertiseService = () => {
   const { toast } = useToast();
@@ -681,6 +682,18 @@ const AdvertiseService = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4">
+                    <ServicePreview
+                      title={title}
+                      description={description}
+                      category={category}
+                      subcategory={subcategory}
+                      price={price}
+                      priceType={priceType}
+                      state={selectedState}
+                      city={selectedCity}
+                      images={images}
+                      disabled={!title && !description && images.length === 0}
+                    />
                     <Button
                       type="submit"
                       size="lg"
