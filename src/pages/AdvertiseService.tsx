@@ -401,13 +401,14 @@ const AdvertiseService = () => {
                       placeholder="Descreva detalhadamente o serviço que você oferece, sua experiência, diferenciais e o que está incluso..."
                       className="min-h-[150px]"
                       value={description}
-                      onChange={(e) => setDescription(e.target.value)}
+                      onChange={(e) => setDescription(e.target.value.slice(0, 500))}
+                      maxLength={500}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Seja detalhista! Uma boa descrição aumenta suas chances de
-                      contratação. Use o botão "Gerar com IA" para criar uma descrição automaticamente.
-                    </p>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Use o botão "Gerar com IA" para criar uma descrição automaticamente.</span>
+                      <span className={description.length >= 450 ? "text-destructive" : ""}>{description.length}/500</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

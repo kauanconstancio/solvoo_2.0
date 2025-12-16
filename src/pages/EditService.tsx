@@ -486,12 +486,14 @@ const EditService = () => {
                   placeholder="Descreva detalhadamente o serviço que você oferece..."
                   className="min-h-[150px]"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value.slice(0, 500))}
+                  maxLength={500}
                   required
                 />
-                <p className="text-xs text-muted-foreground">
-                  Use o botão "Gerar com IA" para criar uma descrição automaticamente.
-                </p>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Use o botão "Gerar com IA" para criar uma descrição automaticamente.</span>
+                  <span className={description.length >= 450 ? "text-destructive" : ""}>{description.length}/500</span>
+                </div>
               </div>
             </CardContent>
           </Card>
