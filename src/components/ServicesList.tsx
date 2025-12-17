@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
 import { useServicesRatings } from "@/hooks/useReviews";
+import { AnimateOnScroll } from "./AnimateOnScroll";
 
 interface Service {
   id: string;
@@ -141,7 +142,7 @@ const ServicesList = () => {
   return (
     <section className="py-12 md:py-16 bg-muted/30">
       <div className="container px-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 md:mb-12">
+        <AnimateOnScroll animation="fade-up" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 md:mb-12">
           <div>
             <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2">
               Serviços em Destaque
@@ -150,39 +151,47 @@ const ServicesList = () => {
               Profissionais avaliados e verificados
             </p>
           </div>
-        </div>
+        </AnimateOnScroll>
 
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-          <TabsList className="w-full sm:w-auto mb-6 flex-wrap h-auto">
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            {serviceCategories.slice(0, 8).map((cat) => (
-              <TabsTrigger key={cat.value} value={cat.value}>
-                {cat.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <AnimateOnScroll animation="fade-up" delay={100}>
+            <TabsList className="w-full sm:w-auto mb-6 flex-wrap h-auto">
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              {serviceCategories.slice(0, 8).map((cat) => (
+                <TabsTrigger key={cat.value} value={cat.value}>
+                  {cat.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </AnimateOnScroll>
 
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {filteredServices.map((service) => {
+                {filteredServices.map((service, index) => {
                   const serviceRating = ratingsMap[service.id];
                   return (
-                    <ServiceCard
+                    <AnimateOnScroll
                       key={service.id}
-                      id={service.id}
-                      title={service.title}
-                      provider={service.provider_name || undefined}
-                      location={getLocation(service.city, service.state)}
-                      price={service.price}
-                      image={service.images?.[0]}
-                      category={service.category}
-                      subcategory={service.subcategory}
-                      verified={service.verified}
-                      providerName={service.provider_name}
-                      rating={serviceRating?.average_rating}
-                      reviewCount={serviceRating?.review_count}
-                    />
+                      animation="fade-up"
+                      delay={index * 75}
+                      duration={400}
+                    >
+                      <ServiceCard
+                        id={service.id}
+                        title={service.title}
+                        provider={service.provider_name || undefined}
+                        location={getLocation(service.city, service.state)}
+                        price={service.price}
+                        image={service.images?.[0]}
+                        category={service.category}
+                        subcategory={service.subcategory}
+                        verified={service.verified}
+                        providerName={service.provider_name}
+                        rating={serviceRating?.average_rating}
+                        reviewCount={serviceRating?.review_count}
+                      />
+                    </AnimateOnScroll>
                   );
                 })}
               </div>
