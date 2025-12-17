@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,14 +110,45 @@ const Chat = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <main className="flex-1">
+          <div className="container px-4 md:px-6 py-6 md:py-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="mb-6 md:mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <Skeleton className="w-10 h-10 rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4 md:mb-6">
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
+
+              <div className="space-y-2 md:space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card
+                    key={i}
+                    className="hover:shadow-soft transition-all duration-300"
+                  >
+                    <CardContent className="p-3 md:p-4">
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <Skeleton className="h-12 w-12 md:h-14 md:w-14 rounded-full flex-shrink-0" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <Skeleton className="h-5 w-32 md:w-48" />
+                            <Skeleton className="h-3 w-16" />
+                          </div>
+                          <Skeleton className="h-4 w-full max-w-[200px]" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-            <p className="text-muted-foreground font-medium">
-              Carregando conversas...
-            </p>
           </div>
         </main>
         <Footer />

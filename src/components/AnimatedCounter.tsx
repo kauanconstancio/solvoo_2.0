@@ -1,5 +1,6 @@
-import { useCountAnimation } from '@/hooks/useCountAnimation';
-import { cn } from '@/lib/utils';
+import { useCountAnimation } from "@/hooks/useCountAnimation";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AnimatedCounterProps {
   value: number;
@@ -13,8 +14,8 @@ interface AnimatedCounterProps {
 
 export const AnimatedCounter = ({
   value,
-  suffix = '',
-  prefix = '',
+  suffix = "",
+  prefix = "",
   decimals = 0,
   duration = 2000,
   isLoading = false,
@@ -29,20 +30,22 @@ export const AnimatedCounter = ({
   // Always render the observed element so the IntersectionObserver can attach even during loading.
   const displayValue = isLoading ? 0 : hasAnimated ? count : 0;
 
+  if (isLoading) {
+    return (
+      <Skeleton className={cn("h-[1em] w-[3ch] inline-block", className)} />
+    );
+  }
+
   return (
     <span
       ref={ref}
       aria-busy={isLoading}
-      className={cn(
-        'inline-block align-baseline',
-        isLoading && 'min-w-[3ch] h-[1em] bg-muted/50 animate-pulse rounded',
-        className
-      )}
+      className={cn("inline-block align-baseline", className)}
     >
       {isLoading ? null : (
         <>
           {prefix}
-          {displayValue.toLocaleString('pt-BR', {
+          {displayValue.toLocaleString("pt-BR", {
             minimumFractionDigits: decimals,
             maximumFractionDigits: decimals,
           })}
@@ -54,12 +57,14 @@ export const AnimatedCounter = ({
 };
 
 // Helper to format large numbers with k/M suffix
-export const formatLargeNumber = (value: number): { displayValue: number; suffix: string } => {
+export const formatLargeNumber = (
+  value: number
+): { displayValue: number; suffix: string } => {
   if (value >= 1000000) {
-    return { displayValue: value / 1000000, suffix: 'M+' };
+    return { displayValue: value / 1000000, suffix: "M+" };
   }
   if (value >= 1000) {
-    return { displayValue: value / 1000, suffix: 'k+' };
+    return { displayValue: value / 1000, suffix: "k+" };
   }
-  return { displayValue: value, suffix: value > 0 ? '+' : '' };
+  return { displayValue: value, suffix: value > 0 ? "+" : "" };
 };

@@ -22,6 +22,7 @@ import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -558,15 +559,36 @@ const ChatConversation = () => {
   if (isLoading) {
     return (
       <div className="h-screen flex flex-col bg-background">
-        <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-sm h-16" />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur-sm">
+          <div className="flex h-16 items-center gap-3 px-3 md:px-4 max-w-4xl mx-auto">
+            <Skeleton className="h-10 w-10 rounded-xl flex-shrink-0" />
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Skeleton className="h-10 w-10 md:h-11 md:w-11 rounded-full flex-shrink-0" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-16" />
+              </div>
             </div>
-            <p className="text-muted-foreground font-medium">
-              Carregando mensagens...
-            </p>
+            <Skeleton className="h-10 w-10 rounded-xl flex-shrink-0" />
+          </div>
+        </header>
+        <main className="flex-1 overflow-hidden bg-muted/30 p-4">
+          <div className="max-w-4xl mx-auto space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className={`flex gap-2 ${
+                  i % 2 === 0 ? "justify-end" : "justify-start"
+                }`}
+              >
+                {i % 2 !== 0 && <Skeleton className="h-8 w-8 rounded-full" />}
+                <Skeleton
+                  className={`h-12 rounded-2xl ${
+                    i % 2 === 0 ? "w-48 rounded-br-md" : "w-64 rounded-bl-md"
+                  }`}
+                />
+              </div>
+            ))}
           </div>
         </main>
       </div>

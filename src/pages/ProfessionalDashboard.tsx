@@ -17,11 +17,18 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AnimatedMetricCard } from "@/components/AnimatedMetricCard";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -53,7 +60,8 @@ const PERIOD_OPTIONS = [
 const ProfessionalDashboard = () => {
   const navigate = useNavigate();
   const [periodDays, setPeriodDays] = useState(7);
-  const { metrics, serviceMetrics, isLoading, error } = useProfessionalMetrics(periodDays);
+  const { metrics, serviceMetrics, isLoading, error } =
+    useProfessionalMetrics(periodDays);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -61,12 +69,80 @@ const ProfessionalDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-hero">
         <Header />
-        <main className="flex-1 flex items-center justify-center bg-gradient-hero">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Carregando métricas...</p>
+        <main className="flex-1 py-6 md:py-10">
+          <div className="container px-4 md:px-6">
+            {/* Header Skeleton */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-[180px]" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
+
+            {/* Stats Cards Skeleton */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-4 rounded-full" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-8 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Charts Skeleton */}
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-[250px] w-full" />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-[250px] w-full" />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* List Skeleton */}
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex flex-col md:flex-row gap-4">
+                    <Skeleton className="h-16 w-16 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </main>
         <Footer />
@@ -98,18 +174,17 @@ const ProfessionalDashboard = () => {
   }
 
   // Calculate conversion rate
-  const conversionRate = metrics.total_views > 0
-    ? ((metrics.total_conversations / metrics.total_views) * 100).toFixed(1)
-    : "0";
+  const conversionRate =
+    metrics.total_views > 0
+      ? ((metrics.total_conversations / metrics.total_views) * 100).toFixed(1)
+      : "0";
 
   // Prepare bar chart data
-  const serviceChartData = serviceMetrics
-    .slice(0, 5)
-    .map(s => ({
-      name: s.title.length > 15 ? s.title.slice(0, 15) + "..." : s.title,
-      visualizações: s.views_count,
-      contatos: s.conversations_count,
-    }));
+  const serviceChartData = serviceMetrics.slice(0, 5).map((s) => ({
+    name: s.title.length > 15 ? s.title.slice(0, 15) + "..." : s.title,
+    visualizações: s.views_count,
+    contatos: s.conversations_count,
+  }));
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-hero">
@@ -127,7 +202,9 @@ const ProfessionalDashboard = () => {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
-                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Tempo real</span>
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    Tempo real
+                  </span>
                 </div>
               </div>
               <p className="text-muted-foreground mt-1">
@@ -169,7 +246,8 @@ const ProfessionalDashboard = () => {
                   Você ainda não tem serviços
                 </h3>
                 <p className="text-muted-foreground max-w-sm mx-auto mb-6">
-                  Crie seu primeiro anúncio para começar a acompanhar suas métricas e desempenho.
+                  Crie seu primeiro anúncio para começar a acompanhar suas
+                  métricas e desempenho.
                 </p>
                 <Button onClick={() => navigate("/anunciar")}>
                   Criar Primeiro Anúncio
@@ -184,7 +262,9 @@ const ProfessionalDashboard = () => {
                 <AnimatedMetricCard
                   value={metrics.total_views.toLocaleString()}
                   label="Visualizações"
-                  icon={<Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+                  icon={
+                    <Eye className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  }
                   iconBgClass="bg-blue-100 dark:bg-blue-900/30"
                   badge="Total"
                 />
@@ -192,7 +272,9 @@ const ProfessionalDashboard = () => {
                 <AnimatedMetricCard
                   value={metrics.total_conversations}
                   label="Contatos"
-                  icon={<MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />}
+                  icon={
+                    <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  }
                   iconBgClass="bg-green-100 dark:bg-green-900/30"
                 />
 
@@ -204,7 +286,9 @@ const ProfessionalDashboard = () => {
                 />
 
                 <AnimatedMetricCard
-                  value={metrics.average_rating > 0 ? metrics.average_rating : "-"}
+                  value={
+                    metrics.average_rating > 0 ? metrics.average_rating : "-"
+                  }
                   label={`Avaliação (${metrics.total_reviews} reviews)`}
                   icon={<Star className="h-5 w-5 text-yellow-500" />}
                   iconBgClass="bg-yellow-100 dark:bg-yellow-900/30"
@@ -221,7 +305,11 @@ const ProfessionalDashboard = () => {
                       Tendência de Visualizações
                     </CardTitle>
                     <CardDescription>
-                      {PERIOD_OPTIONS.find(o => o.value === String(periodDays))?.label}
+                      {
+                        PERIOD_OPTIONS.find(
+                          (o) => o.value === String(periodDays)
+                        )?.label
+                      }
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -229,45 +317,70 @@ const ProfessionalDashboard = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={metrics.views_trend}>
                           <defs>
-                            <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            <linearGradient
+                              id="viewsGradient"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="hsl(var(--primary))"
+                                stopOpacity={0.3}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="hsl(var(--primary))"
+                                stopOpacity={0}
+                              />
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                          <XAxis 
-                            dataKey="date" 
-                            className="text-xs" 
-                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            className="stroke-muted"
                           />
-                          <YAxis 
+                          <XAxis
+                            dataKey="date"
                             className="text-xs"
-                            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                            domain={[0, 'dataMax']}
+                            tick={{ fill: "hsl(var(--muted-foreground))" }}
+                          />
+                          <YAxis
+                            className="text-xs"
+                            tick={{ fill: "hsl(var(--muted-foreground))" }}
+                            domain={[0, "dataMax"]}
                             allowDecimals={false}
                             tickCount={6}
                           />
-                          <Tooltip 
-                            contentStyle={{ 
-                              backgroundColor: 'hsl(var(--background))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px',
-                              padding: '12px',
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                              padding: "12px",
                             }}
                             content={({ active, payload, label }) => {
                               if (active && payload && payload.length) {
                                 const views = payload[0].value as number;
                                 return (
                                   <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-                                    <p className="font-semibold text-foreground mb-1">{label}</p>
+                                    <p className="font-semibold text-foreground mb-1">
+                                      {label}
+                                    </p>
                                     <div className="flex items-center gap-2">
                                       <Eye className="h-4 w-4 text-primary" />
-                                      <span className="text-sm text-muted-foreground">Visualizações:</span>
-                                      <span className="font-bold text-primary">{views}</span>
+                                      <span className="text-sm text-muted-foreground">
+                                        Visualizações:
+                                      </span>
+                                      <span className="font-bold text-primary">
+                                        {views}
+                                      </span>
                                     </div>
                                     {views > 0 && (
                                       <p className="text-xs text-muted-foreground mt-2">
-                                        {views === 1 ? '1 pessoa visualizou seus serviços' : `${views} pessoas visualizaram seus serviços`}
+                                        {views === 1
+                                          ? "1 pessoa visualizou seus serviços"
+                                          : `${views} pessoas visualizaram seus serviços`}
                                       </p>
                                     )}
                                   </div>
@@ -300,7 +413,9 @@ const ProfessionalDashboard = () => {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="text-center py-4">
-                      <p className="text-5xl font-bold text-primary">{conversionRate}%</p>
+                      <p className="text-5xl font-bold text-primary">
+                        {conversionRate}%
+                      </p>
                       <p className="text-sm text-muted-foreground mt-2">
                         dos visitantes entram em contato
                       </p>
@@ -308,27 +423,49 @@ const ProfessionalDashboard = () => {
 
                     <div className="space-y-4">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Visualizações</span>
-                        <span className="font-medium">{metrics.total_views}</span>
+                        <span className="text-muted-foreground">
+                          Visualizações
+                        </span>
+                        <span className="font-medium">
+                          {metrics.total_views}
+                        </span>
                       </div>
                       <Progress value={100} className="h-2" />
 
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Contatos</span>
-                        <span className="font-medium">{metrics.total_conversations}</span>
+                        <span className="font-medium">
+                          {metrics.total_conversations}
+                        </span>
                       </div>
-                      <Progress 
-                        value={metrics.total_views > 0 ? (metrics.total_conversations / metrics.total_views) * 100 : 0} 
-                        className="h-2" 
+                      <Progress
+                        value={
+                          metrics.total_views > 0
+                            ? (metrics.total_conversations /
+                                metrics.total_views) *
+                              100
+                            : 0
+                        }
+                        className="h-2"
                       />
 
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Avaliações</span>
-                        <span className="font-medium">{metrics.total_reviews}</span>
+                        <span className="text-muted-foreground">
+                          Avaliações
+                        </span>
+                        <span className="font-medium">
+                          {metrics.total_reviews}
+                        </span>
                       </div>
-                      <Progress 
-                        value={metrics.total_conversations > 0 ? (metrics.total_reviews / metrics.total_conversations) * 100 : 0} 
-                        className="h-2" 
+                      <Progress
+                        value={
+                          metrics.total_conversations > 0
+                            ? (metrics.total_reviews /
+                                metrics.total_conversations) *
+                              100
+                            : 0
+                        }
+                        className="h-2"
                       />
                     </div>
                   </CardContent>
@@ -345,7 +482,8 @@ const ProfessionalDashboard = () => {
                         Desempenho por Serviço
                       </CardTitle>
                       <CardDescription>
-                        {metrics.active_services} de {metrics.total_services} serviços ativos
+                        {metrics.active_services} de {metrics.total_services}{" "}
+                        serviços ativos
                       </CardDescription>
                     </div>
                   </div>
@@ -355,47 +493,73 @@ const ProfessionalDashboard = () => {
                     <div className="h-[250px] mb-6">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={serviceChartData} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
-                          <XAxis type="number" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                          <YAxis 
-                            type="category" 
-                            dataKey="name" 
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            className="stroke-muted"
+                            horizontal={false}
+                          />
+                          <XAxis
+                            type="number"
+                            tick={{ fill: "hsl(var(--muted-foreground))" }}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="name"
                             width={100}
-                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                            tick={{
+                              fill: "hsl(var(--muted-foreground))",
+                              fontSize: 12,
+                            }}
                           />
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: 'hsl(var(--background))',
-                              border: '1px solid hsl(var(--border))',
-                              borderRadius: '8px',
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
                             }}
                             content={({ active, payload, label }) => {
                               if (active && payload && payload.length) {
                                 const views = payload[0]?.value as number;
                                 const contacts = payload[1]?.value as number;
-                                const convRate = views > 0 ? ((contacts / views) * 100).toFixed(1) : "0";
+                                const convRate =
+                                  views > 0
+                                    ? ((contacts / views) * 100).toFixed(1)
+                                    : "0";
                                 return (
                                   <div className="bg-background border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
-                                    <p className="font-semibold text-foreground mb-2 text-sm">{label}</p>
+                                    <p className="font-semibold text-foreground mb-2 text-sm">
+                                      {label}
+                                    </p>
                                     <div className="space-y-1.5">
                                       <div className="flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-2">
                                           <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                                          <span className="text-xs text-muted-foreground">Visualizações</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            Visualizações
+                                          </span>
                                         </div>
-                                        <span className="font-bold text-sm">{views}</span>
+                                        <span className="font-bold text-sm">
+                                          {views}
+                                        </span>
                                       </div>
                                       <div className="flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-2">
                                           <div className="w-2.5 h-2.5 rounded-full bg-accent" />
-                                          <span className="text-xs text-muted-foreground">Contatos</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            Contatos
+                                          </span>
                                         </div>
-                                        <span className="font-bold text-sm">{contacts}</span>
+                                        <span className="font-bold text-sm">
+                                          {contacts}
+                                        </span>
                                       </div>
                                     </div>
                                     <div className="mt-2 pt-2 border-t border-border">
                                       <p className="text-xs text-muted-foreground">
-                                        Taxa de conversão: <span className="font-semibold text-primary">{convRate}%</span>
+                                        Taxa de conversão:{" "}
+                                        <span className="font-semibold text-primary">
+                                          {convRate}%
+                                        </span>
                                       </p>
                                     </div>
                                   </div>
@@ -404,8 +568,16 @@ const ProfessionalDashboard = () => {
                               return null;
                             }}
                           />
-                          <Bar dataKey="visualizações" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                          <Bar dataKey="contatos" fill="hsl(var(--accent))" radius={[0, 4, 4, 0]} />
+                          <Bar
+                            dataKey="visualizações"
+                            fill="hsl(var(--primary))"
+                            radius={[0, 4, 4, 0]}
+                          />
+                          <Bar
+                            dataKey="contatos"
+                            fill="hsl(var(--accent))"
+                            radius={[0, 4, 4, 0]}
+                          />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -438,11 +610,17 @@ const ProfessionalDashboard = () => {
                             <h4 className="font-medium truncate group-hover:text-primary transition-colors">
                               {service.title}
                             </h4>
-                            <Badge 
-                              variant={service.status === 'active' ? 'default' : 'secondary'}
+                            <Badge
+                              variant={
+                                service.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
                               className="text-xs flex-shrink-0"
                             >
-                              {service.status === 'active' ? 'Ativo' : 'Inativo'}
+                              {service.status === "active"
+                                ? "Ativo"
+                                : "Inativo"}
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground">
@@ -487,10 +665,16 @@ const ProfessionalDashboard = () => {
                       <Zap className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-1">Dicas para melhorar seu desempenho</h4>
+                      <h4 className="font-semibold mb-1">
+                        Dicas para melhorar seu desempenho
+                      </h4>
                       <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Adicione fotos de alta qualidade aos seus serviços</li>
-                        <li>• Responda rapidamente às mensagens dos clientes</li>
+                        <li>
+                          • Adicione fotos de alta qualidade aos seus serviços
+                        </li>
+                        <li>
+                          • Responda rapidamente às mensagens dos clientes
+                        </li>
                         <li>• Mantenha descrições detalhadas e atualizadas</li>
                         <li>• Peça avaliações aos clientes satisfeitos</li>
                       </ul>
