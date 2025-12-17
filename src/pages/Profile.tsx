@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,23 +25,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  User, 
-  Phone, 
-  MapPin, 
-  FileText, 
-  Camera, 
-  Mail, 
-  Building2, 
-  Loader2, 
-  Eye, 
-  Edit, 
+import {
+  User,
+  Phone,
+  MapPin,
+  FileText,
+  Camera,
+  Mail,
+  Building2,
+  Loader2,
+  Eye,
+  Edit,
   Calendar,
   Briefcase,
   Star,
   Shield,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -66,7 +72,11 @@ interface ProfileStats {
 
 const Profile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [stats, setStats] = useState<ProfileStats>({ servicesCount: 0, averageRating: 0, totalReviews: 0 });
+  const [stats, setStats] = useState<ProfileStats>({
+    servicesCount: 0,
+    averageRating: 0,
+    totalReviews: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -95,9 +105,11 @@ const Profile = () => {
       formData.bio,
       formData.city,
       formData.state,
-      avatarUrl
+      avatarUrl,
     ];
-    const filledFields = fields.filter(field => field && field.trim() !== "").length;
+    const filledFields = fields.filter(
+      (field) => field && field.trim() !== ""
+    ).length;
     return Math.round((filledFields / fields.length) * 100);
   };
 
@@ -154,17 +166,18 @@ const Profile = () => {
       const { data: reviews } = await supabase
         .from("reviews")
         .select("rating, service_id")
-        .in("service_id", services?.map(s => s.id) || []);
+        .in("service_id", services?.map((s) => s.id) || []);
 
       const totalReviews = reviews?.length || 0;
-      const averageRating = totalReviews > 0 
-        ? reviews!.reduce((acc, r) => acc + r.rating, 0) / totalReviews 
-        : 0;
+      const averageRating =
+        totalReviews > 0
+          ? reviews!.reduce((acc, r) => acc + r.rating, 0) / totalReviews
+          : 0;
 
       setStats({
         servicesCount: services?.length || 0,
         averageRating: Number(averageRating.toFixed(1)),
-        totalReviews
+        totalReviews,
       });
 
       setLoading(false);
@@ -205,15 +218,19 @@ const Profile = () => {
         variant: "destructive",
       });
     } else {
-      setProfile(prev => prev ? {
-        ...prev,
-        full_name: formData.full_name,
-        phone: formData.phone,
-        bio: formData.bio,
-        account_type: formData.account_type,
-        city: formData.city,
-        state: formData.state,
-      } : null);
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              full_name: formData.full_name,
+              phone: formData.phone,
+              bio: formData.bio,
+              account_type: formData.account_type,
+              city: formData.city,
+              state: formData.state,
+            }
+          : null
+      );
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram salvas com sucesso.",
@@ -262,7 +279,7 @@ const Profile = () => {
     const imageUrl = URL.createObjectURL(file);
     setSelectedImage(imageUrl);
     setCropperOpen(true);
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -273,7 +290,9 @@ const Profile = () => {
     setUploadingAvatar(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
@@ -284,16 +303,16 @@ const Profile = () => {
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(fileName, croppedBlob, { 
+        .upload(fileName, croppedBlob, {
           upsert: true,
-          contentType: "image/jpeg"
+          contentType: "image/jpeg",
         });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(fileName);
 
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
 
@@ -334,13 +353,13 @@ const Profile = () => {
   };
 
   const getStateName = (stateValue: string) => {
-    const state = states.find(s => s.value === stateValue);
+    const state = states.find((s) => s.value === stateValue);
     return state?.label || stateValue;
   };
 
   const getCityName = (stateValue: string, cityValue: string) => {
     const cities = getCitiesByState(stateValue);
-    const city = cities.find(c => c.value === cityValue);
+    const city = cities.find((c) => c.value === cityValue);
     return city?.label || cityValue;
   };
 
@@ -350,9 +369,13 @@ const Profile = () => {
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <div className="w-16 h-16 rounded-full bg-primary/10 animate-pulse" />
-            <Loader2 className="h-8 w-8 animate-spin text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
           </div>
-          <p className="text-muted-foreground font-medium">Carregando perfil...</p>
+          <p className="text-muted-foreground font-medium">
+            Carregando perfil...
+          </p>
         </div>
       </div>
     );
@@ -370,7 +393,7 @@ const Profile = () => {
             <div className="h-32 md:h-40 bg-gradient-to-br from-primary via-primary/90 to-primary/70 relative">
               <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djZoNnYtNmgtNnptMCAwdi02aDZ2Nmg2djZoLTZ2LTZoLTZ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
             </div>
-            
+
             <CardContent className="relative pt-0 pb-6 px-4 md:px-8">
               <div className="flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-6 -mt-16 md:-mt-20">
                 {/* Avatar */}
@@ -384,12 +407,15 @@ const Profile = () => {
                   />
                   <div className="relative">
                     <Avatar className="h-28 w-28 md:h-36 md:w-36 border-4 border-background shadow-xl ring-4 ring-primary/20">
-                      <AvatarImage src={avatarUrl || ""} className="object-cover" />
+                      <AvatarImage
+                        src={avatarUrl || ""}
+                        className="object-cover"
+                      />
                       <AvatarFallback className="text-3xl md:text-4xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-bold">
                         {getInitials(formData.full_name)}
                       </AvatarFallback>
                     </Avatar>
-                    <button 
+                    <button
                       type="button"
                       onClick={handleAvatarClick}
                       disabled={uploadingAvatar}
@@ -400,7 +426,9 @@ const Profile = () => {
                       ) : (
                         <div className="flex flex-col items-center gap-1">
                           <Camera className="h-6 w-6 text-white" />
-                          <span className="text-white text-xs font-medium">Alterar</span>
+                          <span className="text-white text-xs font-medium">
+                            Alterar
+                          </span>
                         </div>
                       )}
                     </button>
@@ -413,23 +441,34 @@ const Profile = () => {
                 <div className="flex-1 text-center md:text-left md:pb-2 space-y-2">
                   <div className="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3">
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                      {profile?.full_name || formData.full_name || "Complete seu perfil"}
+                      {profile?.full_name ||
+                        formData.full_name ||
+                        "Complete seu perfil"}
                     </h1>
-                    <Badge 
-                      variant={formData.account_type === "profissional" ? "default" : "secondary"}
+                    <Badge
+                      variant={
+                        formData.account_type === "profissional"
+                          ? "default"
+                          : "secondary"
+                      }
                       className={cn(
                         "text-xs px-3 py-1",
-                        formData.account_type === "profissional" && "bg-accent text-accent-foreground"
+                        formData.account_type === "profissional" &&
+                          "bg-accent text-accent-foreground"
                       )}
                     >
                       {formData.account_type === "profissional" ? (
-                        <><Briefcase className="h-3 w-3 mr-1" /> Profissional</>
+                        <>
+                          <Briefcase className="h-3 w-3 mr-1" /> Profissional
+                        </>
                       ) : (
-                        <><User className="h-3 w-3 mr-1" /> Cliente</>
+                        <>
+                          <User className="h-3 w-3 mr-1" /> Cliente
+                        </>
                       )}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Mail className="h-4 w-4" />
@@ -438,13 +477,23 @@ const Profile = () => {
                     {formData.city && formData.state && (
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-4 w-4" />
-                        <span className="text-sm">{getCityName(formData.state, formData.city)}, {formData.state.toUpperCase()}</span>
+                        <span className="text-sm">
+                          {getCityName(formData.state, formData.city)},{" "}
+                          {formData.state.toUpperCase()}
+                        </span>
                       </div>
                     )}
                     {profile?.created_at && (
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-4 w-4" />
-                        <span className="text-sm">Membro desde {format(new Date(profile.created_at), "MMMM 'de' yyyy", { locale: ptBR })}</span>
+                        <span className="text-sm">
+                          Membro desde{" "}
+                          {format(
+                            new Date(profile.created_at),
+                            "MMMM 'de' yyyy",
+                            { locale: ptBR }
+                          )}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -455,19 +504,31 @@ const Profile = () => {
               {formData.account_type === "profissional" && (
                 <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border/50">
                   <div className="text-center">
-                    <div className="text-2xl md:text-3xl font-bold text-primary">{stats.servicesCount}</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">Serviços Ativos</div>
+                    <div className="text-2xl md:text-3xl font-bold text-primary">
+                      {stats.servicesCount}
+                    </div>
+                    <div className="text-xs md:text-sm text-muted-foreground">
+                      Serviços Ativos
+                    </div>
                   </div>
                   <div className="text-center border-x border-border/50">
                     <div className="flex items-center justify-center gap-1">
                       <Star className="h-5 w-5 md:h-6 md:w-6 text-yellow-500 fill-yellow-500" />
-                      <span className="text-2xl md:text-3xl font-bold">{stats.averageRating || "—"}</span>
+                      <span className="text-2xl md:text-3xl font-bold">
+                        {stats.averageRating || "—"}
+                      </span>
                     </div>
-                    <div className="text-xs md:text-sm text-muted-foreground">Avaliação Média</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">
+                      Avaliação Média
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl md:text-3xl font-bold">{stats.totalReviews}</div>
-                    <div className="text-xs md:text-sm text-muted-foreground">Avaliações</div>
+                    <div className="text-2xl md:text-3xl font-bold">
+                      {stats.totalReviews}
+                    </div>
+                    <div className="text-xs md:text-sm text-muted-foreground">
+                      Avaliações
+                    </div>
                   </div>
                 </div>
               )}
@@ -476,13 +537,20 @@ const Profile = () => {
 
           {/* Profile Completion Card */}
           {completionPercentage < 100 && (
-            <Card className="border-primary/20 bg-primary/5 animate-fade-in" style={{ animationDelay: "100ms" }}>
+            <Card
+              className="border-primary/20 bg-primary/5 animate-fade-in"
+              style={{ animationDelay: "100ms" }}
+            >
               <CardContent className="py-4">
                 <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "p-2 rounded-full",
-                    completionPercentage >= 80 ? "bg-accent/20" : "bg-yellow-500/20"
-                  )}>
+                  <div
+                    className={cn(
+                      "p-2 rounded-full",
+                      completionPercentage >= 80
+                        ? "bg-accent/20"
+                        : "bg-yellow-500/20"
+                    )}
+                  >
                     {completionPercentage >= 80 ? (
                       <CheckCircle2 className="h-5 w-5 text-accent" />
                     ) : (
@@ -491,14 +559,23 @@ const Profile = () => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">Complete seu perfil</span>
-                      <span className="text-sm font-bold text-primary">{completionPercentage}%</span>
+                      <span className="text-sm font-medium">
+                        Complete seu perfil
+                      </span>
+                      <span className="text-sm font-bold text-primary">
+                        {completionPercentage}%
+                      </span>
                     </div>
                     <Progress value={completionPercentage} className="h-2" />
                     <p className="text-xs text-muted-foreground mt-1">
-                      {completionPercentage < 50 && "Adicione mais informações para aumentar sua visibilidade"}
-                      {completionPercentage >= 50 && completionPercentage < 80 && "Você está quase lá! Continue preenchendo"}
-                      {completionPercentage >= 80 && completionPercentage < 100 && "Excelente! Só faltam alguns detalhes"}
+                      {completionPercentage < 50 &&
+                        "Adicione mais informações para aumentar sua visibilidade"}
+                      {completionPercentage >= 50 &&
+                        completionPercentage < 80 &&
+                        "Você está quase lá! Continue preenchendo"}
+                      {completionPercentage >= 80 &&
+                        completionPercentage < 100 &&
+                        "Excelente! Só faltam alguns detalhes"}
                     </p>
                   </div>
                 </div>
@@ -507,13 +584,23 @@ const Profile = () => {
           )}
 
           {/* Tabs Card */}
-          <Tabs defaultValue="view" className="w-full animate-fade-in" style={{ animationDelay: "200ms" }}>
+          <Tabs
+            defaultValue="view"
+            className="w-full animate-fade-in"
+            style={{ animationDelay: "200ms" }}
+          >
             <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-muted/50">
-              <TabsTrigger value="view" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger
+                value="view"
+                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
                 <Eye className="h-4 w-4" />
                 Visualizar
               </TabsTrigger>
-              <TabsTrigger value="edit" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">
+              <TabsTrigger
+                value="edit"
+                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              >
                 <Edit className="h-4 w-4" />
                 Editar
               </TabsTrigger>
@@ -529,7 +616,9 @@ const Profile = () => {
                     </div>
                     <div>
                       <CardTitle>Informações Pessoais</CardTitle>
-                      <CardDescription>Visualize suas informações de perfil</CardDescription>
+                      <CardDescription>
+                        Visualize suas informações de perfil
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -542,7 +631,11 @@ const Profile = () => {
                         Nome Completo
                       </p>
                       <p className="font-semibold text-lg">
-                        {formData.full_name || <span className="text-muted-foreground italic font-normal">Não informado</span>}
+                        {formData.full_name || (
+                          <span className="text-muted-foreground italic font-normal">
+                            Não informado
+                          </span>
+                        )}
                       </p>
                     </div>
 
@@ -552,7 +645,11 @@ const Profile = () => {
                         Telefone
                       </p>
                       <p className="font-semibold text-lg">
-                        {formData.phone || <span className="text-muted-foreground italic font-normal">Não informado</span>}
+                        {formData.phone || (
+                          <span className="text-muted-foreground italic font-normal">
+                            Não informado
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -572,7 +669,13 @@ const Profile = () => {
                           Estado
                         </p>
                         <p className="font-semibold text-lg">
-                          {formData.state ? getStateName(formData.state) : <span className="text-muted-foreground italic font-normal">Não informado</span>}
+                          {formData.state ? (
+                            getStateName(formData.state)
+                          ) : (
+                            <span className="text-muted-foreground italic font-normal">
+                              Não informado
+                            </span>
+                          )}
                         </p>
                       </div>
 
@@ -582,7 +685,13 @@ const Profile = () => {
                           Cidade
                         </p>
                         <p className="font-semibold text-lg">
-                          {formData.city ? getCityName(formData.state, formData.city) : <span className="text-muted-foreground italic font-normal">Não informado</span>}
+                          {formData.city ? (
+                            getCityName(formData.state, formData.city)
+                          ) : (
+                            <span className="text-muted-foreground italic font-normal">
+                              Não informado
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -598,7 +707,11 @@ const Profile = () => {
                     </h3>
                     <div className="p-4 rounded-lg bg-muted/30">
                       <p className="whitespace-pre-wrap leading-relaxed">
-                        {formData.bio || <span className="text-muted-foreground italic">Nenhuma descrição adicionada</span>}
+                        {formData.bio || (
+                          <span className="text-muted-foreground italic">
+                            Nenhuma descrição adicionada
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -616,7 +729,9 @@ const Profile = () => {
                     </div>
                     <div>
                       <CardTitle>Editar Perfil</CardTitle>
-                      <CardDescription>Atualize suas informações pessoais</CardDescription>
+                      <CardDescription>
+                        Atualize suas informações pessoais
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -625,7 +740,10 @@ const Profile = () => {
                     {/* Personal Info Section */}
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="full_name" className="flex items-center gap-2 text-sm font-medium">
+                        <Label
+                          htmlFor="full_name"
+                          className="flex items-center gap-2 text-sm font-medium"
+                        >
                           <User className="h-4 w-4 text-muted-foreground" />
                           Nome Completo
                         </Label>
@@ -633,7 +751,10 @@ const Profile = () => {
                           id="full_name"
                           value={formData.full_name}
                           onChange={(e) =>
-                            setFormData({ ...formData, full_name: e.target.value })
+                            setFormData({
+                              ...formData,
+                              full_name: e.target.value,
+                            })
                           }
                           placeholder="Seu nome completo"
                           className="h-12"
@@ -641,7 +762,10 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                        <Label
+                          htmlFor="phone"
+                          className="flex items-center gap-2 text-sm font-medium"
+                        >
                           <Phone className="h-4 w-4 text-muted-foreground" />
                           Telefone
                         </Label>
@@ -701,14 +825,21 @@ const Profile = () => {
                       </h3>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
-                          <Label htmlFor="state" className="flex items-center gap-2 text-sm font-medium">
+                          <Label
+                            htmlFor="state"
+                            className="flex items-center gap-2 text-sm font-medium"
+                          >
                             <MapPin className="h-4 w-4 text-muted-foreground" />
                             Estado
                           </Label>
                           <Select
                             value={formData.state}
                             onValueChange={(value) => {
-                              setFormData({ ...formData, state: value, city: "" });
+                              setFormData({
+                                ...formData,
+                                state: value,
+                                city: "",
+                              });
                             }}
                           >
                             <SelectTrigger className="h-12">
@@ -716,7 +847,10 @@ const Profile = () => {
                             </SelectTrigger>
                             <SelectContent>
                               {states.map((state) => (
-                                <SelectItem key={state.value} value={state.value}>
+                                <SelectItem
+                                  key={state.value}
+                                  value={state.value}
+                                >
                                   {state.label}
                                 </SelectItem>
                               ))}
@@ -725,7 +859,10 @@ const Profile = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="city" className="flex items-center gap-2 text-sm font-medium">
+                          <Label
+                            htmlFor="city"
+                            className="flex items-center gap-2 text-sm font-medium"
+                          >
                             <Building2 className="h-4 w-4 text-muted-foreground" />
                             Cidade
                           </Label>
@@ -737,7 +874,13 @@ const Profile = () => {
                             disabled={!formData.state}
                           >
                             <SelectTrigger className="h-12">
-                              <SelectValue placeholder={formData.state ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                              <SelectValue
+                                placeholder={
+                                  formData.state
+                                    ? "Selecione a cidade"
+                                    : "Selecione o estado primeiro"
+                                }
+                              />
                             </SelectTrigger>
                             <SelectContent>
                               {getCitiesByState(formData.state).map((city) => (
@@ -755,7 +898,10 @@ const Profile = () => {
 
                     {/* Bio Section */}
                     <div className="space-y-2">
-                      <Label htmlFor="bio" className="flex items-center gap-2 text-sm font-medium">
+                      <Label
+                        htmlFor="bio"
+                        className="flex items-center gap-2 text-sm font-medium"
+                      >
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         Sobre você
                       </Label>
@@ -775,10 +921,10 @@ const Profile = () => {
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button 
-                        type="submit" 
-                        size="lg" 
-                        disabled={saving} 
+                      <Button
+                        type="submit"
+                        size="lg"
+                        disabled={saving}
                         className="min-w-[200px] h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
                       >
                         {saving ? (
