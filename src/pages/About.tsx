@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Users, Target, Heart, Award } from "lucide-react";
 import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
 import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
+import { ParallaxHero } from "@/components/ParallaxHero";
 
 const About = () => {
   const { metrics, isLoading } = usePlatformMetrics();
@@ -11,7 +12,7 @@ const About = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <section className="py-16 md:py-24 bg-gradient-to-b from-primary/5 to-background">
+        <ParallaxHero className="py-16 md:py-24">
           <div className="container px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-3xl md:text-5xl font-heading font-bold mb-6">
@@ -22,7 +23,7 @@ const About = () => {
               </p>
             </div>
           </div>
-        </section>
+        </ParallaxHero>
 
         <section className="py-16">
           <div className="container px-4">
