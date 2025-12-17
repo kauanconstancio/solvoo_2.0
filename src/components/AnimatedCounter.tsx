@@ -26,24 +26,29 @@ export const AnimatedCounter = ({
     decimals,
   });
 
-  if (isLoading) {
-    return <span className="inline-block min-w-[3ch] h-[1em] bg-muted/50 animate-pulse rounded" />;
-  }
-
-  // Show 0 while waiting for data, then animate when data arrives
-  const displayValue = hasAnimated ? count : 0;
+  // Always render the observed element so the IntersectionObserver can attach even during loading.
+  const displayValue = isLoading ? 0 : hasAnimated ? count : 0;
 
   return (
-    <span 
-      ref={ref} 
-      className={cn('inline-block', className)}
+    <span
+      ref={ref}
+      aria-busy={isLoading}
+      className={cn(
+        'inline-block align-baseline',
+        isLoading && 'min-w-[3ch] h-[1em] bg-muted/50 animate-pulse rounded',
+        className
+      )}
     >
-      {prefix}
-      {displayValue.toLocaleString('pt-BR', { 
-        minimumFractionDigits: decimals, 
-        maximumFractionDigits: decimals 
-      })}
-      {suffix}
+      {isLoading ? null : (
+        <>
+          {prefix}
+          {displayValue.toLocaleString('pt-BR', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+          })}
+          {suffix}
+        </>
+      )}
     </span>
   );
 };

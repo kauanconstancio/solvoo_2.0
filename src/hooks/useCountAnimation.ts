@@ -19,22 +19,40 @@ export const useCountAnimation = ({
   const ref = useRef<HTMLSpanElement>(null);
   const animationRef = useRef<number | null>(null);
 
-  // Intersection Observer - just tracks if element is in view
+  // Intersection Observer - tracks if element is in view
+  // Robust: if the ref isn't attached yet (e.g. conditional render), we keep trying.
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
+    // Fallback for environments without IntersectionObserver
+    if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) {
+      setIsInView(true);
+      return;
+    }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting);
-      },
-      { threshold: 0.1, rootMargin: '50px' }
-    );
+    let observer: IntersectionObserver | null = null;
+    let cancelled = false;
 
-    observer.observe(element);
+    const tryObserve = () => {
+      const element = ref.current;
+      if (!element) {
+        if (!cancelled) requestAnimationFrame(tryObserve);
+        return;
+      }
+
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsInView(entry.isIntersecting);
+        },
+        { threshold: 0.1, rootMargin: '50px' }
+      );
+
+      observer.observe(element);
+    };
+
+    tryObserve();
 
     return () => {
-      observer.disconnect();
+      cancelled = true;
+      observer?.disconnect();
     };
   }, []);
 
