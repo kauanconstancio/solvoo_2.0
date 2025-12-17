@@ -16,7 +16,7 @@ export const useCountAnimation = ({
   const [count, setCount] = useState(start);
   const [isVisible, setIsVisible] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
 
   // Intersection Observer
   useEffect(() => {

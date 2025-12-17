@@ -46,7 +46,6 @@ const About = () => {
                       value={formatLargeNumber(metrics.totalProfessionals).displayValue}
                       suffix={formatLargeNumber(metrics.totalProfessionals).suffix}
                       isLoading={isLoading}
-                      skeletonClassName="h-6 w-16"
                     />
                   </h3>
                   <p className="text-sm text-muted-foreground">Profissionais</p>
@@ -58,7 +57,6 @@ const About = () => {
                       value={formatLargeNumber(metrics.totalServices).displayValue}
                       suffix={formatLargeNumber(metrics.totalServices).suffix}
                       isLoading={isLoading}
-                      skeletonClassName="h-6 w-16"
                     />
                   </h3>
                   <p className="text-sm text-muted-foreground">Serviços</p>
@@ -70,7 +68,6 @@ const About = () => {
                       value={formatLargeNumber(metrics.totalUsers).displayValue}
                       suffix={formatLargeNumber(metrics.totalUsers).suffix}
                       isLoading={isLoading}
-                      skeletonClassName="h-6 w-16"
                     />
                   </h3>
                   <p className="text-sm text-muted-foreground">Usuários</p>
@@ -83,7 +80,6 @@ const About = () => {
                       suffix="/5"
                       decimals={1}
                       isLoading={isLoading}
-                      skeletonClassName="h-6 w-16"
                     />
                   </h3>
                   <p className="text-sm text-muted-foreground">Avaliação</p>
