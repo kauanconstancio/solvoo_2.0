@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface UseCountAnimationProps {
   end: number;
@@ -14,53 +14,71 @@ export const useCountAnimation = ({
   decimals = 0,
 }: UseCountAnimationProps) => {
   const [count, setCount] = useState(start);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
+  const animationRef = useRef<number | null>(null);
 
-  // Intersection Observer
+  // Intersection Observer - just tracks if element is in view
   useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setIsVisible(true);
-        }
+        setIsInView(entry.isIntersecting);
       },
-      { threshold: 0.3 }
+      { threshold: 0.1, rootMargin: '50px' }
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Animation effect - triggers when in view AND has a valid value
+  useEffect(() => {
+    // Don't animate if: not in view, already animated, or end value is 0 (loading)
+    if (!isInView || hasAnimated || end === 0) {
+      return;
     }
 
-    return () => observer.disconnect();
-  }, [hasAnimated]);
-
-  // Count animation
-  useEffect(() => {
-    if (!isVisible || hasAnimated) return;
-
     setHasAnimated(true);
-    const startTime = Date.now();
+    const startTime = performance.now();
     const startValue = start;
 
-    const animate = () => {
-      const now = Date.now();
-      const progress = Math.min((now - startTime) / duration, 1);
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function (ease-out)
+      // Easing function (ease-out cubic)
       const easeOut = 1 - Math.pow(1 - progress, 3);
       const currentValue = startValue + (end - startValue) * easeOut;
       
       setCount(Number(currentValue.toFixed(decimals)));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
-  }, [isVisible, end, duration, start, decimals, hasAnimated]);
+    animationRef.current = requestAnimationFrame(animate);
 
-  return { count, ref, isVisible };
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isInView, end, duration, start, decimals, hasAnimated]);
+
+  // If value changes after animation completed, update to new value
+  useEffect(() => {
+    if (hasAnimated && end !== 0) {
+      setCount(Number(end.toFixed(decimals)));
+    }
+  }, [end, decimals, hasAnimated]);
+
+  return { count, ref, hasAnimated };
 };

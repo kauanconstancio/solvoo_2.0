@@ -20,19 +20,30 @@ export const AnimatedCounter = ({
   isLoading = false,
   className,
 }: AnimatedCounterProps) => {
-  const { count, ref, isVisible } = useCountAnimation({
+  const { count, ref, hasAnimated } = useCountAnimation({
     end: value,
     duration,
     decimals,
   });
 
   if (isLoading) {
-    return <span className="inline-block w-12 h-6 bg-muted animate-pulse rounded" />;
+    return <span className="inline-block min-w-[3ch] h-[1em] bg-muted/50 animate-pulse rounded" />;
   }
 
+  // Show 0 while waiting for data, then animate when data arrives
+  const displayValue = hasAnimated ? count : 0;
+
   return (
-    <span ref={ref} className={cn('inline-block transition-opacity duration-500', isVisible ? 'opacity-100' : 'opacity-0', className)}>
-      {prefix}{count.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}
+    <span 
+      ref={ref} 
+      className={cn('inline-block', className)}
+    >
+      {prefix}
+      {displayValue.toLocaleString('pt-BR', { 
+        minimumFractionDigits: decimals, 
+        maximumFractionDigits: decimals 
+      })}
+      {suffix}
     </span>
   );
 };
