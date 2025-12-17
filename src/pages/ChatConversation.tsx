@@ -103,9 +103,16 @@ const ChatConversation = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [pendingFile, setPendingFile] = useState<{
+    file: File;
+    previewUrl: string;
+    isImage: boolean;
+  } | null>(null);
+  const [pendingCaption, setPendingCaption] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const captionInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -254,13 +261,55 @@ const ChatConversation = () => {
       return;
     }
 
-    setIsUploadingFile(true);
-    await sendFile(file);
-    setIsUploadingFile(false);
+    const isImage = file.type.startsWith("image/");
+    const previewUrl = isImage ? URL.createObjectURL(file) : "";
+
+    setPendingFile({ file, previewUrl, isImage });
+    setPendingCaption("");
 
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+
+    // Focus caption input after modal opens
+    setTimeout(() => captionInputRef.current?.focus(), 100);
+  };
+
+  const handleCancelFilePreview = () => {
+    if (pendingFile?.previewUrl) {
+      URL.revokeObjectURL(pendingFile.previewUrl);
+    }
+    setPendingFile(null);
+    setPendingCaption("");
+  };
+
+  const handleSendFileWithCaption = async () => {
+    if (!pendingFile) return;
+
+    setIsUploadingFile(true);
+    
+    // Send the file
+    await sendFile(pendingFile.file);
+    
+    // If there's a caption, send it as a separate text message
+    if (pendingCaption.trim()) {
+      await sendMessage(pendingCaption.trim(), "text");
+    }
+
+    // Cleanup
+    if (pendingFile.previewUrl) {
+      URL.revokeObjectURL(pendingFile.previewUrl);
+    }
+    setPendingFile(null);
+    setPendingCaption("");
+    setIsUploadingFile(false);
+  };
+
+  const handleCaptionKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendFileWithCaption();
     }
   };
 
@@ -715,7 +764,83 @@ const ChatConversation = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* File Preview Modal - WhatsApp style */}
+      {pendingFile && (
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 rounded-xl"
+              onClick={handleCancelFilePreview}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+            <span className="text-white text-sm font-medium">
+              {pendingFile.isImage ? "Enviar imagem" : pendingFile.file.name}
+            </span>
+            <div className="w-10" /> {/* Spacer for centering */}
+          </div>
+
+          {/* Preview area */}
+          <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+            {pendingFile.isImage ? (
+              <img
+                src={pendingFile.previewUrl}
+                alt="Preview"
+                className="max-w-full max-h-full object-contain rounded-lg"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-4 text-white">
+                <div className="w-24 h-24 rounded-2xl bg-white/10 flex items-center justify-center">
+                  <FileIcon className="h-12 w-12" />
+                </div>
+                <div className="text-center">
+                  <p className="font-medium">{pendingFile.file.name}</p>
+                  <p className="text-sm text-white/60">
+                    {(pendingFile.file.size / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Caption input and send */}
+          <div className="p-4 border-t border-white/10">
+            <div className="max-w-2xl mx-auto flex items-end gap-3">
+              <div className="flex-1">
+                <Textarea
+                  ref={captionInputRef}
+                  value={pendingCaption}
+                  onChange={(e) => setPendingCaption(e.target.value)}
+                  onKeyDown={handleCaptionKeyDown}
+                  placeholder="Adicione uma legenda..."
+                  className="min-h-[48px] max-h-32 resize-none bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl focus-visible:ring-white/30"
+                  rows={1}
+                  disabled={isUploadingFile}
+                />
+              </div>
+              <Button
+                onClick={handleSendFileWithCaption}
+                disabled={isUploadingFile}
+                size="icon"
+                className="h-12 w-12 flex-shrink-0 rounded-xl bg-primary hover:bg-primary/90 shadow-lg"
+              >
+                {isUploadingFile ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-white/40 text-center mt-2">
+              Pressione Enter para enviar
+            </p>
+          </div>
+        </div>
+      )}
+
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="max-w-[90vw] md:max-w-md rounded-2xl">
           <AlertDialogHeader>
