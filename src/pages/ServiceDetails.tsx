@@ -117,21 +117,24 @@ const ServiceDetails = () => {
   const handleRequestQuote = async () => {
     if (!service || !provider) return;
 
-    setIsRequestingQuote(true);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const autoMessage = `Olá! Tenho interesse no serviço "${service.title}" e gostaria de solicitar um orçamento.\n\nPoderia me passar mais informações sobre valores e disponibilidade?`;
-
-    const conversationId = await createOrGetConversation(
-      service.user_id,
-      service.id,
-      autoMessage
-    );
-
-    setIsRequestingQuote(false);
-
-    if (conversationId) {
-      navigate(`/chat/${conversationId}`);
+    if (!user) {
+      toast({
+        title: "Autenticação necessária",
+        description: "Você precisa estar logado para solicitar orçamento.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
     }
+
+    // Navigate to chat with parameters for new conversation
+    navigate(
+      `/chat/new?professionalId=${service.user_id}&serviceId=${service.id}`
+    );
   };
 
   useEffect(() => {
@@ -188,7 +191,7 @@ const ServiceDetails = () => {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user || user.id !== serviceData.user_id) {
-          await supabase.rpc('increment_views', { service_id: id });
+          await supabase.rpc("increment_views", { service_id: id });
         }
       } catch (err: any) {
         console.error("Error fetching service:", err);

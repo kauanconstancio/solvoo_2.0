@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   Send,
@@ -41,6 +41,7 @@ import {
 import {
   useMessages,
   useConversations,
+  useCreateConversation,
   Message,
   ReplyToMessage,
 } from "@/hooks/useChat";
@@ -80,14 +81,27 @@ const TypingIndicator = () => (
 
 const ChatConversation = () => {
   const { conversationId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { messages, isLoading, sendMessage, sendFile } =
-    useMessages(conversationId);
+
+  // Check if this is a new conversation
+  const isNewConversation = conversationId === "new";
+  const professionalId = searchParams.get("professionalId");
+  const serviceId = searchParams.get("serviceId");
+
+  const {
+    messages,
+    isLoading: isLoadingMessages,
+    sendMessage,
+    sendFile,
+  } = useMessages(isNewConversation ? undefined : conversationId);
   const { deleteConversation } = useConversations();
+  const { createOrGetConversation } = useCreateConversation();
   const { markAsRead } = useMarkMessagesAsRead();
-  const { typingUsers, setTyping, isOtherUserTyping } =
-    useTypingIndicator(conversationId);
+  const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
+    isNewConversation ? undefined : conversationId
+  );
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -109,6 +123,8 @@ const ChatConversation = () => {
     isImage: boolean;
   } | null>(null);
   const [pendingCaption, setPendingCaption] = useState("");
+  const [isLoadingNewConversation, setIsLoadingNewConversation] =
+    useState(isNewConversation);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,6 +151,42 @@ const ChatConversation = () => {
 
   useEffect(() => {
     const fetchConversation = async () => {
+      // Handle new conversation
+      if (isNewConversation) {
+        if (!professionalId) {
+          toast({
+            title: "Erro",
+            description: "Informações da conversa não encontradas.",
+            variant: "destructive",
+          });
+          navigate("/chat");
+          return;
+        }
+
+        // Fetch professional profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url")
+          .eq("user_id", professionalId)
+          .maybeSingle();
+
+        setOtherUser(profile);
+
+        // Fetch service if provided
+        if (serviceId) {
+          const { data: serviceData } = await supabase
+            .from("services")
+            .select("id, title, images, price")
+            .eq("id", serviceId)
+            .maybeSingle();
+          setService(serviceData);
+        }
+
+        setIsLoadingNewConversation(false);
+        return;
+      }
+
+      // Handle existing conversation
       if (!conversationId) return;
 
       const { data: conv } = await supabase
@@ -170,7 +222,41 @@ const ChatConversation = () => {
     };
 
     fetchConversation();
-  }, [conversationId]);
+  }, [
+    conversationId,
+    isNewConversation,
+    professionalId,
+    serviceId,
+    navigate,
+    toast,
+  ]);
+
+  // Handle pending message after conversation creation
+  useEffect(() => {
+    const sendPendingMessage = async () => {
+      const pendingMessageStr = sessionStorage.getItem("pendingMessage");
+      if (pendingMessageStr && conversationId && !isNewConversation) {
+        try {
+          const pendingMessage = JSON.parse(pendingMessageStr);
+          sessionStorage.removeItem("pendingMessage");
+
+          await sendMessage(
+            pendingMessage.content,
+            "text",
+            undefined,
+            undefined,
+            pendingMessage.replyToId
+          );
+          setNewMessage("");
+          setReplyingTo(null);
+        } catch (error) {
+          console.error("Error sending pending message:", error);
+        }
+      }
+    };
+
+    sendPendingMessage();
+  }, [conversationId, isNewConversation, sendMessage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -195,6 +281,30 @@ const ChatConversation = () => {
 
     setIsSending(true);
     setTyping(false, currentUserName || undefined);
+
+    // If this is a new conversation, create it first
+    if (isNewConversation && professionalId) {
+      const newConvId = await createOrGetConversation(
+        professionalId,
+        serviceId || undefined
+      );
+      if (newConvId) {
+        // Navigate to the new conversation with the message
+        navigate(`/chat/${newConvId}`, { replace: true });
+        // The message will be sent after navigation via useEffect
+        // Store message in sessionStorage temporarily
+        sessionStorage.setItem(
+          "pendingMessage",
+          JSON.stringify({
+            content: newMessage.trim(),
+            replyToId: replyingTo?.id,
+          })
+        );
+      }
+      setIsSending(false);
+      return;
+    }
+
     await sendMessage(
       newMessage.trim(),
       "text",
@@ -288,10 +398,10 @@ const ChatConversation = () => {
     if (!pendingFile) return;
 
     setIsUploadingFile(true);
-    
+
     // Send the file
     await sendFile(pendingFile.file);
-    
+
     // If there's a caption, send it as a separate text message
     if (pendingCaption.trim()) {
       await sendMessage(pendingCaption.trim(), "text");
@@ -440,6 +550,10 @@ const ChatConversation = () => {
       </>
     );
   };
+
+  const isLoading = isNewConversation
+    ? isLoadingNewConversation
+    : isLoadingMessages;
 
   if (isLoading) {
     return (
@@ -851,7 +965,10 @@ const ChatConversation = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel disabled={isDeleting} className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-smooth">
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-smooth"
+            >
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
