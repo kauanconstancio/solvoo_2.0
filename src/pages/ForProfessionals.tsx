@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { Link } from "react-router-dom";
 
 const benefits = [
   {
@@ -177,9 +178,11 @@ const ForProfessionals = () => {
               novos clientes e aumentando sua renda na Solvoo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-base md:text-lg px-8">
-                Começar Agora - É Grátis
-              </Button>
+              <Link to="/auth">
+                <Button size="lg" className="text-base md:text-lg px-8">
+                  Começar Agora - É Grátis
+                </Button>
+              </Link>
               <Button
                 size="lg"
                 variant="outline"
@@ -433,9 +436,11 @@ const ForProfessionals = () => {
               Cadastre-se gratuitamente e comece a receber propostas de clientes
               hoje mesmo.
             </p>
-            <Button size="lg" className="text-lg px-10">
-              Criar Minha Conta Grátis
-            </Button>
+            <Link to="/auth">
+              <Button size="lg" className="text-lg px-10">
+                Criar Minha Conta Grátis
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
