@@ -20,10 +20,12 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    toast.success("Mensagem enviada com sucesso! Entraremos em contato em breve.");
+
+    toast.success(
+      "Mensagem enviada com sucesso! Entraremos em contato em breve."
+    );
     setFormData({ name: "", email: "", subject: "", message: "" });
     setIsSubmitting(false);
   };
@@ -39,37 +41,37 @@ const Contact = () => {
                 Entre em Contato
               </h1>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Tem alguma dúvida, sugestão ou precisa de ajuda? Nossa equipe está pronta para atendê-lo.
+                Tem alguma dúvida, sugestão ou precisa de ajuda? Nossa equipe
+                está pronta para atendê-lo.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="grid md:grid-cols-2 gap-8 mb-12 max-w-2xl mx-auto">
               <div className="bg-card p-6 rounded-xl border text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-2">E-mail</h3>
-                <p className="text-sm text-muted-foreground">contato@solvoo.com.br</p>
-              </div>
-              <div className="bg-card p-6 rounded-xl border text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Phone className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Telefone</h3>
-                <p className="text-sm text-muted-foreground">(11) 4000-1234</p>
+                <p className="text-sm text-muted-foreground">
+                  contato@solvoo.com.br
+                </p>
               </div>
               <div className="bg-card p-6 rounded-xl border text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-2">Endereço</h3>
-                <p className="text-sm text-muted-foreground">São Paulo, SP - Brasil</p>
+                <p className="text-sm text-muted-foreground">
+                  São Paulo, SP - Brasil
+                </p>
               </div>
             </div>
 
             <div className="max-w-2xl mx-auto">
               <div className="bg-card p-6 md:p-8 rounded-xl border">
-                <h2 className="text-xl font-semibold mb-6">Envie sua mensagem</h2>
+                <h2 className="text-xl font-semibold mb-6">
+                  Envie sua mensagem
+                </h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -78,7 +80,9 @@ const Contact = () => {
                         id="name"
                         placeholder="Seu nome"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -89,7 +93,9 @@ const Contact = () => {
                         type="email"
                         placeholder="seu@email.com"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -100,7 +106,9 @@ const Contact = () => {
                       id="subject"
                       placeholder="Sobre o que você quer falar?"
                       value={formData.subject}
-                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -111,11 +119,17 @@ const Contact = () => {
                       placeholder="Escreva sua mensagem aqui..."
                       rows={5}
                       value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, message: e.target.value })
+                      }
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? (
                       "Enviando..."
                     ) : (
