@@ -20,29 +20,39 @@ export const usePlatformMetrics = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const getCount = async (
+      table: 'profiles' | 'services' | 'conversations',
+      apply?: (q: ReturnType<typeof supabase.from>) => any
+    ) => {
+      // Use GET + range(0,0) (more reliable than HEAD for count parsing)
+      let q: any = supabase.from(table).select('id', { count: 'exact' }).range(0, 0);
+      if (apply) q = apply(q);
+
+      const { count, error } = await q;
+      if (error) throw error;
+      return count ?? 0;
+    };
+
     const fetchMetrics = async () => {
       try {
-        // Fetch professionals count (profiles with account_type = 'profissional')
-        const { count: professionalsCount } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('account_type', 'profissional');
+        const [
+          totalProfessionals,
+          totalUsers,
+          totalServices,
+          totalConversations,
+          ratingsRes,
+        ] = await Promise.all([
+          getCount('profiles', (q: any) => q.eq('account_type', 'profissional')),
+          getCount('profiles'),
+          getCount('services', (q: any) => q.eq('status', 'active')),
+          getCount('conversations'),
+          supabase.from('reviews').select('rating'),
+        ]);
 
-        // Fetch total users count
-        const { count: usersCount } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        // Fetch total active services
-        const { count: servicesCount } = await supabase
-          .from('services')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'active');
-
-        // Fetch average rating
-        const { data: ratingsData } = await supabase
-          .from('reviews')
-          .select('rating');
+        const { data: ratingsData, error: ratingsError } = ratingsRes;
+        if (ratingsError) throw ratingsError;
 
         let avgRating = 0;
         if (ratingsData && ratingsData.length > 0) {
@@ -50,26 +60,36 @@ export const usePlatformMetrics = () => {
           avgRating = sum / ratingsData.length;
         }
 
-        // Fetch total conversations (as a proxy for services completed/contacted)
-        const { count: conversationsCount } = await supabase
-          .from('conversations')
-          .select('*', { count: 'exact', head: true });
-
-        setMetrics({
-          totalProfessionals: professionalsCount || 0,
-          totalServices: servicesCount || 0,
-          averageRating: avgRating,
-          totalConversations: conversationsCount || 0,
-          totalUsers: usersCount || 0,
-        });
+        if (!cancelled) {
+          setMetrics({
+            totalProfessionals,
+            totalServices,
+            averageRating: avgRating,
+            totalConversations,
+            totalUsers,
+          });
+        }
       } catch (error) {
         console.error('Error fetching platform metrics:', error);
+        if (!cancelled) {
+          setMetrics({
+            totalProfessionals: 0,
+            totalServices: 0,
+            averageRating: 0,
+            totalConversations: 0,
+            totalUsers: 0,
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     fetchMetrics();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { metrics, isLoading };
