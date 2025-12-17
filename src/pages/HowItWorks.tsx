@@ -248,7 +248,6 @@ const HowItWorks = () => {
                         value={formatLargeNumber(metrics.totalProfessionals).displayValue}
                         suffix={formatLargeNumber(metrics.totalProfessionals).suffix}
                         isLoading={isLoading}
-                        skeletonClassName="h-8 w-16"
                       />
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
@@ -261,7 +260,6 @@ const HowItWorks = () => {
                         value={formatLargeNumber(metrics.totalServices).displayValue}
                         suffix={formatLargeNumber(metrics.totalServices).suffix}
                         isLoading={isLoading}
-                        skeletonClassName="h-8 w-16"
                       />
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
@@ -274,7 +272,6 @@ const HowItWorks = () => {
                         value={metrics.averageRating}
                         decimals={1}
                         isLoading={isLoading}
-                        skeletonClassName="h-8 w-16"
                       />
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
@@ -287,7 +284,6 @@ const HowItWorks = () => {
                         value={formatLargeNumber(metrics.totalConversations).displayValue}
                         suffix={formatLargeNumber(metrics.totalConversations).suffix}
                         isLoading={isLoading}
-                        skeletonClassName="h-8 w-16"
                       />
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">

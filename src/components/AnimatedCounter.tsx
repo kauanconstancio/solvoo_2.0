@@ -1,5 +1,4 @@
 import { useCountAnimation } from '@/hooks/useCountAnimation';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 interface AnimatedCounterProps {
@@ -10,7 +9,6 @@ interface AnimatedCounterProps {
   duration?: number;
   isLoading?: boolean;
   className?: string;
-  skeletonClassName?: string;
 }
 
 export const AnimatedCounter = ({
@@ -21,7 +19,6 @@ export const AnimatedCounter = ({
   duration = 2000,
   isLoading = false,
   className,
-  skeletonClassName = 'h-10 w-20',
 }: AnimatedCounterProps) => {
   const { count, ref, isVisible } = useCountAnimation({
     end: value,
@@ -30,15 +27,13 @@ export const AnimatedCounter = ({
   });
 
   if (isLoading) {
-    return <Skeleton className={cn('mx-auto', skeletonClassName)} />;
+    return <span className="inline-block w-12 h-6 bg-muted animate-pulse rounded" />;
   }
 
   return (
-    <div ref={ref} className={cn('transition-opacity duration-500', className)}>
-      <span className={cn(isVisible ? 'opacity-100' : 'opacity-0')}>
-        {prefix}{count.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}
-      </span>
-    </div>
+    <span ref={ref} className={cn('inline-block transition-opacity duration-500', isVisible ? 'opacity-100' : 'opacity-0', className)}>
+      {prefix}{count.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}
+    </span>
   );
 };
 
