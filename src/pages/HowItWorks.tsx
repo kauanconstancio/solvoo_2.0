@@ -20,8 +20,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Skeleton } from "@/components/ui/skeleton";
-import { usePlatformMetrics, formatMetricValue } from "@/hooks/usePlatformMetrics";
+import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
+import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
 
 const steps = [
   {
@@ -243,49 +243,53 @@ const HowItWorks = () => {
               <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-8 md:p-12">
                 <div className="grid grid-cols-2 gap-4 md:gap-6">
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    {isLoading ? (
-                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
-                    ) : (
-                      <p className="text-2xl md:text-3xl font-bold text-primary">
-                        {formatMetricValue(metrics.totalProfessionals)}
-                      </p>
-                    )}
+                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                      <AnimatedCounter
+                        value={formatLargeNumber(metrics.totalProfessionals).displayValue}
+                        suffix={formatLargeNumber(metrics.totalProfessionals).suffix}
+                        isLoading={isLoading}
+                        skeletonClassName="h-8 w-16"
+                      />
+                    </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Profissionais
                     </p>
                   </div>
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    {isLoading ? (
-                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
-                    ) : (
-                      <p className="text-2xl md:text-3xl font-bold text-primary">
-                        {formatMetricValue(metrics.totalServices)}
-                      </p>
-                    )}
+                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                      <AnimatedCounter
+                        value={formatLargeNumber(metrics.totalServices).displayValue}
+                        suffix={formatLargeNumber(metrics.totalServices).suffix}
+                        isLoading={isLoading}
+                        skeletonClassName="h-8 w-16"
+                      />
+                    </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Serviços
                     </p>
                   </div>
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    {isLoading ? (
-                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
-                    ) : (
-                      <p className="text-2xl md:text-3xl font-bold text-primary">
-                        {formatMetricValue(metrics.averageRating, 'rating')}
-                      </p>
-                    )}
+                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                      <AnimatedCounter
+                        value={metrics.averageRating}
+                        decimals={1}
+                        isLoading={isLoading}
+                        skeletonClassName="h-8 w-16"
+                      />
+                    </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Avaliação Média
                     </p>
                   </div>
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    {isLoading ? (
-                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
-                    ) : (
-                      <p className="text-2xl md:text-3xl font-bold text-primary">
-                        {formatMetricValue(metrics.totalConversations)}
-                      </p>
-                    )}
+                    <p className="text-2xl md:text-3xl font-bold text-primary">
+                      <AnimatedCounter
+                        value={formatLargeNumber(metrics.totalConversations).displayValue}
+                        suffix={formatLargeNumber(metrics.totalConversations).suffix}
+                        isLoading={isLoading}
+                        skeletonClassName="h-8 w-16"
+                      />
+                    </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Contatos
                     </p>

@@ -19,11 +19,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
-import { usePlatformMetrics, formatMetricValue } from "@/hooks/usePlatformMetrics";
+import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
+import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
 
 const benefits = [
   {
@@ -207,49 +207,50 @@ const ForProfessionals = () => {
         <div className="container px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              {isLoading ? (
-                <Skeleton className="h-10 w-20 mx-auto mb-2" />
-              ) : (
-                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                  {formatMetricValue(metrics.totalProfessionals)}
-                </p>
-              )}
+              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                <AnimatedCounter
+                  value={formatLargeNumber(metrics.totalProfessionals).displayValue}
+                  suffix={formatLargeNumber(metrics.totalProfessionals).suffix}
+                  isLoading={isLoading}
+                  decimals={metrics.totalProfessionals >= 1000 ? 0 : 0}
+                />
+              </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Profissionais Ativos
               </p>
             </div>
             <div>
-              {isLoading ? (
-                <Skeleton className="h-10 w-20 mx-auto mb-2" />
-              ) : (
-                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                  {formatMetricValue(metrics.totalServices)}
-                </p>
-              )}
+              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                <AnimatedCounter
+                  value={formatLargeNumber(metrics.totalServices).displayValue}
+                  suffix={formatLargeNumber(metrics.totalServices).suffix}
+                  isLoading={isLoading}
+                />
+              </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Serviços Anunciados
               </p>
             </div>
             <div>
-              {isLoading ? (
-                <Skeleton className="h-10 w-20 mx-auto mb-2" />
-              ) : (
-                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                  {formatMetricValue(metrics.averageRating, 'rating')}
-                </p>
-              )}
+              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                <AnimatedCounter
+                  value={metrics.averageRating}
+                  decimals={1}
+                  isLoading={isLoading}
+                />
+              </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Avaliação Média
               </p>
             </div>
             <div>
-              {isLoading ? (
-                <Skeleton className="h-10 w-20 mx-auto mb-2" />
-              ) : (
-                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                  {formatMetricValue(metrics.totalConversations)}
-                </p>
-              )}
+              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                <AnimatedCounter
+                  value={formatLargeNumber(metrics.totalConversations).displayValue}
+                  suffix={formatLargeNumber(metrics.totalConversations).suffix}
+                  isLoading={isLoading}
+                />
+              </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Contatos Realizados
               </p>
