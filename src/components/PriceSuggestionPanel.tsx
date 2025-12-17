@@ -1,6 +1,13 @@
-import { TrendingUp, TrendingDown, Minus, Lightbulb, MapPin, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Lightbulb,
+  MapPin,
+  BarChart3,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PriceSuggestion {
   recommended: number;
@@ -37,15 +44,28 @@ export const PriceSuggestionPanel = ({
   onApplyPrice,
   onClose,
 }: PriceSuggestionPanelProps) => {
-  const currentPriceNum = currentPrice ? parseFloat(currentPrice.replace(/[^\d.,]/g, '').replace(',', '.')) : 0;
-  
+  const currentPriceNum = currentPrice
+    ? parseFloat(currentPrice.replace(/[^\d.,]/g, "").replace(",", "."))
+    : 0;
+
   const getPriceComparison = () => {
     if (!currentPriceNum || currentPriceNum === 0) return null;
-    const diff = ((currentPriceNum - suggestion.market.avg) / suggestion.market.avg) * 100;
-    
-    if (diff > 15) return { icon: TrendingUp, text: 'Acima da média', color: 'text-orange-500' };
-    if (diff < -15) return { icon: TrendingDown, text: 'Abaixo da média', color: 'text-blue-500' };
-    return { icon: Minus, text: 'Na média', color: 'text-green-500' };
+    const diff =
+      ((currentPriceNum - suggestion.market.avg) / suggestion.market.avg) * 100;
+
+    if (diff > 15)
+      return {
+        icon: TrendingUp,
+        text: "Acima da média",
+        color: "text-orange-500",
+      };
+    if (diff < -15)
+      return {
+        icon: TrendingDown,
+        text: "Abaixo da média",
+        color: "text-blue-500",
+      };
+    return { icon: Minus, text: "Na média", color: "text-green-500" };
   };
 
   const comparison = getPriceComparison();
@@ -57,7 +77,12 @@ export const PriceSuggestionPanel = ({
           <BarChart3 className="h-5 w-5 text-primary" />
           <h4 className="font-semibold">Análise de Mercado</h4>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose} className="h-6 px-2 text-xs">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="h-6 px-2 text-xs hover:bg-primary hover:text-primary-foreground transition-smooth"
+        >
           Fechar
         </Button>
       </div>
@@ -70,10 +95,11 @@ export const PriceSuggestionPanel = ({
       <div className="bg-primary/10 rounded-lg p-3 text-center">
         <p className="text-xs text-muted-foreground mb-1">Preço Recomendado</p>
         <p className="text-2xl font-bold text-primary">
-          R$ {suggestion.recommended.toLocaleString('pt-BR')}
+          R$ {suggestion.recommended.toLocaleString("pt-BR")}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Faixa sugerida: R$ {suggestion.range.min.toLocaleString('pt-BR')} - R$ {suggestion.range.max.toLocaleString('pt-BR')}
+          Faixa sugerida: R$ {suggestion.range.min.toLocaleString("pt-BR")} - R${" "}
+          {suggestion.range.max.toLocaleString("pt-BR")}
         </p>
       </div>
 
@@ -81,19 +107,27 @@ export const PriceSuggestionPanel = ({
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div className="bg-background rounded p-2">
           <p className="text-xs text-muted-foreground">Mínimo</p>
-          <p className="font-medium">R$ {suggestion.market.min.toLocaleString('pt-BR')}</p>
+          <p className="font-medium">
+            R$ {suggestion.market.min.toLocaleString("pt-BR")}
+          </p>
         </div>
         <div className="bg-background rounded p-2">
           <p className="text-xs text-muted-foreground">Máximo</p>
-          <p className="font-medium">R$ {suggestion.market.max.toLocaleString('pt-BR')}</p>
+          <p className="font-medium">
+            R$ {suggestion.market.max.toLocaleString("pt-BR")}
+          </p>
         </div>
         <div className="bg-background rounded p-2">
           <p className="text-xs text-muted-foreground">Média</p>
-          <p className="font-medium">R$ {suggestion.market.avg.toLocaleString('pt-BR')}</p>
+          <p className="font-medium">
+            R$ {suggestion.market.avg.toLocaleString("pt-BR")}
+          </p>
         </div>
         <div className="bg-background rounded p-2">
           <p className="text-xs text-muted-foreground">Mediana</p>
-          <p className="font-medium">R$ {suggestion.market.median.toLocaleString('pt-BR')}</p>
+          <p className="font-medium">
+            R$ {suggestion.market.median.toLocaleString("pt-BR")}
+          </p>
         </div>
       </div>
 
@@ -102,17 +136,28 @@ export const PriceSuggestionPanel = ({
         <div className="flex items-center gap-2 p-2 bg-background rounded text-sm">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <div>
-            <p className="text-xs text-muted-foreground">Média na sua região ({suggestion.localMarket.count} serviços)</p>
-            <p className="font-medium">R$ {suggestion.localMarket.avg.toLocaleString('pt-BR')}</p>
+            <p className="text-xs text-muted-foreground">
+              Média na sua região ({suggestion.localMarket.count} serviços)
+            </p>
+            <p className="font-medium">
+              R$ {suggestion.localMarket.avg.toLocaleString("pt-BR")}
+            </p>
           </div>
         </div>
       )}
 
       {/* Current Price Comparison */}
       {comparison && currentPriceNum > 0 && (
-        <div className={cn("flex items-center gap-2 p-2 rounded text-sm", comparison.color)}>
+        <div
+          className={cn(
+            "flex items-center gap-2 p-2 rounded text-sm",
+            comparison.color
+          )}
+        >
           <comparison.icon className="h-4 w-4" />
-          <span>Seu preço atual está {comparison.text.toLowerCase()} do mercado</span>
+          <span>
+            Seu preço atual está {comparison.text.toLowerCase()} do mercado
+          </span>
         </div>
       )}
 
@@ -129,7 +174,7 @@ export const PriceSuggestionPanel = ({
         <Button
           variant="outline"
           size="sm"
-          className="flex-1"
+          className="flex-1 hover:bg-primary hover:text-primary-foreground transition-smooth"
           onClick={() => onApplyPrice(suggestion.range.min)}
         >
           Usar mínimo
@@ -144,7 +189,7 @@ export const PriceSuggestionPanel = ({
         <Button
           variant="outline"
           size="sm"
-          className="flex-1"
+          className="flex-1 hover:bg-primary hover:text-primary-foreground transition-smooth"
           onClick={() => onApplyPrice(suggestion.range.max)}
         >
           Usar máximo

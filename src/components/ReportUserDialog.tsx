@@ -55,8 +55,10 @@ const ReportUserDialog = ({
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         toast({
           title: "Erro",
@@ -86,7 +88,8 @@ const ReportUserDialog = ({
 
       toast({
         title: "Denúncia enviada",
-        description: "Sua denúncia foi registrada e será analisada pela nossa equipe.",
+        description:
+          "Sua denúncia foi registrada e será analisada pela nossa equipe.",
       });
 
       setOpen(false);
@@ -108,7 +111,11 @@ const ReportUserDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
             <Flag className="h-4 w-4 mr-2" />
             Denunciar
           </Button>
@@ -121,10 +128,9 @@ const ReportUserDialog = ({
             Denunciar Usuário
           </DialogTitle>
           <DialogDescription>
-            {reportedUserName 
-              ? `Denunciar ${reportedUserName}. `
-              : ""}
-            Por favor, selecione o motivo da denúncia. Nossa equipe irá analisar o caso.
+            {reportedUserName ? `Denunciar ${reportedUserName}. ` : ""}
+            Por favor, selecione o motivo da denúncia. Nossa equipe irá analisar
+            o caso.
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +141,10 @@ const ReportUserDialog = ({
               {REPORT_REASONS.map((r) => (
                 <div key={r.value} className="flex items-center space-x-2">
                   <RadioGroupItem value={r.value} id={r.value} />
-                  <Label htmlFor={r.value} className="font-normal cursor-pointer">
+                  <Label
+                    htmlFor={r.value}
+                    className="font-normal cursor-pointer"
+                  >
                     {r.label}
                   </Label>
                 </div>
@@ -164,6 +173,7 @@ const ReportUserDialog = ({
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isSubmitting}
+            className="hover:bg-primary hover:text-primary-foreground transition-smooth"
           >
             Cancelar
           </Button>

@@ -50,8 +50,14 @@ const EditService = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { generateDescription, isGenerating } = useGenerateDescription();
-  const { moderateServiceContent, isChecking: isModerating } = useContentModeration();
-  const { suggestPrice, suggestion: priceSuggestion, isLoading: isPriceSuggesting, clearSuggestion } = usePriceSuggestion();
+  const { moderateServiceContent, isChecking: isModerating } =
+    useContentModeration();
+  const {
+    suggestPrice,
+    suggestion: priceSuggestion,
+    isLoading: isPriceSuggesting,
+    clearSuggestion,
+  } = usePriceSuggestion();
   const [images, setImages] = useState<string[]>([]);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
@@ -354,7 +360,7 @@ const EditService = () => {
           <Button
             variant="ghost"
             onClick={() => navigate("/anunciar")}
-            className="mb-4"
+            className="mb-4 hover:bg-primary hover:text-primary-foreground transition-smooth"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar para Meus Anúncios
@@ -494,7 +500,7 @@ const EditService = () => {
                     size="sm"
                     onClick={handleGenerateDescription}
                     disabled={isGenerating || !title || !category}
-                    className="gap-2"
+                    className="gap-2 hover:bg-primary hover:text-primary-foreground transition-smooth"
                   >
                     {isGenerating ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -514,8 +520,17 @@ const EditService = () => {
                   required
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Use o botão "Gerar com IA" para criar uma descrição automaticamente.</span>
-                  <span className={description.length >= 450 ? "text-destructive" : ""}>{description.length}/500</span>
+                  <span>
+                    Use o botão "Gerar com IA" para criar uma descrição
+                    automaticamente.
+                  </span>
+                  <span
+                    className={
+                      description.length >= 450 ? "text-destructive" : ""
+                    }
+                  >
+                    {description.length}/500
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -602,26 +617,26 @@ const EditService = () => {
               <CardDescription>Defina o valor do seu serviço</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSuggestPrice}
+                  disabled={isPriceSuggesting || !category}
+                  className="gap-2 hover:bg-primary hover:text-primary-foreground transition-smooth"
+                >
+                  {isPriceSuggesting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <BarChart3 className="h-4 w-4" />
+                  )}
+                  {isPriceSuggesting ? "Analisando..." : "Sugerir preço"}
+                </Button>
+              </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="price">Preço Base (R$) *</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSuggestPrice}
-                      disabled={isPriceSuggesting || !category}
-                      className="gap-2"
-                    >
-                      {isPriceSuggesting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <BarChart3 className="h-4 w-4" />
-                      )}
-                      {isPriceSuggesting ? "Analisando..." : "Sugerir preço"}
-                    </Button>
-                  </div>
+                  <Label htmlFor="price">Preço Base (R$) *</Label>
                   <Input
                     id="price"
                     type="number"

@@ -383,6 +383,7 @@ const ProviderProfileDialog = ({
                       <Button
                         size="sm"
                         variant="outline"
+                        className="hover:bg-primary text-black hover:text-primary-foreground transition-smooth"
                         onClick={handleWriteReview}
                       >
                         <PenLine className="h-4 w-4 mr-2" />
@@ -393,10 +394,10 @@ const ProviderProfileDialog = ({
                           reportedUserId={userId}
                           reportedUserName={provider?.full_name}
                           trigger={
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 transition-smooth"
                             >
                               <Flag className="h-4 w-4" />
                             </Button>

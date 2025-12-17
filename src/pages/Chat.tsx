@@ -43,12 +43,16 @@ const Chat = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [conversationToDelete, setConversationToDelete] = useState<
+    string | null
+  >(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
     };
     getUser();
@@ -71,7 +75,10 @@ const Chat = () => {
     });
   };
 
-  const truncateMessage = (message: string | undefined, maxLength: number = 50) => {
+  const truncateMessage = (
+    message: string | undefined,
+    maxLength: number = 50
+  ) => {
     if (!message) return "Nenhuma mensagem ainda";
     if (message.length <= maxLength) return message;
     return message.slice(0, maxLength) + "...";
@@ -107,7 +114,9 @@ const Chat = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-            <p className="text-muted-foreground font-medium">Carregando conversas...</p>
+            <p className="text-muted-foreground font-medium">
+              Carregando conversas...
+            </p>
           </div>
         </main>
         <Footer />
@@ -131,7 +140,8 @@ const Chat = () => {
                 <div>
                   <h1 className="text-xl md:text-2xl font-bold">Mensagens</h1>
                   <p className="text-muted-foreground text-sm">
-                    {conversations.length} {conversations.length === 1 ? "conversa" : "conversas"}
+                    {conversations.length}{" "}
+                    {conversations.length === 1 ? "conversa" : "conversas"}
                   </p>
                 </div>
               </div>
@@ -140,14 +150,14 @@ const Chat = () => {
             {/* Search Bar */}
             {conversations.length > 0 && (
               <div className="mb-4 md:mb-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nome..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-11 h-12 bg-card border-border/50 rounded-xl text-base"
-                />
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-11 h-12 bg-card border-border/50 rounded-xl text-base"
+                  />
                 </div>
               </div>
             )}
@@ -159,11 +169,18 @@ const Chat = () => {
                   <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
                     <Inbox className="h-10 w-10 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">Sua caixa de entrada está vazia</h3>
+                  <h3 className="text-xl font-semibold mb-3">
+                    Sua caixa de entrada está vazia
+                  </h3>
                   <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                    Encontre um serviço e solicite um orçamento para iniciar uma conversa com o profissional.
+                    Encontre um serviço e solicite um orçamento para iniciar uma
+                    conversa com o profissional.
                   </p>
-                  <Button size="lg" onClick={() => navigate("/categorias")} className="rounded-xl">
+                  <Button
+                    size="lg"
+                    onClick={() => navigate("/categorias")}
+                    className="rounded-xl"
+                  >
                     Explorar Serviços
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -175,8 +192,12 @@ const Chat = () => {
                   <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
                     <Search className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold mb-2">Nenhum resultado encontrado</h3>
-                  <p className="text-muted-foreground">Tente buscar por outro nome ou serviço.</p>
+                  <h3 className="text-lg font-semibold mb-2">
+                    Nenhum resultado encontrado
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Tente buscar por outro nome ou serviço.
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -192,14 +213,20 @@ const Chat = () => {
                         {/* Avatar with unread indicator */}
                         <div className="relative">
                           <Avatar className="h-12 w-12 md:h-14 md:w-14 flex-shrink-0 ring-2 ring-border/50">
-                            <AvatarImage src={conversation.other_user?.avatar_url || undefined} />
+                            <AvatarImage
+                              src={
+                                conversation.other_user?.avatar_url || undefined
+                              }
+                            />
                             <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm md:text-base">
                               {getInitials(conversation.other_user?.full_name)}
                             </AvatarFallback>
                           </Avatar>
                           {(conversation.unread_count ?? 0) > 0 && (
                             <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full ring-2 ring-background">
-                              {conversation.unread_count! > 9 ? "9+" : conversation.unread_count}
+                              {conversation.unread_count! > 9
+                                ? "9+"
+                                : conversation.unread_count}
                             </span>
                           )}
                         </div>
@@ -207,7 +234,13 @@ const Chat = () => {
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className={`font-semibold text-sm md:text-base truncate group-hover:text-primary transition-colors ${(conversation.unread_count ?? 0) > 0 ? 'text-foreground' : ''}`}>
+                            <h3
+                              className={`font-semibold text-sm md:text-base truncate group-hover:text-primary transition-colors ${
+                                (conversation.unread_count ?? 0) > 0
+                                  ? "text-foreground"
+                                  : ""
+                              }`}
+                            >
                               {conversation.other_user?.full_name || "Usuário"}
                             </h3>
                             <span className="text-[11px] md:text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
@@ -215,30 +248,46 @@ const Chat = () => {
                             </span>
                           </div>
 
-                          <p className={`text-xs md:text-sm truncate ${(conversation.unread_count ?? 0) > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                            {conversation.last_message?.sender_id === currentUserId && (
-                              <span className="text-muted-foreground font-normal">Você: </span>
+                          <p
+                            className={`text-xs md:text-sm truncate ${
+                              (conversation.unread_count ?? 0) > 0
+                                ? "text-foreground font-medium"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {conversation.last_message?.sender_id ===
+                              currentUserId && (
+                              <span className="text-muted-foreground font-normal">
+                                Você:{" "}
+                              </span>
                             )}
-                            {truncateMessage(conversation.last_message?.content)}
+                            {truncateMessage(
+                              conversation.last_message?.content
+                            )}
                           </p>
                         </div>
 
                         {/* Actions - Desktop */}
                         <div className="hidden md:block">
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuTrigger
+                              asChild
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-accent hover:text-accent-foreground"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground transition-smooth"
                               >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                onClick={(e) => handleDeleteClick(e, conversation.id)}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                onClick={(e) =>
+                                  handleDeleteClick(e, conversation.id)
+                                }
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Excluir conversa
@@ -250,14 +299,23 @@ const Chat = () => {
                         {/* Actions - Mobile */}
                         <div className="md:hidden">
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-accent hover:text-accent-foreground">
+                            <DropdownMenuTrigger
+                              asChild
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+                              >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
-                                onClick={(e) => handleDeleteClick(e, conversation.id)}
+                                onClick={(e) =>
+                                  handleDeleteClick(e, conversation.id)
+                                }
                                 className="text-destructive focus:text-destructive focus:bg-destructive/10"
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
@@ -284,7 +342,8 @@ const Chat = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão permanentemente excluídas.
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa
+              serão permanentemente excluídas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">

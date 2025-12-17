@@ -48,7 +48,7 @@ export const ServicePreview = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" disabled={disabled} className="gap-2">
+        <Button type="button" variant="outline" disabled={disabled} className="gap-2 hover:bg-primary hover:text-primary-foreground transition-smooth">
           <Eye className="h-4 w-4" />
           Pré-visualizar
         </Button>

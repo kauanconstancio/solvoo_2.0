@@ -54,8 +54,14 @@ const AdvertiseService = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { generateDescription, isGenerating } = useGenerateDescription();
-  const { moderateServiceContent, isChecking: isModerating } = useContentModeration();
-  const { suggestPrice, suggestion: priceSuggestion, isLoading: isPriceSuggesting, clearSuggestion } = usePriceSuggestion();
+  const { moderateServiceContent, isChecking: isModerating } =
+    useContentModeration();
+  const {
+    suggestPrice,
+    suggestion: priceSuggestion,
+    isLoading: isPriceSuggesting,
+    clearSuggestion,
+  } = usePriceSuggestion();
   const [images, setImages] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [selectedState, setSelectedState] = useState("");
@@ -129,7 +135,9 @@ const AdvertiseService = () => {
     setUploadingImage(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast({
           title: "Erro de autenticação",
@@ -148,9 +156,9 @@ const AdvertiseService = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("service-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("service-images").getPublicUrl(fileName);
 
       setImages((prev) => [...prev, publicUrl]);
 
@@ -385,7 +393,13 @@ const AdvertiseService = () => {
                         disabled={!category}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={category ? "Selecione uma subcategoria" : "Selecione uma categoria primeiro"} />
+                          <SelectValue
+                            placeholder={
+                              category
+                                ? "Selecione uma subcategoria"
+                                : "Selecione uma categoria primeiro"
+                            }
+                          />
                         </SelectTrigger>
                         <SelectContent>
                           {categoryConfig
@@ -402,14 +416,16 @@ const AdvertiseService = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="description">Descrição do Serviço *</Label>
+                      <Label htmlFor="description">
+                        Descrição do Serviço *
+                      </Label>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={handleGenerateDescription}
                         disabled={isGenerating || !title || !category}
-                        className="gap-2"
+                        className="gap-2 hover:bg-primary hover:text-primary-foreground transition-smooth"
                       >
                         {isGenerating ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -424,13 +440,24 @@ const AdvertiseService = () => {
                       placeholder="Descreva detalhadamente o serviço que você oferece, sua experiência, diferenciais e o que está incluso..."
                       className="min-h-[150px]"
                       value={description}
-                      onChange={(e) => setDescription(e.target.value.slice(0, 500))}
+                      onChange={(e) =>
+                        setDescription(e.target.value.slice(0, 500))
+                      }
                       maxLength={500}
                       required
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Use o botão "Gerar com IA" para criar uma descrição automaticamente.</span>
-                      <span className={description.length >= 450 ? "text-destructive" : ""}>{description.length}/500</span>
+                      <span>
+                        Use o botão "Gerar com IA" para criar uma descrição
+                        automaticamente.
+                      </span>
+                      <span
+                        className={
+                          description.length >= 450 ? "text-destructive" : ""
+                        }
+                      >
+                        {description.length}/500
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -502,8 +529,8 @@ const AdvertiseService = () => {
                   </div>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Info className="w-3 h-3" />
-                    Adicione pelo menos 1 foto (máx. 5). A primeira será a foto principal do
-                    anúncio.
+                    Adicione pelo menos 1 foto (máx. 5). A primeira será a foto
+                    principal do anúncio.
                   </p>
                 </CardContent>
               </Card>
@@ -520,26 +547,26 @@ const AdvertiseService = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSuggestPrice}
+                      disabled={isPriceSuggesting || !category}
+                      className="gap-2 hover:bg-primary hover:text-primary-foreground transition-smooth"
+                    >
+                      {isPriceSuggesting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <BarChart3 className="h-4 w-4" />
+                      )}
+                      {isPriceSuggesting ? "Analisando..." : "Sugerir preço"}
+                    </Button>
+                  </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="price">Preço Base (R$) *</Label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleSuggestPrice}
-                          disabled={isPriceSuggesting || !category}
-                          className="gap-2"
-                        >
-                          {isPriceSuggesting ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <BarChart3 className="h-4 w-4" />
-                          )}
-                          {isPriceSuggesting ? "Analisando..." : "Sugerir preço"}
-                        </Button>
-                      </div>
+                      <Label htmlFor="price">Preço Base (R$) *</Label>
                       <Input
                         id="price"
                         type="number"

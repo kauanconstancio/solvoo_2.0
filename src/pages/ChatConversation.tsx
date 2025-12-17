@@ -38,7 +38,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useMessages, useConversations, Message, ReplyToMessage } from "@/hooks/useChat";
+import {
+  useMessages,
+  useConversations,
+  Message,
+  ReplyToMessage,
+} from "@/hooks/useChat";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,9 +62,18 @@ interface ServiceInfo {
 const TypingIndicator = () => (
   <div className="flex items-center gap-1 px-3 py-2">
     <div className="flex gap-1">
-      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-      <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+      <span
+        className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce"
+        style={{ animationDelay: "0ms" }}
+      />
+      <span
+        className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce"
+        style={{ animationDelay: "150ms" }}
+      />
+      <span
+        className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce"
+        style={{ animationDelay: "300ms" }}
+      />
     </div>
   </div>
 );
@@ -68,10 +82,12 @@ const ChatConversation = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { messages, isLoading, sendMessage, sendFile } = useMessages(conversationId);
+  const { messages, isLoading, sendMessage, sendFile } =
+    useMessages(conversationId);
   const { deleteConversation } = useConversations();
   const { markAsRead } = useMarkMessagesAsRead();
-  const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(conversationId);
+  const { typingUsers, setTyping, isOtherUserTyping } =
+    useTypingIndicator(conversationId);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -93,9 +109,11 @@ const ChatConversation = () => {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
-      
+
       if (user?.id) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -119,8 +137,11 @@ const ChatConversation = () => {
         .maybeSingle();
 
       if (conv) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const otherUserId = conv.client_id === user?.id ? conv.professional_id : conv.client_id;
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const otherUserId =
+          conv.client_id === user?.id ? conv.professional_id : conv.client_id;
 
         const { data: profile } = await supabase
           .from("profiles")
@@ -167,7 +188,13 @@ const ChatConversation = () => {
 
     setIsSending(true);
     setTyping(false, currentUserName || undefined);
-    await sendMessage(newMessage.trim(), 'text', undefined, undefined, replyingTo?.id);
+    await sendMessage(
+      newMessage.trim(),
+      "text",
+      undefined,
+      undefined,
+      replyingTo?.id
+    );
     setNewMessage("");
     setReplyingTo(null);
     setIsSending(false);
@@ -184,15 +211,17 @@ const ChatConversation = () => {
   };
 
   const getReplyPreviewText = (message: Message | ReplyToMessage) => {
-    const messageType = message.message_type || 'text';
-    if (messageType === 'image') return '📷 Imagem';
-    if (messageType === 'file') return `📎 ${message.file_name || 'Arquivo'}`;
-    return message.content.length > 50 ? message.content.slice(0, 50) + '...' : message.content;
+    const messageType = message.message_type || "text";
+    if (messageType === "image") return "📷 Imagem";
+    if (messageType === "file") return `📎 ${message.file_name || "Arquivo"}`;
+    return message.content.length > 50
+      ? message.content.slice(0, 50) + "..."
+      : message.content;
   };
 
   const getReplyingSenderName = (senderId: string) => {
-    if (senderId === currentUserId) return 'Você';
-    return otherUser?.full_name || 'Usuário';
+    if (senderId === currentUserId) return "Você";
+    return otherUser?.full_name || "Usuário";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -228,7 +257,7 @@ const ChatConversation = () => {
     setIsUploadingFile(true);
     await sendFile(file);
     setIsUploadingFile(false);
-    
+
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -263,9 +292,9 @@ const ChatConversation = () => {
     return !isSameDay(currentDate, prevDate);
   };
 
-  const renderReadStatus = (message: typeof messages[0], isOwn: boolean) => {
+  const renderReadStatus = (message: (typeof messages)[0], isOwn: boolean) => {
     if (!isOwn) return null;
-    
+
     return message.read_at ? (
       <CheckCheck className="h-3.5 w-3.5 text-sky-400" />
     ) : (
@@ -273,10 +302,13 @@ const ChatConversation = () => {
     );
   };
 
-  const renderMessageContent = (message: typeof messages[0], isOwn: boolean) => {
-    const messageType = message.message_type || 'text';
+  const renderMessageContent = (
+    message: (typeof messages)[0],
+    isOwn: boolean
+  ) => {
+    const messageType = message.message_type || "text";
 
-    if (messageType === 'image' && message.file_url) {
+    if (messageType === "image" && message.file_url) {
       return (
         <div className="space-y-1">
           <img
@@ -298,7 +330,7 @@ const ChatConversation = () => {
       );
     }
 
-    if (messageType === 'file' && message.file_url) {
+    if (messageType === "file" && message.file_url) {
       return (
         <div className="space-y-1">
           <a
@@ -307,16 +339,22 @@ const ChatConversation = () => {
             rel="noopener noreferrer"
             className={cn(
               "flex items-center gap-2 p-2 rounded-lg transition-colors",
-              isOwn ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" : "bg-muted hover:bg-muted/80"
+              isOwn
+                ? "bg-primary-foreground/10 hover:bg-primary-foreground/20"
+                : "bg-muted hover:bg-muted/80"
             )}
           >
             <FileIcon className="h-8 w-8 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{message.file_name || "Arquivo"}</p>
-              <p className={cn(
-                "text-xs",
-                isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
-              )}>
+              <p className="text-sm font-medium truncate">
+                {message.file_name || "Arquivo"}
+              </p>
+              <p
+                className={cn(
+                  "text-xs",
+                  isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
+                )}
+              >
                 Clique para baixar
               </p>
             </div>
@@ -363,7 +401,9 @@ const ChatConversation = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-            <p className="text-muted-foreground font-medium">Carregando mensagens...</p>
+            <p className="text-muted-foreground font-medium">
+              Carregando mensagens...
+            </p>
           </div>
         </main>
       </div>
@@ -379,7 +419,7 @@ const ChatConversation = () => {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/chat")}
-            className="flex-shrink-0 h-10 w-10 rounded-xl hover:bg-muted"
+            className="flex-shrink-0 h-10 w-10 rounded-xl hover:bg-primary transition-smooth"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -408,7 +448,7 @@ const ChatConversation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-shrink-0 h-10 w-10 rounded-xl hover:bg-muted"
+                className="flex-shrink-0 h-10 w-10 rounded-xl hover:bg-primary transition-smooth"
               >
                 <MoreVertical className="h-5 w-5" />
               </Button>
@@ -420,7 +460,7 @@ const ChatConversation = () => {
                   reportedUserName={otherUser.full_name}
                   trigger={
                     <DropdownMenuItem
-                      className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                      className="text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth"
                       onSelect={(e) => e.preventDefault()}
                     >
                       <Flag className="h-4 w-4 mr-2" />
@@ -430,7 +470,7 @@ const ChatConversation = () => {
                 />
               )}
               <DropdownMenuItem
-                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                className="text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth"
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -483,7 +523,7 @@ const ChatConversation = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-accent hover:text-accent-foreground"
+                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
                           onClick={() => handleReply(message)}
                         >
                           <Reply className="h-4 w-4" />
@@ -492,7 +532,9 @@ const ChatConversation = () => {
 
                       {!isOwn && (
                         <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
-                          <AvatarImage src={otherUser?.avatar_url || undefined} />
+                          <AvatarImage
+                            src={otherUser?.avatar_url || undefined}
+                          />
                           <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                             {getInitials(otherUser?.full_name)}
                           </AvatarFallback>
@@ -519,7 +561,9 @@ const ChatConversation = () => {
                             <div className="flex items-center gap-1 mb-0.5">
                               <CornerDownRight className="h-3 w-3" />
                               <span className="font-medium">
-                                {getReplyingSenderName(message.reply_to.sender_id)}
+                                {getReplyingSenderName(
+                                  message.reply_to.sender_id
+                                )}
                               </span>
                             </div>
                             <p className="truncate opacity-80">
@@ -535,7 +579,7 @@ const ChatConversation = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-accent hover:text-accent-foreground"
+                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
                           onClick={() => handleReply(message)}
                         >
                           <Reply className="h-4 w-4" />
@@ -545,7 +589,7 @@ const ChatConversation = () => {
                   </div>
                 );
               })}
-              
+
               {/* Typing Indicator */}
               {isOtherUserTyping && (
                 <div className="flex gap-2 justify-start animate-fade-in">
@@ -583,7 +627,7 @@ const ChatConversation = () => {
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingFile || isSending}
-              className="h-12 w-12 flex-shrink-0 rounded-xl hover:bg-muted"
+              className="h-12 w-12 flex-shrink-0 rounded-xl hover:bg-primary transition-smooth"
             >
               {isUploadingFile ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -599,7 +643,10 @@ const ChatConversation = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1 text-xs text-primary font-medium">
                       <Reply className="h-3 w-3" />
-                      <span>Respondendo a {getReplyingSenderName(replyingTo.sender_id)}</span>
+                      <span>
+                        Respondendo a{" "}
+                        {getReplyingSenderName(replyingTo.sender_id)}
+                      </span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {getReplyPreviewText(replyingTo)}
@@ -608,7 +655,7 @@ const ChatConversation = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 flex-shrink-0 hover:bg-accent hover:text-accent-foreground"
+                    className="h-6 w-6 flex-shrink-0 hover:bg-primary hover:text-primary-foreground transition-smooth"
                     onClick={cancelReply}
                   >
                     <X className="h-4 w-4" />
@@ -630,7 +677,7 @@ const ChatConversation = () => {
               onClick={handleSend}
               disabled={!newMessage.trim() || isSending || isUploadingFile}
               size="icon"
-              className="h-12 w-12 flex-shrink-0 rounded-xl shadow-sm"
+              className="h-12 w-12 flex-shrink-0 rounded-xl shadow-sm hover:bg-primary hover:text-primary-foreground transition-smooth"
             >
               {isSending ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -674,11 +721,12 @@ const ChatConversation = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir conversa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Todas as mensagens desta conversa serão permanentemente excluídas.
+              Esta ação não pode ser desfeita. Todas as mensagens desta conversa
+              serão permanentemente excluídas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">
+            <AlertDialogCancel disabled={isDeleting} className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-smooth">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
