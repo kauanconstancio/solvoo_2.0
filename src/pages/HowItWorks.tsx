@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/accordion";
 import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
 import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
+import { ParallaxHero } from "@/components/ParallaxHero";
 
 const steps = [
   {
@@ -127,7 +128,7 @@ const HowItWorks = () => {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-12 md:py-16 lg:py-24 bg-gradient-to-b from-primary/5 to-background">
+        <ParallaxHero className="py-12 md:py-16 lg:py-24">
           <div className="container px-4 md:px-6">
             <div className="text-center max-w-3xl mx-auto space-y-4 md:space-y-6">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold tracking-tight">
@@ -139,7 +140,7 @@ const HowItWorks = () => {
               </p>
             </div>
           </div>
-        </section>
+        </ParallaxHero>
 
         {/* Steps Section */}
         <section className="py-12 md:py-16 lg:py-20">

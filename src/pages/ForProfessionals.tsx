@@ -24,6 +24,7 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
 import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
+import { ParallaxHero } from "@/components/ParallaxHero";
 
 const benefits = [
   {
@@ -166,9 +167,8 @@ const ForProfessionals = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative py-16 md:py-24 overflow-hidden">
-        <div className="absolute inset-0 gradient-primary opacity-5" />
-        <div className="container px-4 relative">
+      <ParallaxHero className="py-16 md:py-24">
+        <div className="container px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-4 gradient-primary text-white">
               Para Profissionais
@@ -200,7 +200,7 @@ const ForProfessionals = () => {
             </p>
           </div>
         </div>
-      </section>
+      </ParallaxHero>
 
       {/* Stats Section */}
       <section className="py-12 border-y bg-muted/30">
