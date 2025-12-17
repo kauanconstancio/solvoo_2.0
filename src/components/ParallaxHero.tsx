@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import { FloatingParticles, GradientParticles } from './FloatingParticles';
 
 interface ParallaxHeroProps {
   children: ReactNode;
@@ -8,6 +9,8 @@ interface ParallaxHeroProps {
   speed?: number;
   overlay?: boolean;
   overlayOpacity?: number;
+  particles?: boolean;
+  particleVariant?: 'dots' | 'gradient';
 }
 
 export const ParallaxHero = ({
@@ -17,6 +20,8 @@ export const ParallaxHero = ({
   speed = 0.4,
   overlay = true,
   overlayOpacity = 0.05,
+  particles = true,
+  particleVariant = 'dots',
 }: ParallaxHeroProps) => {
   const containerRef = useRef<HTMLElement>(null);
   const [scrollY, setScrollY] = useState(0);
@@ -45,6 +50,14 @@ export const ParallaxHero = ({
       ref={containerRef}
       className={cn('relative overflow-hidden', className)}
     >
+      {/* Floating particles */}
+      {particles && particleVariant === 'dots' && (
+        <FloatingParticles count={25} minSize={3} maxSize={8} />
+      )}
+      {particles && particleVariant === 'gradient' && (
+        <GradientParticles count={12} />
+      )}
+
       {/* Parallax background layer */}
       <div
         className={cn(
