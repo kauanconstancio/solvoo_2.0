@@ -19,9 +19,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
+import { usePlatformMetrics, formatMetricValue } from "@/hooks/usePlatformMetrics";
 
 const benefits = [
   {
@@ -157,6 +159,8 @@ const testimonials = [
 ];
 
 const ForProfessionals = () => {
+  const { metrics, isLoading } = usePlatformMetrics();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -203,35 +207,51 @@ const ForProfessionals = () => {
         <div className="container px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                50k+
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-10 w-20 mx-auto mb-2" />
+              ) : (
+                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                  {formatMetricValue(metrics.totalProfessionals)}
+                </p>
+              )}
               <p className="text-sm md:text-base text-muted-foreground">
                 Profissionais Ativos
               </p>
             </div>
             <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                200k+
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-10 w-20 mx-auto mb-2" />
+              ) : (
+                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                  {formatMetricValue(metrics.totalServices)}
+                </p>
+              )}
               <p className="text-sm md:text-base text-muted-foreground">
-                Serviços Realizados
+                Serviços Anunciados
               </p>
             </div>
             <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                4.8
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-10 w-20 mx-auto mb-2" />
+              ) : (
+                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                  {formatMetricValue(metrics.averageRating, 'rating')}
+                </p>
+              )}
               <p className="text-sm md:text-base text-muted-foreground">
                 Avaliação Média
               </p>
             </div>
             <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
-                R$ 5M+
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-10 w-20 mx-auto mb-2" />
+              ) : (
+                <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                  {formatMetricValue(metrics.totalConversations)}
+                </p>
+              )}
               <p className="text-sm md:text-base text-muted-foreground">
-                Pagos aos Profissionais
+                Contatos Realizados
               </p>
             </div>
           </div>
