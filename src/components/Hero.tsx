@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { serviceCategories } from "@/data/services";
 import { states } from "@/data/locations";
 import { getCategoryConfig } from "@/data/categoryIcons";
+import { FloatingParticles } from "./FloatingParticles";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -61,8 +62,11 @@ const Hero = () => {
     navigate(`/busca?${params.toString()}`);
   };
   return (
-    <section className="gradient-hero py-12 md:py-20 lg:py-28">
-      <div className="container px-4">
+    <section className="gradient-hero py-12 md:py-20 lg:py-28 relative overflow-hidden">
+      {/* Floating particles */}
+      <FloatingParticles count={30} minSize={3} maxSize={10} />
+      
+      <div className="container px-4 relative z-10">
         <div className="mx-auto max-w-3xl text-center space-y-6 md:space-y-8">
           <div className="space-y-3 md:space-y-4">
             <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">

@@ -98,12 +98,29 @@ export default {
             opacity: "1",
           },
         },
+        "float-particle": {
+          "0%": {
+            transform: "translateY(100vh) translateX(0)",
+            opacity: "0",
+          },
+          "10%": {
+            opacity: "1",
+          },
+          "90%": {
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translateY(-100vh) translateX(var(--drift, 20px))",
+            opacity: "0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "ping-once": "ping-once 0.8s cubic-bezier(0, 0, 0.2, 1) forwards",
         "pulse-highlight": "pulse-highlight 1s ease-in-out",
+        "float-particle": "float-particle linear infinite",
       },
     },
   },
