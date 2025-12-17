@@ -1,8 +1,8 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Users, Target, Heart, Award } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { usePlatformMetrics, formatMetricValue } from "@/hooks/usePlatformMetrics";
+import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
+import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
 
 const About = () => {
   const { metrics, isLoading } = usePlatformMetrics();
@@ -41,38 +41,51 @@ const About = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-card p-6 rounded-xl border">
                   <Users className="h-10 w-10 text-primary mb-3" />
-                  {isLoading ? (
-                    <Skeleton className="h-6 w-16 mb-1" />
-                  ) : (
-                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.totalProfessionals)}</h3>
-                  )}
+                  <h3 className="font-semibold mb-1">
+                    <AnimatedCounter
+                      value={formatLargeNumber(metrics.totalProfessionals).displayValue}
+                      suffix={formatLargeNumber(metrics.totalProfessionals).suffix}
+                      isLoading={isLoading}
+                      skeletonClassName="h-6 w-16"
+                    />
+                  </h3>
                   <p className="text-sm text-muted-foreground">Profissionais</p>
                 </div>
                 <div className="bg-card p-6 rounded-xl border">
                   <Target className="h-10 w-10 text-primary mb-3" />
-                  {isLoading ? (
-                    <Skeleton className="h-6 w-16 mb-1" />
-                  ) : (
-                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.totalServices)}</h3>
-                  )}
+                  <h3 className="font-semibold mb-1">
+                    <AnimatedCounter
+                      value={formatLargeNumber(metrics.totalServices).displayValue}
+                      suffix={formatLargeNumber(metrics.totalServices).suffix}
+                      isLoading={isLoading}
+                      skeletonClassName="h-6 w-16"
+                    />
+                  </h3>
                   <p className="text-sm text-muted-foreground">Serviços</p>
                 </div>
                 <div className="bg-card p-6 rounded-xl border">
                   <Heart className="h-10 w-10 text-primary mb-3" />
-                  {isLoading ? (
-                    <Skeleton className="h-6 w-16 mb-1" />
-                  ) : (
-                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.totalUsers)}</h3>
-                  )}
+                  <h3 className="font-semibold mb-1">
+                    <AnimatedCounter
+                      value={formatLargeNumber(metrics.totalUsers).displayValue}
+                      suffix={formatLargeNumber(metrics.totalUsers).suffix}
+                      isLoading={isLoading}
+                      skeletonClassName="h-6 w-16"
+                    />
+                  </h3>
                   <p className="text-sm text-muted-foreground">Usuários</p>
                 </div>
                 <div className="bg-card p-6 rounded-xl border">
                   <Award className="h-10 w-10 text-primary mb-3" />
-                  {isLoading ? (
-                    <Skeleton className="h-6 w-16 mb-1" />
-                  ) : (
-                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.averageRating, 'rating')}/5</h3>
-                  )}
+                  <h3 className="font-semibold mb-1">
+                    <AnimatedCounter
+                      value={metrics.averageRating}
+                      suffix="/5"
+                      decimals={1}
+                      isLoading={isLoading}
+                      skeletonClassName="h-6 w-16"
+                    />
+                  </h3>
                   <p className="text-sm text-muted-foreground">Avaliação</p>
                 </div>
               </div>
