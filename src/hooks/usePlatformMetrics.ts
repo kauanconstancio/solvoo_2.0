@@ -6,6 +6,7 @@ interface PlatformMetrics {
   totalServices: number;
   averageRating: number;
   totalConversations: number;
+  totalUsers: number;
 }
 
 export const usePlatformMetrics = () => {
@@ -14,6 +15,7 @@ export const usePlatformMetrics = () => {
     totalServices: 0,
     averageRating: 0,
     totalConversations: 0,
+    totalUsers: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -25,6 +27,11 @@ export const usePlatformMetrics = () => {
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .eq('account_type', 'profissional');
+
+        // Fetch total users count
+        const { count: usersCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
 
         // Fetch total active services
         const { count: servicesCount } = await supabase
@@ -53,6 +60,7 @@ export const usePlatformMetrics = () => {
           totalServices: servicesCount || 0,
           averageRating: avgRating,
           totalConversations: conversationsCount || 0,
+          totalUsers: usersCount || 0,
         });
       } catch (error) {
         console.error('Error fetching platform metrics:', error);

@@ -1,8 +1,12 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Users, Target, Heart, Award } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePlatformMetrics, formatMetricValue } from "@/hooks/usePlatformMetrics";
 
 const About = () => {
+  const { metrics, isLoading } = usePlatformMetrics();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -37,22 +41,38 @@ const About = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-card p-6 rounded-xl border">
                   <Users className="h-10 w-10 text-primary mb-3" />
-                  <h3 className="font-semibold mb-1">+10.000</h3>
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-16 mb-1" />
+                  ) : (
+                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.totalProfessionals)}</h3>
+                  )}
                   <p className="text-sm text-muted-foreground">Profissionais</p>
                 </div>
                 <div className="bg-card p-6 rounded-xl border">
                   <Target className="h-10 w-10 text-primary mb-3" />
-                  <h3 className="font-semibold mb-1">+50.000</h3>
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-16 mb-1" />
+                  ) : (
+                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.totalServices)}</h3>
+                  )}
                   <p className="text-sm text-muted-foreground">Serviços</p>
                 </div>
                 <div className="bg-card p-6 rounded-xl border">
                   <Heart className="h-10 w-10 text-primary mb-3" />
-                  <h3 className="font-semibold mb-1">+100.000</h3>
-                  <p className="text-sm text-muted-foreground">Clientes</p>
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-16 mb-1" />
+                  ) : (
+                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.totalUsers)}</h3>
+                  )}
+                  <p className="text-sm text-muted-foreground">Usuários</p>
                 </div>
                 <div className="bg-card p-6 rounded-xl border">
                   <Award className="h-10 w-10 text-primary mb-3" />
-                  <h3 className="font-semibold mb-1">4.8/5</h3>
+                  {isLoading ? (
+                    <Skeleton className="h-6 w-16 mb-1" />
+                  ) : (
+                    <h3 className="font-semibold mb-1">{formatMetricValue(metrics.averageRating, 'rating')}/5</h3>
+                  )}
                   <p className="text-sm text-muted-foreground">Avaliação</p>
                 </div>
               </div>
