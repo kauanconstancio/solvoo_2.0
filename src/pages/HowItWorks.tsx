@@ -20,6 +20,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePlatformMetrics, formatMetricValue } from "@/hooks/usePlatformMetrics";
 
 const steps = [
   {
@@ -117,6 +119,8 @@ const faqs = [
 ];
 
 const HowItWorks = () => {
+  const { metrics, isLoading } = usePlatformMetrics();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -239,27 +243,51 @@ const HowItWorks = () => {
               <div className="bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-8 md:p-12">
                 <div className="grid grid-cols-2 gap-4 md:gap-6">
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">20K+</p>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
+                    ) : (
+                      <p className="text-2xl md:text-3xl font-bold text-primary">
+                        {formatMetricValue(metrics.totalProfessionals)}
+                      </p>
+                    )}
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Profissionais
                     </p>
                   </div>
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">50K+</p>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
+                    ) : (
+                      <p className="text-2xl md:text-3xl font-bold text-primary">
+                        {formatMetricValue(metrics.totalServices)}
+                      </p>
+                    )}
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Serviços
                     </p>
                   </div>
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">4.8</p>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
+                    ) : (
+                      <p className="text-2xl md:text-3xl font-bold text-primary">
+                        {formatMetricValue(metrics.averageRating, 'rating')}
+                      </p>
+                    )}
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
                       Avaliação Média
                     </p>
                   </div>
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
-                    <p className="text-2xl md:text-3xl font-bold text-primary">98%</p>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-16 mx-auto mb-1" />
+                    ) : (
+                      <p className="text-2xl md:text-3xl font-bold text-primary">
+                        {formatMetricValue(metrics.totalConversations)}
+                      </p>
+                    )}
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                      Satisfação
+                      Contatos
                     </p>
                   </div>
                 </div>
