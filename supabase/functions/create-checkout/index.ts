@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +21,7 @@ serve(async (req) => {
 
     console.log("Creating checkout session for quote:", quoteId);
 
+    // Use anon client for auth verification
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? ""
@@ -35,8 +36,15 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
+    // Use service role to bypass RLS for reading quote
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
     // Fetch the quote
-    const { data: quote, error: quoteError } = await supabaseClient
+    const { data: quote, error: quoteError } = await supabaseAdmin
       .from("quotes")
       .select("*, service:services(title)")
       .eq("id", quoteId)
@@ -56,10 +64,10 @@ serve(async (req) => {
       throw new Error("Quote is not ready for payment");
     }
 
-    console.log("Quote found:", quote);
+    console.log("Quote found:", quote.id);
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-08-27.basil",
     });
 
     // Get or create Stripe customer
