@@ -798,7 +798,7 @@ const ChatConversation = () => {
                       quote={quote}
                       currentUserId={currentUserId}
                       clientName={isProfessional ? (otherUser?.full_name || 'Cliente') : currentUserName || 'Cliente'}
-                      onAccept={respondToQuote}
+                      onAccept={(id, response) => respondToQuote(id, 'accepted', response)}
                       onReject={(id, response) => respondToQuote(id, 'rejected', response)}
                       onCancel={cancelQuote}
                       onComplete={completeService}
