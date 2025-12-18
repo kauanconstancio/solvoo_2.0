@@ -227,9 +227,9 @@ const Header = () => {
                   asChild
                   className="cursor-pointer transition-smooth hover:bg-muted"
                 >
-                  <Link to="/dashboard">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Dashboard
+                  <Link to="/anunciar">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Meus Anúncios
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -245,9 +245,9 @@ const Header = () => {
                   asChild
                   className="cursor-pointer transition-smooth hover:bg-muted"
                 >
-                  <Link to="/anunciar">
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Meus Anúncios
+                  <Link to="/dashboard">
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Dashboard
                   </Link>
                 </DropdownMenuItem>
                 {hasAnyRole && (

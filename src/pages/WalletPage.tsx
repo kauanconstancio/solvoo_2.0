@@ -160,7 +160,7 @@ const WalletPage = () => {
                 <div className="text-4xl font-bold mb-4">
                   {formatCurrency(balance)}
                 </div>
-                <div className="flex items-center gap-2 text-sm bg-primary-foreground/10 w-fit px-2 py-1 rounded-md">
+                <div className="flex items-center gap-2 text-sm w-fit px-2 py-1 rounded-md text-green-500 bg-green-700/60 font-medium">
                   <TrendingUp className="h-4 w-4" />
                   <span>+15% este mês</span>
                 </div>
@@ -195,8 +195,8 @@ const WalletPage = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                    <ArrowDownLeft className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div className="p-2 bg-red-100 dark:bg-red-500/20 rounded-lg">
+                    <ArrowDownLeft className="h-5 w-5 text-red-600 dark:text-red-500" />
                   </div>
                   <Badge variant="secondary">Total</Badge>
                 </div>
@@ -321,7 +321,7 @@ const WalletPage = () => {
                     </span>
                     <span>{formatCurrency(balance / 0.9)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-destructive">
+                  <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Taxas de Plataforma</span>
                     <span>- {formatCurrency((balance / 0.9) * 0.1)}</span>
                   </div>
