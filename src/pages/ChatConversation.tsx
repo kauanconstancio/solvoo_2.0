@@ -107,7 +107,7 @@ const ChatConversation = () => {
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
     isNewConversation ? undefined : conversationId
   );
-  const { quotes, createQuote, respondToQuote, cancelQuote, completeService } = useQuotes(
+  const { quotes, createQuote, respondToQuote, cancelQuote, completeService, confirmServiceCompletion } = useQuotes(
     isNewConversation ? undefined : conversationId
   );
   const [newMessage, setNewMessage] = useState("");
