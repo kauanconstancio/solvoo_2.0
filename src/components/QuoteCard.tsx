@@ -111,44 +111,65 @@ export const QuoteCard = ({
 
   const handleSubmitResponse = async () => {
     if (!responseType) return;
-    
+
     setIsSubmitting(true);
-    const success = responseType === "accept"
-      ? await onAccept(quote.id, responseMessage)
-      : await onReject(quote.id, responseMessage);
-    
-    setIsSubmitting(false);
-    if (success) {
-      setShowResponseDialog(false);
+    try {
+      const success =
+        responseType === "accept"
+          ? await onAccept(quote.id, responseMessage)
+          : await onReject(quote.id, responseMessage);
+
+      if (success) {
+        setShowResponseDialog(false);
+      }
+    } catch (err) {
+      console.error("Error submitting quote response:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleCancel = async () => {
     setIsSubmitting(true);
-    const success = await onCancel(quote.id);
-    setIsSubmitting(false);
-    if (success) {
-      setShowCancelDialog(false);
+    try {
+      const success = await onCancel(quote.id);
+      if (success) {
+        setShowCancelDialog(false);
+      }
+    } catch (err) {
+      console.error("Error cancelling quote:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleComplete = async () => {
     if (!onComplete) return;
     setIsSubmitting(true);
-    const success = await onComplete(quote, clientName);
-    setIsSubmitting(false);
-    if (success) {
-      setShowCompleteDialog(false);
+    try {
+      const success = await onComplete(quote, clientName);
+      if (success) {
+        setShowCompleteDialog(false);
+      }
+    } catch (err) {
+      console.error("Error completing service:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleConfirmCompletion = async () => {
     if (!onConfirmCompletion) return;
     setIsSubmitting(true);
-    const success = await onConfirmCompletion(quote);
-    setIsSubmitting(false);
-    if (success) {
-      setShowConfirmDialog(false);
+    try {
+      const success = await onConfirmCompletion(quote);
+      if (success) {
+        setShowConfirmDialog(false);
+      }
+    } catch (err) {
+      console.error("Error confirming completion:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
