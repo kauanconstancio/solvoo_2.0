@@ -217,6 +217,75 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          client_id: string
+          client_response: string | null
+          conversation_id: string
+          created_at: string
+          description: string | null
+          expires_at: string
+          id: string
+          price: number
+          professional_id: string
+          responded_at: string | null
+          service_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          validity_days: number
+        }
+        Insert: {
+          client_id: string
+          client_response?: string | null
+          conversation_id: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string
+          id?: string
+          price: number
+          professional_id: string
+          responded_at?: string | null
+          service_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Update: {
+          client_id?: string
+          client_response?: string | null
+          conversation_id?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string
+          id?: string
+          price?: number
+          professional_id?: string
+          responded_at?: string | null
+          service_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          validity_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
