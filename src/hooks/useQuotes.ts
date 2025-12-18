@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+const PLATFORM_FEE_RATE = 0.10; // 10% platform fee
+
 export interface Quote {
   id: string;
   conversation_id: string;
@@ -17,6 +19,7 @@ export interface Quote {
   created_at: string;
   updated_at: string;
   expires_at: string;
+  completed_at: string | null;
   responded_at: string | null;
   // Joined data
   service?: {
@@ -224,12 +227,65 @@ export const useQuotes = (conversationId: string | undefined) => {
     }
   };
 
+  const completeService = async (quote: Quote, clientName: string): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Mark quote as completed
+      const { error: quoteError } = await supabase
+        .from('quotes')
+        .update({ 
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', quote.id);
+
+      if (quoteError) throw quoteError;
+
+      // Create wallet transaction
+      const fee = quote.price * PLATFORM_FEE_RATE;
+      const netAmount = quote.price - fee;
+
+      const { error: transactionError } = await supabase
+        .from('wallet_transactions')
+        .insert({
+          user_id: user.id,
+          quote_id: quote.id,
+          type: 'credit',
+          amount: quote.price,
+          fee,
+          net_amount: netAmount,
+          description: `Pagamento - ${quote.title}`,
+          customer_name: clientName,
+          status: 'completed',
+        });
+
+      if (transactionError) throw transactionError;
+
+      toast({
+        title: 'Serviço finalizado!',
+        description: `R$ ${netAmount.toFixed(2)} foram adicionados à sua carteira`,
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error completing service:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível finalizar o serviço.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   return {
     quotes,
     isLoading,
     createQuote,
     respondToQuote,
     cancelQuote,
+    completeService,
     refetch: fetchQuotes,
   };
 };

@@ -32,9 +32,11 @@ import { cn } from "@/lib/utils";
 interface QuoteCardProps {
   quote: Quote;
   currentUserId: string;
+  clientName?: string;
   onAccept: (quoteId: string, response?: string) => Promise<boolean>;
   onReject: (quoteId: string, response?: string) => Promise<boolean>;
   onCancel: (quoteId: string) => Promise<boolean>;
+  onComplete?: (quote: Quote, clientName: string) => Promise<boolean>;
 }
 
 const statusConfig = {
@@ -68,19 +70,23 @@ const statusConfig = {
 export const QuoteCard = ({
   quote,
   currentUserId,
+  clientName = 'Cliente',
   onAccept,
   onReject,
   onCancel,
+  onComplete,
 }: QuoteCardProps) => {
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [responseType, setResponseType] = useState<"accept" | "reject" | null>(null);
   const [responseMessage, setResponseMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
   const isProfessional = currentUserId === quote.professional_id;
   const isClient = currentUserId === quote.client_id;
   const isExpired = isPast(new Date(quote.expires_at)) && quote.status === "pending";
+  const isCompleted = quote.completed_at !== null;
   
   const effectiveStatus = isExpired ? "expired" : quote.status;
   const statusInfo = statusConfig[effectiveStatus];
@@ -119,6 +125,16 @@ export const QuoteCard = ({
     setIsSubmitting(false);
     if (success) {
       setShowCancelDialog(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    if (!onComplete) return;
+    setIsSubmitting(true);
+    const success = await onComplete(quote, clientName);
+    setIsSubmitting(false);
+    if (success) {
+      setShowCompleteDialog(false);
     }
   };
 
@@ -227,6 +243,30 @@ export const QuoteCard = ({
                 )}
               </div>
             )}
+
+            {/* Complete Service Button for Accepted Quotes */}
+            {effectiveStatus === "accepted" && isProfessional && !isCompleted && onComplete && (
+              <div className="pt-2">
+                <Button
+                  size="sm"
+                  className="w-full bg-primary hover:bg-primary/90"
+                  onClick={() => setShowCompleteDialog(true)}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Finalizar Serviço
+                </Button>
+              </div>
+            )}
+
+            {/* Completed Badge */}
+            {isCompleted && (
+              <div className="pt-2">
+                <div className="flex items-center justify-center gap-2 p-2 bg-green-500/10 rounded-lg text-green-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-sm font-medium">Serviço Finalizado</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -311,6 +351,32 @@ export const QuoteCard = ({
             >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               Cancelar orçamento
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Complete Service Dialog */}
+      <AlertDialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Finalizar serviço</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao finalizar, o valor de R$ {(quote.price * 0.9).toFixed(2)} (já descontada a taxa de 10%) será adicionado à sua carteira.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleComplete();
+              }}
+              disabled={isSubmitting}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Confirmar Finalização
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
