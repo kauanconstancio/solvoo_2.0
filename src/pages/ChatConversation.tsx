@@ -695,118 +695,146 @@ const ChatConversation = () => {
             </div>
           ) : (
             <>
-              {messages.map((message, index) => {
-                const isOwn = message.sender_id === currentUserId;
-                const showDateDivider = shouldShowDateDivider(index);
+              {(() => {
+                // Combine messages and quotes into a single chronologically sorted list
+                type ChatItem = 
+                  | { type: 'message'; data: typeof messages[0]; created_at: string }
+                  | { type: 'quote'; data: typeof quotes[0]; created_at: string };
 
-                return (
-                  <div key={message.id}>
-                    {/* Date Divider */}
-                    {showDateDivider && (
-                      <div className="flex items-center justify-center my-4 md:my-6">
-                        <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
-                          {formatDateDivider(message.created_at)}
-                        </div>
-                      </div>
-                    )}
+                const chatItems: ChatItem[] = [
+                  ...messages.map((m) => ({ type: 'message' as const, data: m, created_at: m.created_at })),
+                  ...quotes.map((q) => ({ type: 'quote' as const, data: q, created_at: q.created_at })),
+                ];
 
-                    {/* Message */}
-                    <div
-                      className={cn(
-                        "flex gap-2 animate-fade-in group",
-                        isOwn ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      {/* Reply button - left side for own messages */}
-                      {isOwn && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
-                          onClick={() => handleReply(message)}
-                        >
-                          <Reply className="h-4 w-4" />
-                        </Button>
-                      )}
+                // Sort by created_at ascending (oldest first)
+                chatItems.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-                      {!isOwn && (
-                        <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
-                          <AvatarImage
-                            src={otherUser?.avatar_url || undefined}
-                          />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                            {getInitials(otherUser?.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div
-                        className={cn(
-                          "max-w-[80%] md:max-w-[65%] rounded-2xl px-4 py-2.5 shadow-sm",
-                          isOwn
-                            ? "bg-primary text-primary-foreground rounded-br-md"
-                            : "bg-card border border-border/50 rounded-bl-md"
-                        )}
-                      >
-                        {/* Reply quote */}
-                        {message.reply_to && (
-                          <div
-                            className={cn(
-                              "mb-2 p-2 rounded-lg border-l-2 text-xs",
-                              isOwn
-                                ? "bg-primary-foreground/10 border-primary-foreground/40"
-                                : "bg-muted/50 border-primary/40"
-                            )}
-                          >
-                            <div className="flex items-center gap-1 mb-0.5">
-                              <CornerDownRight className="h-3 w-3" />
-                              <span className="font-medium">
-                                {getReplyingSenderName(
-                                  message.reply_to.sender_id
-                                )}
-                              </span>
+                let lastMessageDate: Date | null = null;
+
+                return chatItems.map((item, index) => {
+                  const currentDate = new Date(item.created_at);
+                  const showDateDivider = !lastMessageDate || !isSameDay(currentDate, lastMessageDate);
+                  lastMessageDate = currentDate;
+
+                  if (item.type === 'quote') {
+                    if (!currentUserId) return null;
+                    return (
+                      <div key={`quote-${item.data.id}`}>
+                        {showDateDivider && (
+                          <div className="flex items-center justify-center my-4 md:my-6">
+                            <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
+                              {formatDateDivider(item.created_at)}
                             </div>
-                            <p className="truncate opacity-80">
-                              {getReplyPreviewText(message.reply_to)}
-                            </p>
                           </div>
                         )}
-                        {renderMessageContent(message, isOwn)}
+                        <QuoteCard
+                          quote={item.data}
+                          currentUserId={currentUserId}
+                          clientName={isProfessional ? (otherUser?.full_name || 'Cliente') : currentUserName || 'Cliente'}
+                          onAccept={(id, response) => respondToQuote(id, 'accepted', response)}
+                          onReject={(id, response) => respondToQuote(id, 'rejected', response)}
+                          onCancel={cancelQuote}
+                          onComplete={completeService}
+                          onConfirmCompletion={initiatePayment}
+                        />
                       </div>
+                    );
+                  }
 
-                      {/* Reply button - right side for other's messages */}
-                      {!isOwn && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
-                          onClick={() => handleReply(message)}
-                        >
-                          <Reply className="h-4 w-4" />
-                        </Button>
+                  // Message rendering
+                  const message = item.data;
+                  const isOwn = message.sender_id === currentUserId;
+
+                  return (
+                    <div key={message.id}>
+                      {/* Date Divider */}
+                      {showDateDivider && (
+                        <div className="flex items-center justify-center my-4 md:my-6">
+                          <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
+                            {formatDateDivider(message.created_at)}
+                          </div>
+                        </div>
                       )}
-                    </div>
-                  </div>
-                );
-              })}
 
-              {/* Quotes */}
-              {quotes.length > 0 && currentUserId && (
-                <>
-                  {quotes.map((quote) => (
-                    <QuoteCard
-                      key={quote.id}
-                      quote={quote}
-                      currentUserId={currentUserId}
-                      clientName={isProfessional ? (otherUser?.full_name || 'Cliente') : currentUserName || 'Cliente'}
-                      onAccept={(id, response) => respondToQuote(id, 'accepted', response)}
-                      onReject={(id, response) => respondToQuote(id, 'rejected', response)}
-                      onCancel={cancelQuote}
-                      onComplete={completeService}
-                      onConfirmCompletion={initiatePayment}
-                    />
-                  ))}
-                </>
-              )}
+                      {/* Message */}
+                      <div
+                        className={cn(
+                          "flex gap-2 animate-fade-in group",
+                          isOwn ? "justify-end" : "justify-start"
+                        )}
+                      >
+                        {/* Reply button - left side for own messages */}
+                        {isOwn && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
+                            onClick={() => handleReply(message)}
+                          >
+                            <Reply className="h-4 w-4" />
+                          </Button>
+                        )}
+
+                        {!isOwn && (
+                          <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
+                            <AvatarImage
+                              src={otherUser?.avatar_url || undefined}
+                            />
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                              {getInitials(otherUser?.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div
+                          className={cn(
+                            "max-w-[80%] md:max-w-[65%] rounded-2xl px-4 py-2.5 shadow-sm",
+                            isOwn
+                              ? "bg-primary text-primary-foreground rounded-br-md"
+                              : "bg-card border border-border/50 rounded-bl-md"
+                          )}
+                        >
+                          {/* Reply quote */}
+                          {message.reply_to && (
+                            <div
+                              className={cn(
+                                "mb-2 p-2 rounded-lg border-l-2 text-xs",
+                                isOwn
+                                  ? "bg-primary-foreground/10 border-primary-foreground/40"
+                                  : "bg-muted/50 border-primary/40"
+                              )}
+                            >
+                              <div className="flex items-center gap-1 mb-0.5">
+                                <CornerDownRight className="h-3 w-3" />
+                                <span className="font-medium">
+                                  {getReplyingSenderName(
+                                    message.reply_to.sender_id
+                                  )}
+                                </span>
+                              </div>
+                              <p className="truncate opacity-80">
+                                {getReplyPreviewText(message.reply_to)}
+                              </p>
+                            </div>
+                          )}
+                          {renderMessageContent(message, isOwn)}
+                        </div>
+
+                        {/* Reply button - right side for other's messages */}
+                        {!isOwn && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
+                            onClick={() => handleReply(message)}
+                          >
+                            <Reply className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
 
               {/* Typing Indicator */}
               {isOtherUserTyping && (
