@@ -184,9 +184,9 @@ export const QuoteCard = ({
     <>
       <div className="w-full max-w-md mx-auto my-4 animate-fade-in">
         <div className={cn(
-          "bg-card border rounded-2xl overflow-hidden shadow-sm transition-all duration-300",
+          "bg-card border rounded-2xl overflow-hidden shadow-sm transition-all duration-500",
           needsAttention 
-            ? "border-primary/50 ring-2 ring-primary/20 animate-[pulse_2s_ease-in-out_infinite] shadow-primary/10 shadow-lg" 
+            ? "border-primary/40 animate-gentle-pulse" 
             : "border-border/50"
         )}>
           {/* Header */}
@@ -205,7 +205,7 @@ export const QuoteCard = ({
                 <div>
                   <span className="font-medium text-sm">Orçamento</span>
                   {needsAttention && (
-                    <p className="text-xs text-primary font-medium animate-pulse">
+                    <p className="text-xs text-primary font-medium animate-[pulse_3s_ease-in-out_infinite]">
                       Ação necessária
                     </p>
                   )}
