@@ -7,7 +7,8 @@ import {
   Flag, 
   Shield, 
   FileText,
-  ChevronLeft
+  ChevronLeft,
+  Wallet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -59,6 +60,12 @@ export const AdminSidebar = () => {
       href: '/admin/funcoes',
       icon: <Shield className="h-5 w-5" />,
       permission: canManageRoles,
+    },
+    {
+      label: 'Saques',
+      href: '/admin/saques',
+      icon: <Wallet className="h-5 w-5" />,
+      permission: canManageRoles, // Only admins can approve withdrawals
     },
     {
       label: 'Logs',

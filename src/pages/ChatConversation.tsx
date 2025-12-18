@@ -802,6 +802,7 @@ const ChatConversation = () => {
                       onReject={(id, response) => respondToQuote(id, 'rejected', response)}
                       onCancel={cancelQuote}
                       onComplete={completeService}
+                      onConfirmCompletion={confirmServiceCompletion}
                     />
                   ))}
                 </>

@@ -37,6 +37,7 @@ interface QuoteCardProps {
   onReject: (quoteId: string, response?: string) => Promise<boolean>;
   onCancel: (quoteId: string) => Promise<boolean>;
   onComplete?: (quote: Quote, clientName: string) => Promise<boolean>;
+  onConfirmCompletion?: (quote: Quote, clientName: string) => Promise<boolean>;
 }
 
 const statusConfig = {
@@ -75,6 +76,7 @@ export const QuoteCard = ({
   onReject,
   onCancel,
   onComplete,
+  onConfirmCompletion,
 }: QuoteCardProps) => {
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [responseType, setResponseType] = useState<"accept" | "reject" | null>(null);
@@ -82,11 +84,13 @@ export const QuoteCard = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const isProfessional = currentUserId === quote.professional_id;
   const isClient = currentUserId === quote.client_id;
   const isExpired = isPast(new Date(quote.expires_at)) && quote.status === "pending";
   const isCompleted = quote.completed_at !== null;
+  const isClientConfirmed = quote.client_confirmed === true;
   
   const effectiveStatus = isExpired ? "expired" : quote.status;
   const statusInfo = statusConfig[effectiveStatus];
@@ -135,6 +139,16 @@ export const QuoteCard = ({
     setIsSubmitting(false);
     if (success) {
       setShowCompleteDialog(false);
+    }
+  };
+
+  const handleConfirmCompletion = async () => {
+    if (!onConfirmCompletion) return;
+    setIsSubmitting(true);
+    const success = await onConfirmCompletion(quote, clientName);
+    setIsSubmitting(false);
+    if (success) {
+      setShowConfirmDialog(false);
     }
   };
 
@@ -244,7 +258,7 @@ export const QuoteCard = ({
               </div>
             )}
 
-            {/* Complete Service Button for Accepted Quotes */}
+            {/* Complete Service Button for Accepted Quotes (Professional) */}
             {effectiveStatus === "accepted" && isProfessional && !isCompleted && onComplete && (
               <div className="pt-2">
                 <Button
@@ -258,12 +272,39 @@ export const QuoteCard = ({
               </div>
             )}
 
-            {/* Completed Badge */}
-            {isCompleted && (
+            {/* Awaiting Client Confirmation Badge (Professional view) */}
+            {isCompleted && !isClientConfirmed && isProfessional && (
+              <div className="pt-2">
+                <div className="flex items-center justify-center gap-2 p-2 bg-yellow-500/10 rounded-lg text-yellow-600">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm font-medium">Aguardando confirmação do cliente</span>
+                </div>
+              </div>
+            )}
+
+            {/* Client Confirmation Button */}
+            {isCompleted && !isClientConfirmed && isClient && onConfirmCompletion && (
+              <div className="pt-2">
+                <Button
+                  size="sm"
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  onClick={() => setShowConfirmDialog(true)}
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Confirmar Recebimento do Serviço
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Ao confirmar, o pagamento será liberado ao profissional
+                </p>
+              </div>
+            )}
+
+            {/* Fully Completed Badge */}
+            {isCompleted && isClientConfirmed && (
               <div className="pt-2">
                 <div className="flex items-center justify-center gap-2 p-2 bg-green-500/10 rounded-lg text-green-600">
                   <CheckCircle2 className="h-4 w-4" />
-                  <span className="text-sm font-medium">Serviço Finalizado</span>
+                  <span className="text-sm font-medium">Serviço Finalizado e Pago</span>
                 </div>
               </div>
             )}
@@ -362,7 +403,9 @@ export const QuoteCard = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Finalizar serviço</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao finalizar, o valor de R$ {(quote.price * 0.9).toFixed(2)} (já descontada a taxa de 10%) será adicionado à sua carteira.
+              Ao finalizar, o cliente será notificado para confirmar o recebimento do serviço. 
+              O pagamento de R$ {(quote.price * 0.9).toFixed(2)} (já descontada a taxa de 10%) 
+              será liberado após a confirmação do cliente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -377,6 +420,33 @@ export const QuoteCard = ({
             >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               Confirmar Finalização
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Client Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar recebimento do serviço</AlertDialogTitle>
+            <AlertDialogDescription>
+              Ao confirmar, você atesta que o serviço "{quote.title}" foi realizado satisfatoriamente.
+              O pagamento de R$ {quote.price.toFixed(2)} será liberado ao profissional.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmCompletion();
+              }}
+              disabled={isSubmitting}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Confirmar Recebimento
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

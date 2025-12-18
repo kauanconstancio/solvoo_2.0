@@ -21,6 +21,8 @@ export interface Quote {
   expires_at: string;
   completed_at: string | null;
   responded_at: string | null;
+  client_confirmed: boolean;
+  client_confirmed_at: string | null;
   // Joined data
   service?: {
     id: string;
@@ -232,7 +234,7 @@ export const useQuotes = (conversationId: string | undefined) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Mark quote as completed
+      // Mark quote as completed by professional (pending client confirmation)
       const { error: quoteError } = await supabase
         .from('quotes')
         .update({ 
@@ -242,29 +244,9 @@ export const useQuotes = (conversationId: string | undefined) => {
 
       if (quoteError) throw quoteError;
 
-      // Create wallet transaction
-      const fee = quote.price * PLATFORM_FEE_RATE;
-      const netAmount = quote.price - fee;
-
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          user_id: user.id,
-          quote_id: quote.id,
-          type: 'credit',
-          amount: quote.price,
-          fee,
-          net_amount: netAmount,
-          description: `Pagamento - ${quote.title}`,
-          customer_name: clientName,
-          status: 'completed',
-        });
-
-      if (transactionError) throw transactionError;
-
       toast({
         title: 'Serviço finalizado!',
-        description: `R$ ${netAmount.toFixed(2)} foram adicionados à sua carteira`,
+        description: 'Aguardando confirmação do cliente para liberação do pagamento.',
       });
 
       return true;
@@ -279,6 +261,59 @@ export const useQuotes = (conversationId: string | undefined) => {
     }
   };
 
+  const confirmServiceCompletion = async (quote: Quote, clientName: string): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Mark client confirmation
+      const { error: quoteError } = await supabase
+        .from('quotes')
+        .update({ 
+          client_confirmed: true,
+          client_confirmed_at: new Date().toISOString(),
+        })
+        .eq('id', quote.id);
+
+      if (quoteError) throw quoteError;
+
+      // Create wallet transaction for the professional
+      const fee = quote.price * PLATFORM_FEE_RATE;
+      const netAmount = quote.price - fee;
+
+      const { error: transactionError } = await supabase
+        .from('wallet_transactions')
+        .insert({
+          user_id: quote.professional_id,
+          quote_id: quote.id,
+          type: 'credit',
+          amount: quote.price,
+          fee,
+          net_amount: netAmount,
+          description: `Pagamento - ${quote.title}`,
+          customer_name: clientName,
+          status: 'completed',
+        });
+
+      if (transactionError) throw transactionError;
+
+      toast({
+        title: 'Serviço confirmado!',
+        description: 'O pagamento foi liberado para o profissional.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error confirming service completion:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível confirmar o serviço.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   return {
     quotes,
     isLoading,
@@ -286,6 +321,7 @@ export const useQuotes = (conversationId: string | undefined) => {
     respondToQuote,
     cancelQuote,
     completeService,
+    confirmServiceCompletion,
     refetch: fetchQuotes,
   };
 };

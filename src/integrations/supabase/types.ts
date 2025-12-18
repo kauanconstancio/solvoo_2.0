@@ -44,6 +44,57 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          account_holder_document: string
+          account_holder_name: string
+          account_number: string | null
+          account_type: string
+          agency: string | null
+          bank_code: string | null
+          bank_name: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          pix_key: string | null
+          pix_key_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_holder_document: string
+          account_holder_name: string
+          account_number?: string | null
+          account_type?: string
+          agency?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_holder_document?: string
+          account_holder_name?: string
+          account_number?: string | null
+          account_type?: string
+          agency?: string | null
+          bank_code?: string | null
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           client_id: string
@@ -219,6 +270,8 @@ export type Database = {
       }
       quotes: {
         Row: {
+          client_confirmed: boolean | null
+          client_confirmed_at: string | null
           client_id: string
           client_response: string | null
           completed_at: string | null
@@ -237,6 +290,8 @@ export type Database = {
           validity_days: number
         }
         Insert: {
+          client_confirmed?: boolean | null
+          client_confirmed_at?: string | null
           client_id: string
           client_response?: string | null
           completed_at?: string | null
@@ -255,6 +310,8 @@ export type Database = {
           validity_days?: number
         }
         Update: {
+          client_confirmed?: boolean | null
+          client_confirmed_at?: string | null
           client_id?: string
           client_response?: string | null
           completed_at?: string | null
@@ -530,44 +587,63 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
+          bank_account_id: string | null
           created_at: string
           customer_name: string | null
           description: string
           fee: number
           id: string
           net_amount: number
+          processed_at: string | null
+          processed_by: string | null
           quote_id: string | null
+          rejection_reason: string | null
           status: string
           type: string
           user_id: string
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           created_at?: string
           customer_name?: string | null
           description: string
           fee?: number
           id?: string
           net_amount: number
+          processed_at?: string | null
+          processed_by?: string | null
           quote_id?: string | null
+          rejection_reason?: string | null
           status?: string
           type: string
           user_id: string
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           created_at?: string
           customer_name?: string | null
           description?: string
           fee?: number
           id?: string
           net_amount?: number
+          processed_at?: string | null
+          processed_by?: string | null
           quote_id?: string | null
+          rejection_reason?: string | null
           status?: string
           type?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "wallet_transactions_quote_id_fkey"
             columns: ["quote_id"]
