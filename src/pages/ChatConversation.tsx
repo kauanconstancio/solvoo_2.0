@@ -107,7 +107,7 @@ const ChatConversation = () => {
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
     isNewConversation ? undefined : conversationId
   );
-  const { quotes, createQuote, respondToQuote, cancelQuote, completeService, confirmServiceCompletion } = useQuotes(
+  const { quotes, createQuote, respondToQuote, cancelQuote, completeService, initiatePayment } = useQuotes(
     isNewConversation ? undefined : conversationId
   );
   const [newMessage, setNewMessage] = useState("");
@@ -802,7 +802,7 @@ const ChatConversation = () => {
                       onReject={(id, response) => respondToQuote(id, 'rejected', response)}
                       onCancel={cancelQuote}
                       onComplete={completeService}
-                      onConfirmCompletion={confirmServiceCompletion}
+                      onConfirmCompletion={initiatePayment}
                     />
                   ))}
                 </>

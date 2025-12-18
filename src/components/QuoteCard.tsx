@@ -37,7 +37,7 @@ interface QuoteCardProps {
   onReject: (quoteId: string, response?: string) => Promise<boolean>;
   onCancel: (quoteId: string) => Promise<boolean>;
   onComplete?: (quote: Quote, clientName: string) => Promise<boolean>;
-  onConfirmCompletion?: (quote: Quote, clientName: string) => Promise<boolean>;
+  onConfirmCompletion?: (quote: Quote) => Promise<boolean>;
 }
 
 const statusConfig = {
@@ -145,7 +145,7 @@ export const QuoteCard = ({
   const handleConfirmCompletion = async () => {
     if (!onConfirmCompletion) return;
     setIsSubmitting(true);
-    const success = await onConfirmCompletion(quote, clientName);
+    const success = await onConfirmCompletion(quote);
     setIsSubmitting(false);
     if (success) {
       setShowConfirmDialog(false);
@@ -291,10 +291,10 @@ export const QuoteCard = ({
                   onClick={() => setShowConfirmDialog(true)}
                 >
                   <Check className="h-4 w-4 mr-1" />
-                  Confirmar Recebimento do Serviço
+                  Pagar e Confirmar Serviço
                 </Button>
                 <p className="text-xs text-muted-foreground text-center mt-2">
-                  Ao confirmar, o pagamento será liberado ao profissional
+                  Ao confirmar, você será redirecionado para o pagamento
                 </p>
               </div>
             )}
@@ -429,10 +429,10 @@ export const QuoteCard = ({
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar recebimento do serviço</AlertDialogTitle>
+            <AlertDialogTitle>Pagar pelo serviço</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao confirmar, você atesta que o serviço "{quote.title}" foi realizado satisfatoriamente.
-              O pagamento de R$ {quote.price.toFixed(2)} será liberado ao profissional.
+              Ao confirmar, você será redirecionado para a página de pagamento.
+              O valor de R$ {quote.price.toFixed(2)} será cobrado e liberado ao profissional.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -446,7 +446,7 @@ export const QuoteCard = ({
               className="bg-green-600 hover:bg-green-700"
             >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              Confirmar Recebimento
+              Ir para Pagamento
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
