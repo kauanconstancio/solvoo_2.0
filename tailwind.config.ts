@@ -114,6 +114,16 @@ export default {
             opacity: "0",
           },
         },
+        "gentle-pulse": {
+          "0%, 100%": {
+            boxShadow: "0 0 0 0 hsl(var(--primary) / 0)",
+            borderColor: "hsl(var(--primary) / 0.3)",
+          },
+          "50%": {
+            boxShadow: "0 0 20px 2px hsl(var(--primary) / 0.15)",
+            borderColor: "hsl(var(--primary) / 0.5)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -121,6 +131,7 @@ export default {
         "ping-once": "ping-once 0.8s cubic-bezier(0, 0, 0.2, 1) forwards",
         "pulse-highlight": "pulse-highlight 1s ease-in-out",
         "float-particle": "float-particle linear infinite",
+        "gentle-pulse": "gentle-pulse 3s ease-in-out infinite",
       },
     },
   },
