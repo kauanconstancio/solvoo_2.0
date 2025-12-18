@@ -261,53 +261,33 @@ export const useQuotes = (conversationId: string | undefined) => {
     }
   };
 
-  const confirmServiceCompletion = async (quote: Quote, clientName: string): Promise<boolean> => {
+  const initiatePayment = async (quote: Quote): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      // Mark client confirmation
-      const { error: quoteError } = await supabase
-        .from('quotes')
-        .update({ 
-          client_confirmed: true,
-          client_confirmed_at: new Date().toISOString(),
-        })
-        .eq('id', quote.id);
-
-      if (quoteError) throw quoteError;
-
-      // Create wallet transaction for the professional
-      const fee = quote.price * PLATFORM_FEE_RATE;
-      const netAmount = quote.price - fee;
-
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          user_id: quote.professional_id,
-          quote_id: quote.id,
-          type: 'credit',
-          amount: quote.price,
-          fee,
-          net_amount: netAmount,
-          description: `Pagamento - ${quote.title}`,
-          customer_name: clientName,
-          status: 'completed',
-        });
-
-      if (transactionError) throw transactionError;
-
       toast({
-        title: 'Serviço confirmado!',
-        description: 'O pagamento foi liberado para o profissional.',
+        title: 'Redirecionando...',
+        description: 'Você será redirecionado para a página de pagamento.',
       });
 
-      return true;
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { quoteId: quote.id },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+        return true;
+      } else {
+        throw new Error('URL de pagamento não recebida');
+      }
     } catch (error: any) {
-      console.error('Error confirming service completion:', error);
+      console.error('Error initiating payment:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível confirmar o serviço.',
+        description: error.message || 'Não foi possível iniciar o pagamento.',
         variant: 'destructive',
       });
       return false;
@@ -321,7 +301,7 @@ export const useQuotes = (conversationId: string | undefined) => {
     respondToQuote,
     cancelQuote,
     completeService,
-    confirmServiceCompletion,
+    initiatePayment,
     refetch: fetchQuotes,
   };
 };
