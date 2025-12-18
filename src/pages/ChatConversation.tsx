@@ -719,7 +719,7 @@ const ChatConversation = () => {
                   if (item.type === 'quote') {
                     if (!currentUserId) return null;
                     return (
-                      <div key={`quote-${item.data.id}`}>
+                      <div key={`quote-${item.data.id}`} className="animate-fade-in">
                         {showDateDivider && (
                           <div className="flex items-center justify-center my-4 md:my-6">
                             <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
@@ -727,16 +727,18 @@ const ChatConversation = () => {
                             </div>
                           </div>
                         )}
-                        <QuoteCard
-                          quote={item.data}
-                          currentUserId={currentUserId}
-                          clientName={isProfessional ? (otherUser?.full_name || 'Cliente') : currentUserName || 'Cliente'}
-                          onAccept={(id, response) => respondToQuote(id, 'accepted', response)}
-                          onReject={(id, response) => respondToQuote(id, 'rejected', response)}
-                          onCancel={cancelQuote}
-                          onComplete={completeService}
-                          onConfirmCompletion={initiatePayment}
-                        />
+                        <div className="animate-scale-in">
+                          <QuoteCard
+                            quote={item.data}
+                            currentUserId={currentUserId}
+                            clientName={isProfessional ? (otherUser?.full_name || 'Cliente') : currentUserName || 'Cliente'}
+                            onAccept={(id, response) => respondToQuote(id, 'accepted', response)}
+                            onReject={(id, response) => respondToQuote(id, 'rejected', response)}
+                            onCancel={cancelQuote}
+                            onComplete={completeService}
+                            onConfirmCompletion={initiatePayment}
+                          />
+                        </div>
                       </div>
                     );
                   }
