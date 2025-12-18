@@ -262,23 +262,13 @@ export const useQuotes = (conversationId: string | undefined) => {
   };
 
   const initiatePayment = async (quote: Quote): Promise<boolean> => {
-    // Open a blank tab synchronously (so browsers don't block it)
-    let paymentWindow: Window | null = null;
     try {
-      paymentWindow = window.open("", "_blank", "noopener,noreferrer");
-    } catch {
-      paymentWindow = null;
-    }
-
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
       toast({
-        title: "Gerando link de pagamento...",
-        description: "Abriremos o checkout em uma nova aba.",
+        title: "Redirecionando...",
+        description: "Você será redirecionado para a página de pagamento.",
       });
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
@@ -287,25 +277,13 @@ export const useQuotes = (conversationId: string | undefined) => {
 
       if (error) throw error;
 
-      const url = data?.url as string | undefined;
-      if (!url) throw new Error("URL de pagamento não recebida");
-
-      // Prefer new tab (works better inside previews/iframes); fallback to same-tab redirect
-      if (paymentWindow && !paymentWindow.closed) {
-        paymentWindow.location.href = url;
+      if (data?.url) {
+        window.location.href = data.url;
+        return true;
       } else {
-        window.location.href = url;
+        throw new Error("URL de pagamento não recebida");
       }
-
-      return true;
     } catch (error: any) {
-      // If we opened a blank window and then failed, close it to avoid a dead tab
-      try {
-        paymentWindow?.close();
-      } catch {
-        // ignore
-      }
-
       console.error("Error initiating payment:", error);
       toast({
         title: "Erro",
