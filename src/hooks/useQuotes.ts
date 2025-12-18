@@ -51,7 +51,7 @@ export const useQuotes = (conversationId: string | undefined) => {
         .from('quotes')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
 
