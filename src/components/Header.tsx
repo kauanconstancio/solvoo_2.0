@@ -8,7 +8,11 @@ import {
   ChevronDown,
   Pencil,
   Shield,
+  Sun,
+  Moon,
+  Laptop,
 } from "lucide-react";
+import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -23,6 +27,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +52,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { unreadCount } = useUnreadMessages();
   const { hasAnyRole } = useUserRole();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     const {
@@ -187,7 +195,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-gray-200 hover:bg-transparent hover:text-black transition-smooth focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-border hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-smooth focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
@@ -204,13 +212,10 @@ const Header = () => {
                   <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-52 flex flex-col gap-1"
-                align="end"
-              >
+              <DropdownMenuContent className="w-52 flex flex-col" align="end">
                 <DropdownMenuItem
                   asChild
-                  className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
+                  className="cursor-pointer transition-smooth hover:bg-muted"
                 >
                   <Link to="/perfil">
                     <User className="mr-2 h-4 w-4" />
@@ -219,7 +224,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   asChild
-                  className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
+                  className="cursor-pointer transition-smooth hover:bg-muted"
                 >
                   <Link to="/dashboard">
                     <BarChart3 className="mr-2 h-4 w-4" />
@@ -228,7 +233,7 @@ const Header = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   asChild
-                  className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
+                  className="cursor-pointer transition-smooth hover:bg-muted"
                 >
                   <Link to="/anunciar">
                     <Pencil className="mr-2 h-4 w-4" />
@@ -238,7 +243,7 @@ const Header = () => {
                 {hasAnyRole && (
                   <DropdownMenuItem
                     asChild
-                    className="cursor-pointer hover:bg-transparent hover:text-black focus:bg-transparent focus:text-black transition-smooth"
+                    className="cursor-pointer transition-smooth"
                   >
                     <Link to="/admin">
                       <Shield className="mr-2 h-4 w-4" />
@@ -246,6 +251,37 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                 )}
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="cursor-pointer transition-smooth focus:bg-muted data-[state=open]:bg-muted hover:bg-muted">
+                    <Sun className="mr-2 h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute mr-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="ml-2">Tema</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem
+                      onClick={() => setTheme("light")}
+                      className="cursor-pointer hover:bg-muted transition-smooth"
+                    >
+                      <Sun className="mr-2 h-4 w-4" />
+                      <span>Claro</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setTheme("dark")}
+                      className="cursor-pointer hover:bg-muted transition-smooth"
+                    >
+                      <Moon className="mr-2 h-4 w-4" />
+                      <span>Escuro</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setTheme("system")}
+                      className="cursor-pointer hover:bg-muted transition-smooth"
+                    >
+                      <Laptop className="mr-2 h-4 w-4" />
+                      <span>Sistema</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
 
                 <DropdownMenuSeparator />
 

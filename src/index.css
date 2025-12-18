@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -55,11 +55,23 @@
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08);
     --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.1);
-    
+
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(215 85% 50%) 0%, hsl(215 90% 60%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(145 70% 50%) 0%, hsl(145 75% 60%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(215 100% 98%) 0%, hsl(0 0% 100%) 100%);
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(215 85% 50%) 0%,
+      hsl(215 90% 60%) 100%
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(145 70% 50%) 0%,
+      hsl(145 75% 60%) 100%
+    );
+    --gradient-hero: linear-gradient(
+      180deg,
+      hsl(215 100% 98%) 0%,
+      hsl(0 0% 100%) 100%
+    );
 
     /* Radius */
     --radius: 0.75rem;
@@ -82,39 +94,56 @@
   }
 
   .dark {
-    --background: 215 25% 8%;
-    --foreground: 0 0% 98%;
+    --background: 222 15% 10%;
+    --foreground: 210 20% 98%;
 
-    --card: 215 20% 12%;
-    --card-foreground: 0 0% 98%;
-    --card-hover: 215 20% 15%;
+    --card: 222 15% 13%;
+    --card-foreground: 210 20% 98%;
+    --card-hover: 222 15% 16%;
 
-    --popover: 215 20% 12%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 15% 13%;
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 215 85% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 215 85% 60%;
-    --primary-light: 215 80% 18%;
+    --primary: 215 90% 65%;
+    --primary-foreground: 222 15% 10%;
+    --primary-hover: 215 90% 70%;
+    --primary-light: 215 50% 20%;
 
-    --secondary: 215 20% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --secondary-hover: 215 20% 20%;
+    --secondary: 215 15% 18%;
+    --secondary-foreground: 210 20% 98%;
+    --secondary-hover: 215 15% 22%;
 
-    --accent: 145 70% 55%;
+    --accent: 145 60% 50%;
     --accent-foreground: 0 0% 100%;
-    --accent-hover: 145 70% 60%;
-    --accent-light: 145 50% 15%;
+    --accent-hover: 145 60% 55%;
+    --accent-light: 145 40% 20%;
 
-    --muted: 215 20% 16%;
-    --muted-foreground: 215 10% 60%;
+    --muted: 222 15% 16%;
+    --muted-foreground: 215 15% 70%;
 
-    --destructive: 0 85% 65%;
+    --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 20%;
-    --input: 215 20% 20%;
-    --ring: 215 85% 55%;
+    --border: 222 15% 20%;
+    --input: 222 15% 20%;
+    --ring: 215 90% 65%;
+
+    /* Dark mode gradients */
+    --gradient-hero: linear-gradient(
+      180deg,
+      hsl(222 15% 10%) 0%,
+      hsl(222 15% 13%) 100%
+    );
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(215 90% 65%) 0%,
+      hsl(215 90% 55%) 100%
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(145 60% 50%) 0%,
+      hsl(145 60% 40%) 100%
+    );
   }
 }
 
@@ -125,11 +154,16 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Outfit", system-ui, -apple-system, sans-serif;
     font-weight: 700;
   }
 }
@@ -138,7 +172,7 @@
   .gradient-primary {
     background: var(--gradient-primary);
   }
-  
+
   .gradient-accent {
     background: var(--gradient-accent);
   }
