@@ -17,6 +17,7 @@ import {
   Flag,
   Check,
   CheckCheck,
+  FileText,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,9 @@ import {
 } from "@/hooks/useChat";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
+import { useQuotes } from "@/hooks/useQuotes";
+import { QuoteCard } from "@/components/QuoteCard";
+import { CreateQuoteDialog } from "@/components/CreateQuoteDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -103,11 +107,16 @@ const ChatConversation = () => {
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
     isNewConversation ? undefined : conversationId
   );
+  const { quotes, createQuote, respondToQuote, cancelQuote } = useQuotes(
+    isNewConversation ? undefined : conversationId
+  );
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
+  const [isProfessional, setIsProfessional] = useState(false);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [otherUser, setOtherUser] = useState<{
     user_id: string;
     full_name: string | null;
@@ -202,6 +211,11 @@ const ChatConversation = () => {
         } = await supabase.auth.getUser();
         const otherUserId =
           conv.client_id === user?.id ? conv.professional_id : conv.client_id;
+
+        // Determine if current user is the professional
+        const isUserProfessional = conv.professional_id === user?.id;
+        setIsProfessional(isUserProfessional);
+        setClientId(conv.client_id);
 
         const { data: profile } = await supabase
           .from("profiles")
@@ -775,6 +789,22 @@ const ChatConversation = () => {
                 );
               })}
 
+              {/* Quotes */}
+              {quotes.length > 0 && currentUserId && (
+                <>
+                  {quotes.map((quote) => (
+                    <QuoteCard
+                      key={quote.id}
+                      quote={quote}
+                      currentUserId={currentUserId}
+                      onAccept={respondToQuote}
+                      onReject={(id, response) => respondToQuote(id, 'rejected', response)}
+                      onCancel={cancelQuote}
+                    />
+                  ))}
+                </>
+              )}
+
               {/* Typing Indicator */}
               {isOtherUserTyping && (
                 <div className="flex gap-2 justify-start animate-fade-in">
@@ -820,6 +850,25 @@ const ChatConversation = () => {
                 <Paperclip className="h-5 w-5" />
               )}
             </Button>
+
+            {/* Quote Button - Only for professionals */}
+            {isProfessional && conversationId && clientId && (
+              <CreateQuoteDialog
+                conversationId={conversationId}
+                clientId={clientId}
+                onCreateQuote={createQuote}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isSending}
+                    className="h-12 w-12 flex-shrink-0 rounded-xl hover:bg-primary transition-smooth"
+                  >
+                    <FileText className="h-5 w-5" />
+                  </Button>
+                }
+              />
+            )}
 
             <div className="flex-1 relative">
               {/* Reply preview bar */}
