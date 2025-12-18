@@ -24,6 +24,7 @@ import SearchResults from "./pages/SearchResults";
 import Chat from "./pages/Chat";
 import ChatConversation from "./pages/ChatConversation";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
+import WalletPage from "./pages/WalletPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
@@ -216,6 +217,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <PageTransition>
                 <ProfessionalDashboard />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/carteira"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <WalletPage />
               </PageTransition>
             </ProtectedRoute>
           }

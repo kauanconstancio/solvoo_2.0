@@ -11,6 +11,7 @@ import {
   Sun,
   Moon,
   Laptop,
+  Wallet,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -229,6 +230,15 @@ const Header = () => {
                   <Link to="/dashboard">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer transition-smooth hover:bg-muted"
+                >
+                  <Link to="/carteira">
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Minha Carteira
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
