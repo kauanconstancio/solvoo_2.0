@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Wallet,
   ArrowUpRight,
@@ -8,6 +9,11 @@ import {
   Calendar,
   Download,
   Loader2,
+  Building2,
+  Clock,
+  XCircle,
+  CheckCircle2,
+  Settings,
 } from "lucide-react";
 import {
   Card,
@@ -46,14 +52,17 @@ import {
 } from "recharts";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useWallet } from "@/hooks/useWallet";
+import { useWallet, WalletTransaction } from "@/hooks/useWallet";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const WalletPage = () => {
   const { transactions, stats, chartData, isLoading, updateChartPeriod, requestWithdrawal } = useWallet();
+  const { accounts, isLoading: isLoadingAccounts, getDefaultAccount } = useBankAccounts();
   const [period, setPeriod] = useState("7");
   const [withdrawDialogOpen, setWithdrawDialogOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>("");
   const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   const handlePeriodChange = (value: string) => {
@@ -82,13 +91,50 @@ const WalletPage = () => {
     if (isNaN(amount) || amount <= 0) return;
 
     setIsWithdrawing(true);
-    const success = await requestWithdrawal(amount);
+    const success = await requestWithdrawal(amount, selectedBankAccountId || undefined);
     setIsWithdrawing(false);
     
     if (success) {
       setWithdrawDialogOpen(false);
       setWithdrawAmount("");
+      setSelectedBankAccountId("");
     }
+  };
+
+  const openWithdrawDialog = () => {
+    const defaultAccount = getDefaultAccount();
+    if (defaultAccount) {
+      setSelectedBankAccountId(defaultAccount.id);
+    }
+    setWithdrawDialogOpen(true);
+  };
+
+  const getTransactionStatusBadge = (tx: WalletTransaction) => {
+    if (tx.status === 'pending') {
+      return (
+        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
+          <Clock className="h-3 w-3 mr-1" />
+          Aguardando aprovação
+        </Badge>
+      );
+    }
+    if (tx.status === 'cancelled') {
+      return (
+        <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">
+          <XCircle className="h-3 w-3 mr-1" />
+          Recusado
+        </Badge>
+      );
+    }
+    if (tx.type === 'withdrawal' && tx.status === 'completed') {
+      return (
+        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          Aprovado
+        </Badge>
+      );
+    }
+    return null;
   };
 
   const growthPercentage = stats.grossRevenue > 0 
@@ -113,7 +159,13 @@ const WalletPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button onClick={() => setWithdrawDialogOpen(true)} disabled={stats.availableBalance <= 0}>
+              <Link to="/contas-bancarias">
+                <Button variant="outline" size="sm">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Contas Bancárias
+                </Button>
+              </Link>
+              <Button onClick={openWithdrawDialog} disabled={stats.availableBalance <= 0 || accounts.length === 0}>
                 <ArrowUpRight className="mr-2 h-4 w-4" />
                 Solicitar Saque
               </Button>
@@ -150,27 +202,27 @@ const WalletPage = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
-                    <Calendar className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                    <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                   </div>
                   <Badge
                     variant="outline"
                     className="text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10"
                   >
-                    Em processamento
+                    Saques pendentes
                   </Badge>
                 </div>
                 <p className="text-muted-foreground font-medium text-sm mb-1">
-                  A receber
+                  Aguardando Aprovação
                 </p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-24" />
                 ) : (
                   <div className="text-2xl font-bold">
-                    {formatCurrency(stats.pendingBalance)}
+                    {formatCurrency(stats.pendingWithdrawals)}
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  Liberação prevista em até 2 dias úteis
+                  Aprovação em até 2 dias úteis
                 </p>
               </CardContent>
             </Card>
@@ -388,11 +440,19 @@ const WalletPage = () => {
                           )}
                         </div>
                         <div>
-                          <p className="font-medium">{tx.description}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{tx.description}</p>
+                            {getTransactionStatusBadge(tx)}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {formatDate(tx.created_at)} •{" "}
                             {tx.type === "credit" ? tx.customer_name : "Conta bancária"}
                           </p>
+                          {tx.rejection_reason && (
+                            <p className="text-xs text-red-600 mt-1">
+                              Motivo: {tx.rejection_reason}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
@@ -400,7 +460,9 @@ const WalletPage = () => {
                           className={`font-bold ${
                             tx.type === "credit"
                               ? "text-green-600 dark:text-green-400"
-                              : "text-foreground"
+                              : tx.status === "cancelled" 
+                                ? "text-muted-foreground line-through"
+                                : "text-foreground"
                           }`}
                         >
                           {tx.type === "credit" ? "+" : "-"}
@@ -410,12 +472,6 @@ const WalletPage = () => {
                           <p className="text-xs text-muted-foreground">
                             - {formatCurrency(tx.fee)} taxa
                           </p>
-                        )}
-
-                        {tx.status === "pending" && (
-                          <span className="text-xs text-yellow-600 bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 px-2 py-0.5 rounded-full mt-1 inline-block">
-                            Pendente
-                          </span>
                         )}
                       </div>
                     </div>
@@ -436,21 +492,65 @@ const WalletPage = () => {
               Insira o valor que deseja sacar. O saldo disponível é {formatCurrency(stats.availableBalance)}.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="amount">Valor do saque</Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="0,00"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="mt-2"
-              max={stats.availableBalance}
-              min={0}
-            />
-            <p className="text-xs text-muted-foreground mt-2">
-              O saque será processado em até 2 dias úteis
-            </p>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="bank-account">Conta para depósito</Label>
+              {isLoadingAccounts ? (
+                <Skeleton className="h-10 w-full" />
+              ) : accounts.length === 0 ? (
+                <div className="p-4 border border-dashed rounded-lg text-center">
+                  <Building2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Nenhuma conta cadastrada
+                  </p>
+                  <Link to="/contas-bancarias">
+                    <Button variant="outline" size="sm">
+                      Cadastrar conta
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map(account => (
+                      <SelectItem key={account.id} value={account.id}>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          <span>
+                            {account.account_type === 'pix' 
+                              ? `PIX - ${account.pix_key}`
+                              : `${account.bank_name} - Ag: ${account.agency} Conta: ${account.account_number}`
+                            }
+                          </span>
+                          {account.is_default && (
+                            <Badge variant="secondary" className="ml-2 text-xs">Padrão</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="amount">Valor do saque</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0,00"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                max={stats.availableBalance}
+                min={0}
+              />
+              <p className="text-xs text-muted-foreground">
+                O saque será processado após aprovação (até 2 dias úteis)
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWithdrawDialogOpen(false)}>
@@ -458,7 +558,7 @@ const WalletPage = () => {
             </Button>
             <Button 
               onClick={handleWithdraw} 
-              disabled={isWithdrawing || !withdrawAmount || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > stats.availableBalance}
+              disabled={isWithdrawing || !withdrawAmount || !selectedBankAccountId || parseFloat(withdrawAmount) <= 0 || parseFloat(withdrawAmount) > stats.availableBalance}
             >
               {isWithdrawing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirmar Saque

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface WalletTransaction {
+export interface WalletTransaction {
   id: string;
   user_id: string;
   quote_id: string | null;
@@ -14,11 +14,16 @@ interface WalletTransaction {
   customer_name: string | null;
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
+  bank_account_id: string | null;
+  processed_at: string | null;
+  processed_by: string | null;
+  rejection_reason: string | null;
 }
 
-interface WalletStats {
+export interface WalletStats {
   availableBalance: number;
   pendingBalance: number;
+  pendingWithdrawals: number;
   totalWithdrawn: number;
   lastWithdrawalDate: string | null;
   grossRevenue: number;
@@ -37,6 +42,7 @@ export function useWallet() {
   const [stats, setStats] = useState<WalletStats>({
     availableBalance: 0,
     pendingBalance: 0,
+    pendingWithdrawals: 0,
     totalWithdrawn: 0,
     lastWithdrawalDate: null,
     grossRevenue: 0,
@@ -78,20 +84,26 @@ export function useWallet() {
   const calculateStats = (txs: WalletTransaction[]) => {
     const completedCredits = txs.filter(tx => tx.type === 'credit' && tx.status === 'completed');
     const pendingCredits = txs.filter(tx => tx.type === 'credit' && tx.status === 'pending');
-    const withdrawals = txs.filter(tx => tx.type === 'withdrawal' && tx.status === 'completed');
+    const completedWithdrawals = txs.filter(tx => tx.type === 'withdrawal' && tx.status === 'completed');
+    const pendingWithdrawals = txs.filter(tx => tx.type === 'withdrawal' && tx.status === 'pending');
 
-    const availableBalance = completedCredits.reduce((sum, tx) => sum + tx.net_amount, 0) - 
-                             withdrawals.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalCredits = completedCredits.reduce((sum, tx) => sum + tx.net_amount, 0);
+    const totalCompletedWithdrawals = completedWithdrawals.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalPendingWithdrawals = pendingWithdrawals.reduce((sum, tx) => sum + tx.amount, 0);
+    
+    // Available balance = credits - completed withdrawals - pending withdrawals
+    const availableBalance = totalCredits - totalCompletedWithdrawals - totalPendingWithdrawals;
     const pendingBalance = pendingCredits.reduce((sum, tx) => sum + tx.net_amount, 0);
-    const totalWithdrawn = withdrawals.reduce((sum, tx) => sum + tx.amount, 0);
+    const totalWithdrawn = totalCompletedWithdrawals;
     const grossRevenue = completedCredits.reduce((sum, tx) => sum + tx.amount, 0);
     const totalFees = completedCredits.reduce((sum, tx) => sum + tx.fee, 0);
 
-    const lastWithdrawal = withdrawals[0];
+    const lastWithdrawal = completedWithdrawals[0];
 
     setStats({
-      availableBalance,
+      availableBalance: Math.max(0, availableBalance),
       pendingBalance,
+      pendingWithdrawals: totalPendingWithdrawals,
       totalWithdrawn,
       lastWithdrawalDate: lastWithdrawal?.created_at || null,
       grossRevenue,
@@ -180,7 +192,7 @@ export function useWallet() {
     }
   };
 
-  const requestWithdrawal = async (amount: number) => {
+  const requestWithdrawal = async (amount: number, bankAccountId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
@@ -204,6 +216,7 @@ export function useWallet() {
           net_amount: amount,
           description: 'Saque para conta bancária',
           status: 'pending',
+          bank_account_id: bankAccountId || null,
         });
 
       if (error) throw error;
@@ -211,7 +224,7 @@ export function useWallet() {
       await fetchTransactions();
       toast({
         title: 'Saque solicitado!',
-        description: 'Seu saque será processado em até 2 dias úteis',
+        description: 'Seu saque será processado em até 2 dias úteis após aprovação',
       });
 
       return true;
