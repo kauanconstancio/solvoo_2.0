@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper logging function for debugging
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,7 +25,7 @@ serve(async (req) => {
       throw new Error("Quote ID is required");
     }
 
-    console.log("Creating checkout session for quote:", quoteId);
+    logStep("Starting checkout for quote", { quoteId });
 
     // Use anon client for auth verification
     const supabaseClient = createClient(
@@ -35,6 +41,8 @@ serve(async (req) => {
     if (userError || !userData.user) {
       throw new Error("Unauthorized");
     }
+
+    logStep("User authenticated", { userId: userData.user.id, email: userData.user.email });
 
     // Use service role to bypass RLS for reading quote
     const supabaseAdmin = createClient(
@@ -54,6 +62,8 @@ serve(async (req) => {
       throw new Error("Quote not found");
     }
 
+    logStep("Quote found", { quoteId: quote.id, price: quote.price, title: quote.title });
+
     // Verify the user is the client
     if (quote.client_id !== userData.user.id) {
       throw new Error("Only the client can pay for this quote");
@@ -64,11 +74,11 @@ serve(async (req) => {
       throw new Error("Quote is not ready for payment");
     }
 
-    console.log("Quote found:", quote.id);
-
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
+
+    logStep("Stripe initialized");
 
     // Get or create Stripe customer
     let customerId: string | undefined;
@@ -79,6 +89,7 @@ serve(async (req) => {
 
     if (customers && customers.length > 0) {
       customerId = customers[0].id;
+      logStep("Existing Stripe customer found", { customerId });
     } else {
       const customer = await stripe.customers.create({
         email: userData.user.email,
@@ -87,12 +98,20 @@ serve(async (req) => {
         },
       });
       customerId = customer.id;
+      logStep("New Stripe customer created", { customerId });
     }
 
-    // Create checkout session with automatic payment methods (shows PIX when enabled)
+    // Create checkout session
+    // NOT specifying payment_method_types lets Stripe use all enabled methods from dashboard
+    // This should include PIX if enabled in Stripe dashboard settings
+    logStep("Creating checkout session", { 
+      customerId, 
+      currency: "brl",
+      amount: Math.round(quote.price * 100)
+    });
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      automatic_payment_methods: { enabled: true },
       line_items: [
         {
           price_data: {
@@ -118,7 +137,12 @@ serve(async (req) => {
       },
     });
 
-    console.log("Checkout session created:", session.id);
+    logStep("Checkout session created successfully", { 
+      sessionId: session.id,
+      url: session.url,
+      paymentMethodTypes: session.payment_method_types,
+      paymentMethodOptions: session.payment_method_options
+    });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -126,7 +150,7 @@ serve(async (req) => {
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error creating checkout session:", error);
+    logStep("ERROR", { message: errorMessage, error });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
