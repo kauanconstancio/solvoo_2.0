@@ -25,6 +25,7 @@ import Chat from "./pages/Chat";
 import ChatConversation from "./pages/ChatConversation";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import WalletPage from "./pages/WalletPage";
+import BankAccountsPage from "./pages/BankAccountsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
@@ -32,6 +33,7 @@ import AdminReviews from "./pages/admin/AdminReviews";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminLogs from "./pages/admin/AdminLogs";
+import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import PageTransition from "./components/PageTransition";
 
 const AnimatedRoutes = () => {
@@ -231,8 +233,16 @@ const AnimatedRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Admin Routes */}
+        <Route
+          path="/contas-bancarias"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <BankAccountsPage />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={
@@ -299,6 +309,16 @@ const AnimatedRoutes = () => {
             <AdminProtectedRoute requiredPermission="admin">
               <PageTransition>
                 <AdminLogs />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/saques"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminWithdrawals />
               </PageTransition>
             </AdminProtectedRoute>
           }
