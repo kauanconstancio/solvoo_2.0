@@ -443,6 +443,15 @@ const Header = () => {
                               Meus Anúncios
                             </Button>
                           </Link>
+                          <Link to="/carteira">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
+                            >
+                              <Wallet className="mr-2 h-4 w-4" />
+                              Minha Carteira
+                            </Button>
+                          </Link>
                           {hasAnyRole && (
                             <Link to="/admin">
                               <Button

@@ -221,6 +221,7 @@ export type Database = {
         Row: {
           client_id: string
           client_response: string | null
+          completed_at: string | null
           conversation_id: string
           created_at: string
           description: string | null
@@ -238,6 +239,7 @@ export type Database = {
         Insert: {
           client_id: string
           client_response?: string | null
+          completed_at?: string | null
           conversation_id: string
           created_at?: string
           description?: string | null
@@ -255,6 +257,7 @@ export type Database = {
         Update: {
           client_id?: string
           client_response?: string | null
+          completed_at?: string | null
           conversation_id?: string
           created_at?: string
           description?: string | null
@@ -523,6 +526,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_name: string | null
+          description: string
+          fee: number
+          id: string
+          net_amount: number
+          quote_id: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_name?: string | null
+          description: string
+          fee?: number
+          id?: string
+          net_amount: number
+          quote_id?: string | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_name?: string | null
+          description?: string
+          fee?: number
+          id?: string
+          net_amount?: number
+          quote_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
