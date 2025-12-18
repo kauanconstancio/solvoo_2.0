@@ -262,33 +262,55 @@ export const useQuotes = (conversationId: string | undefined) => {
   };
 
   const initiatePayment = async (quote: Quote): Promise<boolean> => {
+    // Open a blank tab synchronously (so browsers don't block it)
+    let paymentWindow: Window | null = null;
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      paymentWindow = window.open("", "_blank", "noopener,noreferrer");
+    } catch {
+      paymentWindow = null;
+    }
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
 
       toast({
-        title: 'Redirecionando...',
-        description: 'Você será redirecionado para a página de pagamento.',
+        title: "Gerando link de pagamento...",
+        description: "Abriremos o checkout em uma nova aba.",
       });
 
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { quoteId: quote.id },
       });
 
       if (error) throw error;
 
-      if (data?.url) {
-        window.location.href = data.url;
-        return true;
+      const url = data?.url as string | undefined;
+      if (!url) throw new Error("URL de pagamento não recebida");
+
+      // Prefer new tab (works better inside previews/iframes); fallback to same-tab redirect
+      if (paymentWindow && !paymentWindow.closed) {
+        paymentWindow.location.href = url;
       } else {
-        throw new Error('URL de pagamento não recebida');
+        window.location.href = url;
       }
+
+      return true;
     } catch (error: any) {
-      console.error('Error initiating payment:', error);
+      // If we opened a blank window and then failed, close it to avoid a dead tab
+      try {
+        paymentWindow?.close();
+      } catch {
+        // ignore
+      }
+
+      console.error("Error initiating payment:", error);
       toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível iniciar o pagamento.',
-        variant: 'destructive',
+        title: "Erro",
+        description: error.message || "Não foi possível iniciar o pagamento.",
+        variant: "destructive",
       });
       return false;
     }
