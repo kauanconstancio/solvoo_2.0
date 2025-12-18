@@ -96,6 +96,13 @@ export const QuoteCard = ({
   const statusInfo = statusConfig[effectiveStatus];
   const StatusIcon = statusInfo.icon;
 
+  // Determine if the quote needs attention from the current user
+  const needsClientAction = isClient && (
+    (effectiveStatus === "pending") || // Client needs to accept/reject
+    (isCompleted && !isClientConfirmed) // Client needs to confirm and pay
+  );
+  const needsAttention = needsClientAction;
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -176,15 +183,33 @@ export const QuoteCard = ({
   return (
     <>
       <div className="w-full max-w-md mx-auto my-4 animate-fade-in">
-        <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+        <div className={cn(
+          "bg-card border rounded-2xl overflow-hidden shadow-sm transition-all duration-300",
+          needsAttention 
+            ? "border-primary/50 ring-2 ring-primary/20 animate-[pulse_2s_ease-in-out_infinite] shadow-primary/10 shadow-lg" 
+            : "border-border/50"
+        )}>
           {/* Header */}
-          <div className="bg-primary/5 px-4 py-3 border-b border-border/50">
+          <div className={cn(
+            "px-4 py-3 border-b border-border/50",
+            needsAttention ? "bg-primary/10" : "bg-primary/5"
+          )}>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-lg">
+                <div className={cn(
+                  "p-2 rounded-lg",
+                  needsAttention ? "bg-primary/20" : "bg-primary/10"
+                )}>
                   <FileText className="h-4 w-4 text-primary" />
                 </div>
-                <span className="font-medium text-sm">Orçamento</span>
+                <div>
+                  <span className="font-medium text-sm">Orçamento</span>
+                  {needsAttention && (
+                    <p className="text-xs text-primary font-medium animate-pulse">
+                      Ação necessária
+                    </p>
+                  )}
+                </div>
               </div>
               <Badge
                 variant="outline"
