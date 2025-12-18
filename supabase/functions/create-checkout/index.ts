@@ -89,9 +89,10 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Create checkout session with automatic payment methods
+    // Create checkout session with automatic payment methods (shows PIX when enabled)
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      automatic_payment_methods: { enabled: true },
       line_items: [
         {
           price_data: {
