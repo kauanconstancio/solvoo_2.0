@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useConversations } from "@/hooks/useChat";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const Chat = () => {
@@ -69,11 +69,31 @@ const Chat = () => {
       .slice(0, 2);
   };
 
-  const formatDate = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), {
-      addSuffix: false,
-      locale: ptBR,
-    });
+  const formatMessageDate = (dateString: string | undefined) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    
+    if (isToday(date)) {
+      return format(date, "HH:mm", { locale: ptBR });
+    }
+    
+    if (isYesterday(date)) {
+      return "Ontem";
+    }
+    
+    // Within the last 7 days, show day name
+    const daysDiff = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysDiff < 7) {
+      return format(date, "EEEE", { locale: ptBR });
+    }
+    
+    // Older than 7 days, show date
+    return format(date, "dd/MM/yyyy", { locale: ptBR });
+  };
+  
+  // Get the date to use for sorting and display (last_message.created_at or last_message_at)
+  const getLastMessageDate = (conv: typeof conversations[0]) => {
+    return conv.last_message?.created_at || conv.last_message_at;
   };
 
   const truncateMessage = (
@@ -235,9 +255,10 @@ const Chat = () => {
             ) : (
               <div className="space-y-2 md:space-y-3">
                 {filteredConversations
-                  .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
+                  .sort((a, b) => new Date(getLastMessageDate(b)).getTime() - new Date(getLastMessageDate(a)).getTime())
                   .map((conversation) => {
                     const hasUnread = (conversation.unread_count ?? 0) > 0;
+                    const lastMessageDate = getLastMessageDate(conversation);
                     
                     return (
                       <Card
@@ -287,8 +308,10 @@ const Chat = () => {
                                     <span className="flex-shrink-0 h-2 w-2 rounded-full bg-primary" />
                                   )}
                                 </div>
-                                <span className="text-[11px] md:text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
-                                  {formatDate(conversation.last_message_at)}
+                                <span className={`text-[11px] md:text-xs flex-shrink-0 whitespace-nowrap ${
+                                  hasUnread ? 'text-primary font-medium' : 'text-muted-foreground'
+                                }`}>
+                                  {formatMessageDate(lastMessageDate)}
                                 </span>
                               </div>
 
