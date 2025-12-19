@@ -33,7 +33,9 @@ interface UseChatItemsReturn {
     description: string,
     price: number,
     validityDays: number,
-    serviceId?: string
+    serviceId?: string,
+    scheduledDate?: string,
+    scheduledTime?: string
   ) => Promise<boolean>;
   respondToQuote: (
     quoteId: string,
@@ -163,7 +165,26 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
         );
       }
 
-      // Enrich quotes with service and professional data
+      // Pre-fetch appointments for these quotes (so they show inside the QuoteCard)
+      const appointmentByQuoteId = new Map<
+        string,
+        { id: string; quote_id: string; scheduled_date: string; scheduled_time: string; status: string; location: string | null }
+      >();
+
+      if (filteredQuotes.length > 0) {
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('id, quote_id, scheduled_date, scheduled_time, status, location')
+          .in('quote_id', filteredQuotes.map((q) => q.id));
+
+        if (appointmentsError) throw appointmentsError;
+
+        (appointmentsData || []).forEach((apt) => {
+          appointmentByQuoteId.set(apt.quote_id, apt as any);
+        });
+      }
+
+      // Enrich quotes with service, professional and appointment data
       const enrichedQuotes = await Promise.all(
         filteredQuotes.map(async (quote) => {
           let service = null;
@@ -182,10 +203,13 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
             .eq('user_id', quote.professional_id)
             .maybeSingle();
 
+          const appointment = appointmentByQuoteId.get(quote.id) ?? null;
+
           return {
             ...quote,
             service,
             professional,
+            appointment,
           } as Quote;
         })
       );
@@ -275,9 +299,26 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
       )
       .subscribe();
 
+    const appointmentsChannel = supabase
+      .channel(`appointments:${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => {
+          fetchAll();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(quotesChannel);
+      supabase.removeChannel(appointmentsChannel);
     };
   }, [conversationId, fetchAll]);
 
@@ -430,7 +471,9 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
     description: string,
     price: number,
     validityDays: number,
-    serviceId?: string
+    serviceId?: string,
+    scheduledDate?: string,
+    scheduledTime?: string
   ): Promise<boolean> => {
     if (!conversationId) return false;
 
@@ -441,19 +484,48 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + validityDays);
 
-      const { error } = await supabase.from('quotes').insert({
-        conversation_id: conversationId,
-        service_id: serviceId || null,
-        professional_id: user.id,
-        client_id: clientId,
-        title,
-        description,
-        price,
-        validity_days: validityDays,
-        expires_at: expiresAt.toISOString(),
-      });
+      const { data: quoteData, error } = await supabase
+        .from('quotes')
+        .insert({
+          conversation_id: conversationId,
+          service_id: serviceId || null,
+          professional_id: user.id,
+          client_id: clientId,
+          title,
+          description,
+          price,
+          validity_days: validityDays,
+          expires_at: expiresAt.toISOString(),
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Create appointment linked to this quote
+      if (quoteData && scheduledDate && scheduledTime) {
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .insert({
+            client_id: clientId,
+            professional_id: user.id,
+            service_id: serviceId || null,
+            conversation_id: conversationId,
+            quote_id: quoteData.id,
+            title,
+            description,
+            scheduled_date: scheduledDate,
+            scheduled_time: scheduledTime,
+            status: 'pending',
+            professional_confirmed: true,
+            client_confirmed: false,
+          });
+
+        if (appointmentError) throw appointmentError;
+      }
+
+      // Ensure UI immediately shows the appointment info
+      await fetchAll();
 
       toast({
         title: 'Orçamento enviado',
@@ -489,11 +561,34 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
 
       if (error) throw error;
 
+      // Keep linked appointment in sync
+      if (status === 'accepted') {
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .update({
+            status: 'confirmed',
+            client_confirmed: true,
+          })
+          .eq('quote_id', quoteId);
+
+        if (appointmentError) throw appointmentError;
+      } else {
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .update({ status: 'cancelled' })
+          .eq('quote_id', quoteId);
+
+        if (appointmentError) throw appointmentError;
+      }
+
+      await fetchAll();
+
       toast({
         title: status === 'accepted' ? 'Orçamento aceito' : 'Orçamento recusado',
-        description: status === 'accepted'
-          ? 'Você aceitou o orçamento. O profissional será notificado.'
-          : 'Você recusou o orçamento.',
+        description:
+          status === 'accepted'
+            ? 'Você aceitou o orçamento. O profissional será notificado.'
+            : 'Você recusou o orçamento.',
       });
 
       return true;
@@ -516,6 +611,16 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
         .eq('id', quoteId);
 
       if (error) throw error;
+
+      // Cancel any linked appointment
+      const { error: appointmentError } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('quote_id', quoteId);
+
+      if (appointmentError) throw appointmentError;
+
+      await fetchAll();
 
       toast({
         title: 'Orçamento cancelado',
