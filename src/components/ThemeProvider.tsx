@@ -32,26 +32,29 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
-    // Add transitioning class for smooth animation
+    // Add transitioning class before change to enable smooth animation
     root.classList.add("theme-transitioning");
 
-    root.classList.remove("light", "dark");
+    // Use requestAnimationFrame to ensure the class is applied before theme changes
+    requestAnimationFrame(() => {
+      root.classList.remove("light", "dark");
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
+      if (theme === "system") {
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+          .matches
+          ? "dark"
+          : "light";
 
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
+        root.classList.add(systemTheme);
+      } else {
+        root.classList.add(theme);
+      }
+    });
 
     // Remove transitioning class after animation completes
     const timeout = setTimeout(() => {
       root.classList.remove("theme-transitioning");
-    }, 300);
+    }, 350);
 
     return () => clearTimeout(timeout);
   }, [theme]);
