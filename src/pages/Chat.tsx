@@ -9,6 +9,8 @@ import {
   Trash2,
   MoreVertical,
   MessagesSquare,
+  Check,
+  CheckCheck,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -331,7 +333,7 @@ const Chat = () => {
                                 </p>
                               ) : (
                                 <p
-                                  className={`text-xs md:text-sm truncate ${
+                                  className={`text-xs md:text-sm truncate flex items-center gap-1 ${
                                     hasUnread
                                       ? "text-foreground font-medium"
                                       : "text-muted-foreground"
@@ -339,13 +341,19 @@ const Chat = () => {
                                 >
                                   {conversation.last_message?.sender_id ===
                                     currentUserId && (
-                                    <span className="text-muted-foreground font-normal">
-                                      Você:{" "}
-                                    </span>
+                                    <>
+                                      {conversation.last_message?.read_at ? (
+                                        <CheckCheck className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                                      ) : (
+                                        <Check className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                                      )}
+                                    </>
                                   )}
-                                  {truncateMessage(
-                                    conversation.last_message?.content
-                                  )}
+                                  <span className="truncate">
+                                    {truncateMessage(
+                                      conversation.last_message?.content
+                                    )}
+                                  </span>
                                 </p>
                               )}
                             </div>
