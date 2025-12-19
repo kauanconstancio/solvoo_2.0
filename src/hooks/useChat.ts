@@ -185,36 +185,8 @@ export const useConversations = () => {
           });
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'messages',
-        },
-        async (payload) => {
-          const updatedMessage = payload.new as Message;
-          
-          // If message was marked as read, update unread count
-          if (updatedMessage.read_at) {
-            setConversations(prev => {
-              return prev.map(conv => {
-                if (conv.id === updatedMessage.conversation_id) {
-                  // Recalculate unread count - decrement if this was an unread message from other user
-                  const wasUnread = !payload.old?.read_at && updatedMessage.sender_id !== userId;
-                  return {
-                    ...conv,
-                    unread_count: wasUnread 
-                      ? Math.max((conv.unread_count || 0) - 1, 0)
-                      : conv.unread_count,
-                  };
-                }
-                return conv;
-              });
-            });
-          }
-        }
-      )
+      // Note: We intentionally don't handle message UPDATE events here
+      // The unread count only resets when the user opens the chat and refetches
       .on(
         'postgres_changes',
         {
