@@ -49,7 +49,17 @@ export interface Conversation {
 export const useConversations = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
 
   const fetchConversations = useCallback(async () => {
     try {
@@ -129,6 +139,100 @@ export const useConversations = () => {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // Subscribe to real-time updates for messages
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('conversations-messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          const newMessage = payload.new as Message;
+          
+          // Check if this message belongs to one of our conversations
+          setConversations(prev => {
+            const conversationIndex = prev.findIndex(c => c.id === newMessage.conversation_id);
+            
+            if (conversationIndex === -1) {
+              // New conversation - refetch all
+              fetchConversations();
+              return prev;
+            }
+
+            // Update existing conversation with new message
+            const updatedConversations = [...prev];
+            const conversation = updatedConversations[conversationIndex];
+            
+            // Update last message and unread count
+            const isFromOther = newMessage.sender_id !== userId;
+            updatedConversations[conversationIndex] = {
+              ...conversation,
+              last_message: newMessage,
+              last_message_at: newMessage.created_at,
+              unread_count: isFromOther 
+                ? (conversation.unread_count || 0) + 1 
+                : conversation.unread_count,
+            };
+
+            return updatedConversations;
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          const updatedMessage = payload.new as Message;
+          
+          // If message was marked as read, update unread count
+          if (updatedMessage.read_at) {
+            setConversations(prev => {
+              return prev.map(conv => {
+                if (conv.id === updatedMessage.conversation_id) {
+                  // Recalculate unread count - decrement if this was an unread message from other user
+                  const wasUnread = !payload.old?.read_at && updatedMessage.sender_id !== userId;
+                  return {
+                    ...conv,
+                    unread_count: wasUnread 
+                      ? Math.max((conv.unread_count || 0) - 1, 0)
+                      : conv.unread_count,
+                  };
+                }
+                return conv;
+              });
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+        },
+        () => {
+          // Refetch on any conversation changes
+          fetchConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, fetchConversations]);
 
   const deleteConversation = useCallback(async (conversationId: string) => {
     try {
