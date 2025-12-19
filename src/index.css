@@ -192,4 +192,36 @@
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* Safe area insets for mobile notch/home indicator */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Touch-friendly tap targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Smooth scrolling on iOS */
+  .scroll-smooth-touch {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Active state for touch devices */
+  @media (hover: none) {
+    .active\:scale-95:active {
+      transform: scale(0.95);
+    }
+    
+    .active\:scale-98:active {
+      transform: scale(0.98);
+    }
+  }
 }
