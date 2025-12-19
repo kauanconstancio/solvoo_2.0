@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import AppointmentsCalendar from '@/components/AppointmentsCalendar';
 import { useUserQuotes, UserQuote } from '@/hooks/useUserQuotes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +24,9 @@ import {
   ChevronRight,
   Briefcase,
   Calendar,
-  MapPin
+  MapPin,
+  CalendarDays,
+  ListFilter
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -227,7 +230,13 @@ const MyServicesPage = () => {
     isLoading, 
     userId 
   } = useUserQuotes();
+  const [mainView, setMainView] = useState<'calendar' | 'status'>('calendar');
   const [activeTab, setActiveTab] = useState('in-progress');
+
+  // Combine all quotes for calendar view
+  const allQuotes = useMemo(() => {
+    return [...inProgress, ...awaitingConfirmation, ...completed, ...pending];
+  }, [inProgress, awaitingConfirmation, completed, pending]);
 
   const tabs = [
     { 
@@ -330,6 +339,28 @@ const MyServicesPage = () => {
             </div>
           </div>
 
+          {/* Main View Toggle */}
+          <div className="flex gap-2 mb-4 sm:mb-6">
+            <Button
+              variant={mainView === 'calendar' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMainView('calendar')}
+              className="flex-1 sm:flex-none gap-2"
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span>Agenda</span>
+            </Button>
+            <Button
+              variant={mainView === 'status' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMainView('status')}
+              className="flex-1 sm:flex-none gap-2"
+            >
+              <ListFilter className="w-4 h-4" />
+              <span>Por Status</span>
+            </Button>
+          </div>
+
           {/* Stats Cards - 2x2 grid on mobile */}
           {!isLoading && (
             <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
@@ -360,64 +391,80 @@ const MyServicesPage = () => {
             </div>
           )}
 
-          {/* Tabs - Horizontal scroll on mobile */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="-mx-3 sm:-mx-4 px-3 sm:px-4 mb-4 sm:mb-6">
-              <ScrollArea className="w-full">
-                <TabsList className="inline-flex w-max min-w-full sm:w-full gap-1 p-1 h-auto bg-muted/50 rounded-lg">
-                  {tabs.map(tab => (
-                    <TabsTrigger 
-                      key={tab.value} 
-                      value={tab.value}
-                      className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
-                    >
-                      <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === tab.value ? tab.color : ''}`} />
-                      <span className="sm:hidden">{tab.label}</span>
-                      <span className="hidden sm:inline">{tab.fullLabel}</span>
-                      {tab.count > 0 && (
-                        <Badge 
-                          variant="secondary" 
-                          className="ml-0.5 sm:ml-1 h-4 sm:h-5 min-w-4 sm:min-w-5 flex items-center justify-center px-1 sm:px-1.5 text-[10px] sm:text-xs"
-                        >
-                          {tab.count}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <ScrollBar orientation="horizontal" className="invisible" />
-              </ScrollArea>
+          {/* Calendar View */}
+          {mainView === 'calendar' && (
+            <div className="animate-fade-in">
+              {isLoading ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <Skeleton className="h-[400px]" />
+                  <Skeleton className="h-[400px]" />
+                </div>
+              ) : (
+                <AppointmentsCalendar quotes={allQuotes} userId={userId} />
+              )}
             </div>
+          )}
 
-            {isLoading ? (
-              <div className="space-y-2 sm:space-y-3">
-                {[1, 2, 3].map(i => (
-                  <Card key={i}>
-                    <CardContent className="p-0">
-                      <div className="flex">
-                        <Skeleton className="w-16 sm:w-24 h-[88px] sm:h-[100px]" />
-                        <div className="flex-1 p-3 sm:p-4 space-y-2">
-                          <Skeleton className="h-4 sm:h-5 w-3/4" />
-                          <Skeleton className="h-3 sm:h-4 w-1/2" />
-                          <Skeleton className="h-3 sm:h-4 w-1/3" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+          {/* Status View */}
+          {mainView === 'status' && (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in">
+              <div className="-mx-3 sm:-mx-4 px-3 sm:px-4 mb-4 sm:mb-6">
+                <ScrollArea className="w-full">
+                  <TabsList className="inline-flex w-max min-w-full sm:w-full gap-1 p-1 h-auto bg-muted/50 rounded-lg">
+                    {tabs.map(tab => (
+                      <TabsTrigger 
+                        key={tab.value} 
+                        value={tab.value}
+                        className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
+                      >
+                        <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === tab.value ? tab.color : ''}`} />
+                        <span className="sm:hidden">{tab.label}</span>
+                        <span className="hidden sm:inline">{tab.fullLabel}</span>
+                        {tab.count > 0 && (
+                          <Badge 
+                            variant="secondary" 
+                            className="ml-0.5 sm:ml-1 h-4 sm:h-5 min-w-4 sm:min-w-5 flex items-center justify-center px-1 sm:px-1.5 text-[10px] sm:text-xs"
+                          >
+                            {tab.count}
+                          </Badge>
+                        )}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  <ScrollBar orientation="horizontal" className="invisible" />
+                </ScrollArea>
               </div>
-            ) : (
-              tabs.map(tab => (
-                <TabsContent key={tab.value} value={tab.value} className="mt-0 animate-fade-in">
-                  <QuotesList 
-                    quotes={tab.quotes} 
-                    userId={userId} 
-                    emptyState={tab.emptyState}
-                  />
-                </TabsContent>
-              ))
-            )}
-          </Tabs>
+
+              {isLoading ? (
+                <div className="space-y-2 sm:space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <Card key={i}>
+                      <CardContent className="p-0">
+                        <div className="flex">
+                          <Skeleton className="w-16 sm:w-24 h-[88px] sm:h-[100px]" />
+                          <div className="flex-1 p-3 sm:p-4 space-y-2">
+                            <Skeleton className="h-4 sm:h-5 w-3/4" />
+                            <Skeleton className="h-3 sm:h-4 w-1/2" />
+                            <Skeleton className="h-3 sm:h-4 w-1/3" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                tabs.map(tab => (
+                  <TabsContent key={tab.value} value={tab.value} className="mt-0 animate-fade-in">
+                    <QuotesList 
+                      quotes={tab.quotes} 
+                      userId={userId} 
+                      emptyState={tab.emptyState}
+                    />
+                  </TabsContent>
+                ))
+              )}
+            </Tabs>
+          )}
         </div>
       </main>
 
