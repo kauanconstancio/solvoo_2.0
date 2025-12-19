@@ -79,6 +79,35 @@ serve(async (req) => {
       throw new Error("Quote must be accepted to proceed with payment");
     }
 
+    // Check if there's an existing valid PIX payment
+    if (quote.pix_id && quote.pix_br_code && quote.pix_expires_at) {
+      const expiresAt = new Date(quote.pix_expires_at);
+      const now = new Date();
+      
+      // Check if PIX hasn't expired (with 5 min buffer)
+      if (expiresAt.getTime() > now.getTime() + 5 * 60 * 1000) {
+        logStep("Returning existing PIX payment", { 
+          pixId: quote.pix_id, 
+          expiresAt: quote.pix_expires_at 
+        });
+
+        return new Response(JSON.stringify({ 
+          pixId: quote.pix_id,
+          brCode: quote.pix_br_code,
+          brCodeBase64: quote.pix_br_code_base64,
+          amount: quote.price * 100,
+          expiresAt: quote.pix_expires_at,
+          quoteTitle: quote.title,
+          quotePrice: quote.price
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      } else {
+        logStep("Existing PIX expired, creating new one");
+      }
+    }
+
     // Get user profile for customer info
     const { data: userProfile } = await supabaseAdmin
       .from("profiles")
@@ -147,6 +176,23 @@ serve(async (req) => {
       pixId: pixData.data?.id,
       status: pixData.data?.status
     });
+
+    // Save PIX data to quote for future reference
+    const { error: updateError } = await supabaseAdmin
+      .from("quotes")
+      .update({
+        pix_id: pixData.data?.id,
+        pix_br_code: pixData.data?.brCode,
+        pix_br_code_base64: pixData.data?.brCodeBase64,
+        pix_expires_at: pixData.data?.expiresAt
+      })
+      .eq("id", quoteId);
+
+    if (updateError) {
+      logStep("Warning: Failed to save PIX data to quote", { error: updateError.message });
+    } else {
+      logStep("PIX data saved to quote");
+    }
 
     return new Response(JSON.stringify({ 
       pixId: pixData.data?.id,

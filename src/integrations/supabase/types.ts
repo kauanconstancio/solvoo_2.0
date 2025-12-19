@@ -283,6 +283,10 @@ export type Database = {
           description: string | null
           expires_at: string
           id: string
+          pix_br_code: string | null
+          pix_br_code_base64: string | null
+          pix_expires_at: string | null
+          pix_id: string | null
           price: number
           professional_id: string
           responded_at: string | null
@@ -303,6 +307,10 @@ export type Database = {
           description?: string | null
           expires_at?: string
           id?: string
+          pix_br_code?: string | null
+          pix_br_code_base64?: string | null
+          pix_expires_at?: string | null
+          pix_id?: string | null
           price: number
           professional_id: string
           responded_at?: string | null
@@ -323,6 +331,10 @@ export type Database = {
           description?: string | null
           expires_at?: string
           id?: string
+          pix_br_code?: string | null
+          pix_br_code_base64?: string | null
+          pix_expires_at?: string | null
+          pix_id?: string | null
           price?: number
           professional_id?: string
           responded_at?: string | null
