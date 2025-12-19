@@ -483,39 +483,46 @@ const Header = () => {
                             </Link>
                           )}
                           
-                          {/* Theme Selection */}
-                          <div className="pt-4 border-t mt-2">
-                            <p className="text-sm font-medium text-muted-foreground mb-2">Tema</p>
-                            <div className="flex gap-2">
+                          {/* Theme Selection Dropdown */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
-                                variant={theme === "light" ? "default" : "outline"}
-                                size="sm"
-                                className="flex-1"
+                                variant="outline"
+                                className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
+                              >
+                                <Sun className="h-4 w-4 mr-2 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                                <Moon className="absolute h-4 w-4 ml-0 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                                <span className="ml-6">Tema</span>
+                                <ChevronDown className="ml-auto h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[calc(300px-3rem)] sm:w-[calc(400px-3rem)] bg-background border" align="start">
+                              <DropdownMenuItem
                                 onClick={() => setTheme("light")}
+                                className="cursor-pointer hover:bg-muted transition-smooth"
                               >
-                                <Sun className="h-4 w-4 mr-1" />
-                                Claro
-                              </Button>
-                              <Button
-                                variant={theme === "dark" ? "default" : "outline"}
-                                size="sm"
-                                className="flex-1"
+                                <Sun className="mr-2 h-4 w-4" />
+                                <span>Claro</span>
+                                {theme === "light" && <span className="ml-auto text-primary">✓</span>}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => setTheme("dark")}
+                                className="cursor-pointer hover:bg-muted transition-smooth"
                               >
-                                <Moon className="h-4 w-4 mr-1" />
-                                Escuro
-                              </Button>
-                              <Button
-                                variant={theme === "system" ? "default" : "outline"}
-                                size="sm"
-                                className="flex-1"
+                                <Moon className="mr-2 h-4 w-4" />
+                                <span>Escuro</span>
+                                {theme === "dark" && <span className="ml-auto text-primary">✓</span>}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => setTheme("system")}
+                                className="cursor-pointer hover:bg-muted transition-smooth"
                               >
-                                <Laptop className="h-4 w-4 mr-1" />
-                                Auto
-                              </Button>
-                            </div>
-                          </div>
+                                <Laptop className="mr-2 h-4 w-4" />
+                                <span>Sistema</span>
+                                {theme === "system" && <span className="ml-auto text-primary">✓</span>}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           
                           <Button
                             variant="destructive"
