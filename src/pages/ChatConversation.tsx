@@ -42,15 +42,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  useMessages,
   useConversations,
   useCreateConversation,
   Message,
   ReplyToMessage,
 } from "@/hooks/useChat";
+import { useChatItems, ChatItem } from "@/hooks/useChatItems";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
-import { useQuotes, Quote } from "@/hooks/useQuotes";
+import { Quote } from "@/hooks/useQuotes";
 import { QuoteCard } from "@/components/QuoteCard";
 import { CreateQuoteDialog } from "@/components/CreateQuoteDialog";
 import { CpfCollectionDialog } from "@/components/CpfCollectionDialog";
@@ -99,21 +99,26 @@ const ChatConversation = () => {
   const serviceId = searchParams.get("serviceId");
 
   const {
+    items,
     messages,
-    isLoading: isLoadingMessages,
+    quotes,
+    isLoading: isLoadingChat,
     sendMessage,
     sendFile,
     clearConversation,
-  } = useMessages(isNewConversation ? undefined : conversationId);
+    createQuote,
+    respondToQuote,
+    cancelQuote,
+    completeService,
+    initiatePayment,
+    checkUserCpf,
+  } = useChatItems(isNewConversation ? undefined : conversationId);
   const { deleteConversation } = useConversations();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const { createOrGetConversation } = useCreateConversation();
   const { markAsRead } = useMarkMessagesAsRead();
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
-    isNewConversation ? undefined : conversationId
-  );
-  const { quotes, createQuote, respondToQuote, cancelQuote, completeService, initiatePayment, checkUserCpf } = useQuotes(
     isNewConversation ? undefined : conversationId
   );
   const [cpfDialogOpen, setCpfDialogOpen] = useState(false);
@@ -653,7 +658,7 @@ const ChatConversation = () => {
 
   const isLoading = isNewConversation
     ? isLoadingNewConversation
-    : isLoadingMessages;
+    : isLoadingChat;
 
   if (isLoading) {
     return (
@@ -775,7 +780,7 @@ const ChatConversation = () => {
       {/* Messages */}
       <main className="flex-1 overflow-y-auto bg-muted/30">
         <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 space-y-3">
-          {(messages.length === 0 && quotes.length === 0) ? (
+          {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 md:py-24">
               <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
                 <MessageCircle className="h-10 w-10 text-primary" />
@@ -788,30 +793,18 @@ const ChatConversation = () => {
           ) : (
             <>
               {(() => {
-                // Combine messages and quotes into a single chronologically sorted list
-                type ChatItem = 
-                  | { type: 'message'; data: typeof messages[0]; created_at: string }
-                  | { type: 'quote'; data: typeof quotes[0]; created_at: string };
-
-                const chatItems: ChatItem[] = [
-                  ...messages.map((m) => ({ type: 'message' as const, data: m, created_at: m.created_at })),
-                  ...quotes.map((q) => ({ type: 'quote' as const, data: q, created_at: q.created_at })),
-                ];
-
-                // Sort by created_at ascending (oldest first)
-                chatItems.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-
                 let lastMessageDate: Date | null = null;
 
-                return chatItems.map((item, index) => {
+                return items.map((item) => {
                   const currentDate = new Date(item.created_at);
                   const showDateDivider = !lastMessageDate || !isSameDay(currentDate, lastMessageDate);
                   lastMessageDate = currentDate;
 
                   if (item.type === 'quote') {
                     if (!currentUserId) return null;
+                    const quoteData = item.data as Quote;
                     return (
-                      <div key={`quote-${item.data.id}`} className="animate-fade-in">
+                      <div key={`quote-${item.id}`} className="animate-fade-in">
                         {showDateDivider && (
                           <div className="flex items-center justify-center my-4 md:my-6">
                             <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
@@ -821,7 +814,7 @@ const ChatConversation = () => {
                         )}
                         <div className="animate-scale-in">
                           <QuoteCard
-                            quote={item.data}
+                            quote={quoteData}
                             currentUserId={currentUserId}
                             clientName={isProfessional ? (otherUser?.full_name || 'Cliente') : currentUserName || 'Cliente'}
                             onAccept={(id, response) => respondToQuote(id, 'accepted', response)}
@@ -836,7 +829,7 @@ const ChatConversation = () => {
                   }
 
                   // Message rendering
-                  const message = item.data;
+                  const message = item.data as Message;
                   const isOwn = message.sender_id === currentUserId;
 
                   return (
