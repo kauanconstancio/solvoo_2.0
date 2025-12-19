@@ -82,9 +82,17 @@ serve(async (req) => {
     // Get user profile for customer info
     const { data: userProfile } = await supabaseAdmin
       .from("profiles")
-      .select("full_name, phone")
+      .select("full_name, phone, cpf")
       .eq("user_id", userData.user.id)
       .single();
+
+    // Validate CPF is present
+    if (!userProfile?.cpf) {
+      throw new Error("CPF não cadastrado. Por favor, atualize seu perfil com o CPF antes de realizar o pagamento.");
+    }
+
+    // Clean CPF (remove formatting)
+    const cleanCpf = userProfile.cpf.replace(/\D/g, "");
 
     const origin = req.headers.get("origin") || "https://solvoo.com.br";
     const abacatePayKey = Deno.env.get("ABACATEPAY_API_KEY");
@@ -112,7 +120,7 @@ serve(async (req) => {
         name: userProfile?.full_name || "Cliente",
         email: userData.user.email,
         cellphone: userProfile?.phone || undefined,
-        taxId: undefined // CPF optional
+        taxId: cleanCpf
       },
       metadata: {
         quote_id: quoteId,
