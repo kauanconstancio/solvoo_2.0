@@ -261,6 +261,24 @@ export const useQuotes = (conversationId: string | undefined) => {
     }
   };
 
+  const checkUserCpf = async (): Promise<string | null> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("cpf")
+        .eq("user_id", user.id)
+        .single();
+
+      return profile?.cpf || null;
+    } catch (error) {
+      console.error("Error checking CPF:", error);
+      return null;
+    }
+  };
+
   const initiatePayment = async (quote: Quote): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -302,6 +320,7 @@ export const useQuotes = (conversationId: string | undefined) => {
     cancelQuote,
     completeService,
     initiatePayment,
+    checkUserCpf,
     refetch: fetchQuotes,
   };
 };
