@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Eye,
   Heart,
-  MessageSquare,
+  CheckCircle2,
   Star,
   TrendingUp,
   Package,
@@ -173,17 +173,17 @@ const ProfessionalDashboard = () => {
     );
   }
 
-  // Calculate conversion rate
+  // Calculate conversion rate (views to completed services)
   const conversionRate =
     metrics.total_views > 0
-      ? ((metrics.total_conversations / metrics.total_views) * 100).toFixed(1)
+      ? ((metrics.total_completed_services / metrics.total_views) * 100).toFixed(1)
       : "0";
 
   // Prepare bar chart data
   const serviceChartData = serviceMetrics.slice(0, 5).map((s) => ({
     name: s.title.length > 15 ? s.title.slice(0, 15) + "..." : s.title,
     visualizações: s.views_count,
-    contatos: s.conversations_count,
+    realizados: s.completed_services_count,
   }));
 
   return (
@@ -270,10 +270,10 @@ const ProfessionalDashboard = () => {
                 />
 
                 <AnimatedMetricCard
-                  value={metrics.total_conversations}
-                  label="Contatos"
+                  value={metrics.total_completed_services}
+                  label="Serviços Realizados"
                   icon={
-                    <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                   }
                   iconBgClass="bg-green-100 dark:bg-green-900/30"
                 />
@@ -409,7 +409,7 @@ const ProfessionalDashboard = () => {
                       <Zap className="h-5 w-5 text-primary" />
                       Taxa de Conversão
                     </CardTitle>
-                    <CardDescription>Visualizações → Contatos</CardDescription>
+                    <CardDescription>Visualizações → Serviços Realizados</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="text-center py-4">
@@ -417,7 +417,7 @@ const ProfessionalDashboard = () => {
                         {conversionRate}%
                       </p>
                       <p className="text-sm text-muted-foreground mt-2">
-                        dos visitantes entram em contato
+                        das visualizações resultam em serviços
                       </p>
                     </div>
 
@@ -433,15 +433,17 @@ const ProfessionalDashboard = () => {
                       <Progress value={100} className="h-2" />
 
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Contatos</span>
+                        <span className="text-muted-foreground">
+                          Serviços Realizados
+                        </span>
                         <span className="font-medium">
-                          {metrics.total_conversations}
+                          {metrics.total_completed_services}
                         </span>
                       </div>
                       <Progress
                         value={
                           metrics.total_views > 0
-                            ? (metrics.total_conversations /
+                            ? (metrics.total_completed_services /
                                 metrics.total_views) *
                               100
                             : 0
@@ -459,9 +461,9 @@ const ProfessionalDashboard = () => {
                       </div>
                       <Progress
                         value={
-                          metrics.total_conversations > 0
+                          metrics.total_completed_services > 0
                             ? (metrics.total_reviews /
-                                metrics.total_conversations) *
+                                metrics.total_completed_services) *
                               100
                             : 0
                         }
@@ -520,10 +522,10 @@ const ProfessionalDashboard = () => {
                             content={({ active, payload, label }) => {
                               if (active && payload && payload.length) {
                                 const views = payload[0]?.value as number;
-                                const contacts = payload[1]?.value as number;
+                                const completed = payload[1]?.value as number;
                                 const convRate =
                                   views > 0
-                                    ? ((contacts / views) * 100).toFixed(1)
+                                    ? ((completed / views) * 100).toFixed(1)
                                     : "0";
                                 return (
                                   <div className="bg-background border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
@@ -546,11 +548,11 @@ const ProfessionalDashboard = () => {
                                         <div className="flex items-center gap-2">
                                           <div className="w-2.5 h-2.5 rounded-full bg-accent" />
                                           <span className="text-xs text-muted-foreground">
-                                            Contatos
+                                            Realizados
                                           </span>
                                         </div>
                                         <span className="font-bold text-sm">
-                                          {contacts}
+                                          {completed}
                                         </span>
                                       </div>
                                     </div>
@@ -574,7 +576,7 @@ const ProfessionalDashboard = () => {
                             radius={[0, 4, 4, 0]}
                           />
                           <Bar
-                            dataKey="contatos"
+                            dataKey="realizados"
                             fill="hsl(var(--accent))"
                             radius={[0, 4, 4, 0]}
                           />
@@ -635,8 +637,8 @@ const ProfessionalDashboard = () => {
                             <span>{service.views_count}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <MessageSquare className="h-4 w-4" />
-                            <span>{service.conversations_count}</span>
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span>{service.completed_services_count}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Heart className="h-4 w-4" />

@@ -8,6 +8,7 @@ export interface ServiceMetrics {
   views_count: number;
   favorites_count: number;
   conversations_count: number;
+  completed_services_count: number;
   reviews_count: number;
   average_rating: number;
   created_at: string;
@@ -19,6 +20,7 @@ export interface DashboardMetrics {
   total_views: number;
   total_favorites: number;
   total_conversations: number;
+  total_completed_services: number;
   total_reviews: number;
   average_rating: number;
   total_services: number;
@@ -58,6 +60,7 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
           total_views: 0,
           total_favorites: 0,
           total_conversations: 0,
+          total_completed_services: 0,
           total_reviews: 0,
           average_rating: 0,
           total_services: 0,
@@ -78,6 +81,14 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
         .from('conversations')
         .select('id, service_id, created_at, last_message_at')
         .eq('professional_id', user.id);
+
+      // Fetch completed quotes (services realized)
+      const { data: completedQuotes } = await supabase
+        .from('quotes')
+        .select('id, service_id, professional_id, client_confirmed')
+        .eq('professional_id', user.id)
+        .eq('status', 'accepted')
+        .eq('client_confirmed', true);
 
       // Fetch recent conversations based on period (using last_message_at for accurate recent activity)
       const periodAgo = new Date();
@@ -102,6 +113,7 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
       // Calculate metrics per service - favorites_count now comes directly from the service
       const enrichedServices: ServiceMetrics[] = services.map(service => {
         const serviceConversations = conversations?.filter(c => c.service_id === service.id).length || 0;
+        const serviceCompletedServices = completedQuotes?.filter(q => q.service_id === service.id).length || 0;
         const serviceReviews = reviews?.filter(r => r.service_id === service.id) || [];
         const avgRating = serviceReviews.length > 0
           ? serviceReviews.reduce((sum, r) => sum + r.rating, 0) / serviceReviews.length
@@ -114,6 +126,7 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
           views_count: service.views_count || 0,
           favorites_count: (service as any).favorites_count || 0,
           conversations_count: serviceConversations,
+          completed_services_count: serviceCompletedServices,
           reviews_count: serviceReviews.length,
           average_rating: Math.round(avgRating * 10) / 10,
           created_at: service.created_at,
@@ -126,6 +139,7 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
       const totalViews = enrichedServices.reduce((sum, s) => sum + s.views_count, 0);
       const totalFavorites = enrichedServices.reduce((sum, s) => sum + s.favorites_count, 0);
       const totalConversations = conversations?.length || 0;
+      const totalCompletedServices = completedQuotes?.length || 0;
       const totalReviews = reviews?.length || 0;
       const overallRating = totalReviews > 0
         ? reviews!.reduce((sum, r) => sum + r.rating, 0) / totalReviews
@@ -143,6 +157,7 @@ export const useProfessionalMetrics = (periodDays: number = 7) => {
         total_views: totalViews,
         total_favorites: totalFavorites,
         total_conversations: totalConversations,
+        total_completed_services: totalCompletedServices,
         total_reviews: totalReviews,
         average_rating: Math.round(overallRating * 10) / 10,
         total_services: services.length,
