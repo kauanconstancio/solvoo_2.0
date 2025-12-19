@@ -36,6 +36,13 @@ export interface UserQuote {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  appointment?: {
+    id: string;
+    scheduled_date: string;
+    scheduled_time: string;
+    status: string;
+    location: string | null;
+  } | null;
 }
 
 export const useUserQuotes = () => {
@@ -62,7 +69,7 @@ export const useUserQuotes = () => {
 
       if (error) throw error;
 
-      // Enrich quotes with service, professional and client data
+      // Enrich quotes with service, professional, client, and appointment data
       const enrichedQuotes = await Promise.all(
         (data || []).map(async (quote) => {
           let service = null;
@@ -87,11 +94,19 @@ export const useUserQuotes = () => {
             .eq('user_id', quote.client_id)
             .maybeSingle();
 
+          // Fetch appointment for this quote
+          const { data: appointment } = await supabase
+            .from('appointments')
+            .select('id, scheduled_date, scheduled_time, status, location')
+            .eq('quote_id', quote.id)
+            .maybeSingle();
+
           return {
             ...quote,
             service,
             professional,
             client,
+            appointment,
           } as UserQuote;
         })
       );

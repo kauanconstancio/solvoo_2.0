@@ -10,6 +10,7 @@ import {
   XCircle,
   Calendar,
   Loader2,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,16 +29,23 @@ import { Quote } from "@/hooks/useQuotes";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { AcceptQuoteWithScheduleDialog } from "./AcceptQuoteWithScheduleDialog";
 
 interface QuoteCardProps {
   quote: Quote;
   currentUserId: string;
   clientName?: string;
-  onAccept: (quoteId: string, response?: string) => Promise<boolean>;
+  onAccept: (quoteId: string, response?: string, scheduledDate?: string, scheduledTime?: string) => Promise<boolean>;
   onReject: (quoteId: string, response?: string) => Promise<boolean>;
   onCancel: (quoteId: string) => Promise<boolean>;
   onComplete?: (quote: Quote, clientName: string) => Promise<boolean>;
   onConfirmCompletion?: (quote: Quote) => Promise<boolean>;
+  appointment?: {
+    scheduled_date: string;
+    scheduled_time: string;
+    status: string;
+    location?: string | null;
+  } | null;
 }
 
 const statusConfig = {
@@ -77,6 +85,7 @@ export const QuoteCard = ({
   onCancel,
   onComplete,
   onConfirmCompletion,
+  appointment,
 }: QuoteCardProps) => {
   const [showResponseDialog, setShowResponseDialog] = useState(false);
   const [responseType, setResponseType] = useState<"accept" | "reject" | null>(null);
@@ -85,6 +94,7 @@ export const QuoteCard = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
 
   const isProfessional = currentUserId === quote.professional_id;
   const isClient = currentUserId === quote.client_id;
@@ -256,6 +266,27 @@ export const QuoteCard = ({
               </div>
             </div>
 
+            {/* Appointment Info */}
+            {appointment && (
+              <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 mt-2">
+                <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-sm font-medium">Agendamento</span>
+                </div>
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm">
+                    {format(new Date(appointment.scheduled_date), "EEEE, dd 'de' MMMM", { locale: ptBR })} às {appointment.scheduled_time}
+                  </p>
+                  {appointment.location && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {appointment.location}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Client Response */}
             {quote.client_response && quote.status !== "pending" && (
               <div className="p-3 bg-muted/50 rounded-lg mt-2">
@@ -283,10 +314,10 @@ export const QuoteCard = ({
                     <Button
                       size="sm"
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      onClick={() => handleOpenResponse("accept")}
+                      onClick={() => setShowScheduleDialog(true)}
                     >
-                      <Check className="h-4 w-4 mr-1" />
-                      Aceitar
+                      <Calendar className="h-4 w-4 mr-1" />
+                      Aceitar e Agendar
                     </Button>
                   </>
                 )}
@@ -497,6 +528,14 @@ export const QuoteCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Accept with Schedule Dialog */}
+      <AcceptQuoteWithScheduleDialog
+        quote={quote}
+        open={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+        onAccept={onAccept}
+      />
     </>
   );
 };

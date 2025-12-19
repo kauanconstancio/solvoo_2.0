@@ -21,9 +21,11 @@ import {
   Package,
   User,
   ChevronRight,
-  Briefcase
+  Briefcase,
+  Calendar,
+  MapPin
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null }) => {
@@ -103,6 +105,22 @@ const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null 
                   {statusConfig.label}
                 </Badge>
               </div>
+
+              {/* Appointment Info */}
+              {quote.appointment && (
+                <div className="flex items-center gap-1.5 mb-1.5 text-xs text-blue-600 dark:text-blue-400 bg-blue-500/10 rounded-md px-2 py-1">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">
+                    {format(new Date(quote.appointment.scheduled_date), "dd/MM", { locale: ptBR })} às {quote.appointment.scheduled_time}
+                  </span>
+                  {quote.appointment.location && (
+                    <>
+                      <MapPin className="w-3 h-3 flex-shrink-0 ml-1" />
+                      <span className="truncate hidden sm:inline">{quote.appointment.location}</span>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Middle Row: Person */}
               <div className="flex items-center gap-1.5 mb-2">
