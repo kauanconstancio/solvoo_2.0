@@ -12,6 +12,7 @@ import {
   Moon,
   Laptop,
   Wallet,
+  Briefcase,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -245,6 +246,15 @@ const Header = () => {
                   asChild
                   className="cursor-pointer transition-smooth hover:bg-muted"
                 >
+                  <Link to="/meus-servicos">
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    Meus Serviços
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer transition-smooth hover:bg-muted"
+                >
                   <Link to="/dashboard">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Dashboard
@@ -450,6 +460,15 @@ const Header = () => {
                             >
                               <Wallet className="mr-2 h-4 w-4" />
                               Minha Carteira
+                            </Button>
+                          </Link>
+                          <Link to="/meus-servicos">
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start hover:bg-primary hover:text-primary-foreground transition-smooth"
+                            >
+                              <Briefcase className="mr-2 h-4 w-4" />
+                              Meus Serviços
                             </Button>
                           </Link>
                           {hasAnyRole && (
