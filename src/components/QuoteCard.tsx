@@ -29,13 +29,11 @@ import { Quote } from "@/hooks/useQuotes";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { AcceptQuoteWithScheduleDialog } from "./AcceptQuoteWithScheduleDialog";
-
 interface QuoteCardProps {
   quote: Quote;
   currentUserId: string;
   clientName?: string;
-  onAccept: (quoteId: string, response?: string, scheduledDate?: string, scheduledTime?: string) => Promise<boolean>;
+  onAccept: (quoteId: string, response?: string) => Promise<boolean>;
   onReject: (quoteId: string, response?: string) => Promise<boolean>;
   onCancel: (quoteId: string) => Promise<boolean>;
   onComplete?: (quote: Quote, clientName: string) => Promise<boolean>;
@@ -94,7 +92,7 @@ export const QuoteCard = ({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  
 
   const isProfessional = currentUserId === quote.professional_id;
   const isClient = currentUserId === quote.client_id;
@@ -314,10 +312,10 @@ export const QuoteCard = ({
                     <Button
                       size="sm"
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                      onClick={() => setShowScheduleDialog(true)}
+                      onClick={() => handleOpenResponse("accept")}
                     >
-                      <Calendar className="h-4 w-4 mr-1" />
-                      Aceitar e Agendar
+                      <Check className="h-4 w-4 mr-1" />
+                      Aceitar
                     </Button>
                   </>
                 )}
@@ -528,14 +526,6 @@ export const QuoteCard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Accept with Schedule Dialog */}
-      <AcceptQuoteWithScheduleDialog
-        quote={quote}
-        open={showScheduleDialog}
-        onOpenChange={setShowScheduleDialog}
-        onAccept={onAccept}
-      />
     </>
   );
 };

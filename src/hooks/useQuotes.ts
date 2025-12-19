@@ -125,7 +125,9 @@ export const useQuotes = (conversationId: string | undefined) => {
     description: string,
     price: number,
     validityDays: number,
-    serviceId?: string
+    serviceId?: string,
+    scheduledDate?: string,
+    scheduledTime?: string
   ): Promise<boolean> => {
     if (!conversationId) return false;
 
@@ -136,7 +138,7 @@ export const useQuotes = (conversationId: string | undefined) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + validityDays);
 
-      const { error } = await supabase.from('quotes').insert({
+      const { data: quoteData, error } = await supabase.from('quotes').insert({
         conversation_id: conversationId,
         service_id: serviceId || null,
         professional_id: user.id,
@@ -146,9 +148,33 @@ export const useQuotes = (conversationId: string | undefined) => {
         price,
         validity_days: validityDays,
         expires_at: expiresAt.toISOString(),
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Create appointment with proposed schedule (pending confirmation)
+      if (quoteData && scheduledDate && scheduledTime) {
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .insert({
+            client_id: clientId,
+            professional_id: user.id,
+            service_id: serviceId || null,
+            conversation_id: conversationId,
+            quote_id: quoteData.id,
+            title,
+            description,
+            scheduled_date: scheduledDate,
+            scheduled_time: scheduledTime,
+            status: 'pending',
+            professional_confirmed: true,
+            client_confirmed: false,
+          });
+
+        if (appointmentError) {
+          console.error('Error creating appointment:', appointmentError);
+        }
+      }
 
       toast({
         title: 'Orçamento enviado',
@@ -170,9 +196,7 @@ export const useQuotes = (conversationId: string | undefined) => {
   const respondToQuote = async (
     quoteId: string,
     status: 'accepted' | 'rejected',
-    response?: string,
-    scheduledDate?: string,
-    scheduledTime?: string
+    response?: string
   ): Promise<boolean> => {
     try {
       const { error } = await supabase
@@ -186,40 +210,37 @@ export const useQuotes = (conversationId: string | undefined) => {
 
       if (error) throw error;
 
-      // If accepted with schedule, create appointment
-      if (status === 'accepted' && scheduledDate && scheduledTime) {
-        const quote = quotes.find(q => q.id === quoteId);
-        if (quote) {
-          const { error: appointmentError } = await supabase
-            .from('appointments')
-            .insert({
-              client_id: quote.client_id,
-              professional_id: quote.professional_id,
-              service_id: quote.service_id,
-              conversation_id: quote.conversation_id,
-              quote_id: quoteId,
-              title: quote.title,
-              description: quote.description,
-              scheduled_date: scheduledDate,
-              scheduled_time: scheduledTime,
-              status: 'confirmed',
-              client_confirmed: true,
-              professional_confirmed: true,
-            });
+      // If accepted, confirm the appointment
+      if (status === 'accepted') {
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .update({
+            status: 'confirmed',
+            client_confirmed: true,
+          })
+          .eq('quote_id', quoteId);
 
-          if (appointmentError) {
-            console.error('Error creating appointment:', appointmentError);
-            // Don't throw - quote was already accepted
-          }
+        if (appointmentError) {
+          console.error('Error confirming appointment:', appointmentError);
+        }
+      } else {
+        // If rejected, cancel the appointment
+        const { error: appointmentError } = await supabase
+          .from('appointments')
+          .update({
+            status: 'cancelled',
+          })
+          .eq('quote_id', quoteId);
+
+        if (appointmentError) {
+          console.error('Error cancelling appointment:', appointmentError);
         }
       }
 
       toast({
         title: status === 'accepted' ? 'Orçamento aceito' : 'Orçamento recusado',
         description: status === 'accepted' 
-          ? scheduledDate 
-            ? 'Orçamento aceito e agendamento confirmado!'
-            : 'Você aceitou o orçamento. O profissional será notificado.'
+          ? 'Orçamento aceito e agendamento confirmado!'
           : 'Você recusou o orçamento.',
       });
 

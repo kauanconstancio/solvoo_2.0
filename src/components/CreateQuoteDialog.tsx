@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   FileText,
   Send,
   Loader2,
-  Calendar,
+  Calendar as CalendarIcon,
   DollarSign,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -26,13 +30,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface Service {
   id: string;
   title: string;
   price: string;
 }
+
+const timeSlots = [
+  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+  "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
+  "20:00", "20:30", "21:00",
+];
 
 interface CreateQuoteDialogProps {
   conversationId: string;
@@ -43,7 +61,9 @@ interface CreateQuoteDialogProps {
     description: string,
     price: number,
     validityDays: number,
-    serviceId?: string
+    serviceId?: string,
+    scheduledDate?: string,
+    scheduledTime?: string
   ) => Promise<boolean>;
   trigger?: React.ReactNode;
 }
@@ -64,6 +84,8 @@ export const CreateQuoteDialog = ({
   const [price, setPrice] = useState("");
   const [validityDays, setValidityDays] = useState("7");
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
+  const [scheduledDate, setScheduledDate] = useState<Date>();
+  const [scheduledTime, setScheduledTime] = useState<string>("");
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -118,19 +140,22 @@ export const CreateQuoteDialog = ({
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !price) return;
+    if (!title.trim() || !price || !scheduledDate || !scheduledTime) return;
 
     const numericPrice = parseFloat(price);
     if (isNaN(numericPrice) || numericPrice <= 0) return;
 
     setIsSubmitting(true);
+    const formattedDate = format(scheduledDate, "yyyy-MM-dd");
     const success = await onCreateQuote(
       clientId,
       title.trim(),
       description.trim(),
       numericPrice,
       parseInt(validityDays),
-      selectedServiceId && selectedServiceId !== "none" ? selectedServiceId : undefined
+      selectedServiceId && selectedServiceId !== "none" ? selectedServiceId : undefined,
+      formattedDate,
+      scheduledTime
     );
     
     setIsSubmitting(false);
@@ -142,9 +167,13 @@ export const CreateQuoteDialog = ({
       setPrice("");
       setValidityDays("7");
       setSelectedServiceId("");
+      setScheduledDate(undefined);
+      setScheduledTime("");
       setOpen(false);
     }
   };
+
+  const isFormValid = title.trim() && price && scheduledDate && scheduledTime;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -239,7 +268,7 @@ export const CreateQuoteDialog = ({
             <div className="space-y-2">
               <Label htmlFor="quote-validity">Validade</Label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Select value={validityDays} onValueChange={setValidityDays}>
                   <SelectTrigger className="pl-9">
                     <SelectValue />
@@ -250,6 +279,66 @@ export const CreateQuoteDialog = ({
                     <SelectItem value="15">15 dias</SelectItem>
                     <SelectItem value="30">30 dias</SelectItem>
                     <SelectItem value="60">60 dias</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Scheduling Section */}
+          <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 space-y-3">
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <CalendarIcon className="h-4 w-4" />
+              <span className="text-sm font-medium">Data e horário do serviço *</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Data</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !scheduledDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {scheduledDate ? (
+                        format(scheduledDate, "dd/MM/yyyy", { locale: ptBR })
+                      ) : (
+                        <span>Selecionar</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={scheduledDate}
+                      onSelect={setScheduledDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      locale={ptBR}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Horário</Label>
+                <Select value={scheduledTime} onValueChange={setScheduledTime}>
+                  <SelectTrigger>
+                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder="Horário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -267,7 +356,7 @@ export const CreateQuoteDialog = ({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!title.trim() || !price || isSubmitting}
+            disabled={!isFormValid || isSubmitting}
             className="gap-2"
           >
             {isSubmitting ? (
