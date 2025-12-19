@@ -234,132 +234,145 @@ const Chat = () => {
               </Card>
             ) : (
               <div className="space-y-2 md:space-y-3">
-                {filteredConversations.map((conversation) => (
-                  <Card
-                    key={conversation.id}
-                    className="cursor-pointer hover:shadow-soft hover:border-primary/20 transition-all duration-300 group"
-                    onClick={() => navigate(`/chat/${conversation.id}`)}
-                  >
-                    <CardContent className="p-3 md:p-4">
-                      <div className="flex items-center gap-3 md:gap-4">
-                        {/* Avatar with unread indicator */}
-                        <div className="relative">
-                          <Avatar className="h-12 w-12 md:h-14 md:w-14 flex-shrink-0 ring-2 ring-border/50">
-                            <AvatarImage
-                              src={
-                                conversation.other_user?.avatar_url || undefined
-                              }
-                            />
-                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm md:text-base">
-                              {getInitials(conversation.other_user?.full_name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          {(conversation.unread_count ?? 0) > 0 && (
-                            <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full ring-2 ring-background">
-                              {conversation.unread_count! > 9
-                                ? "9+"
-                                : conversation.unread_count}
-                            </span>
-                          )}
-                        </div>
+                {filteredConversations
+                  .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
+                  .map((conversation) => {
+                    const hasUnread = (conversation.unread_count ?? 0) > 0;
+                    
+                    return (
+                      <Card
+                        key={conversation.id}
+                        className={`cursor-pointer hover:shadow-soft hover:border-primary/20 transition-all duration-300 group ${
+                          hasUnread ? 'border-primary/30 bg-primary/5' : ''
+                        }`}
+                        onClick={() => navigate(`/chat/${conversation.id}`)}
+                      >
+                        <CardContent className="p-3 md:p-4">
+                          <div className="flex items-center gap-3 md:gap-4">
+                            {/* Avatar with unread indicator */}
+                            <div className="relative">
+                              <Avatar className={`h-12 w-12 md:h-14 md:w-14 flex-shrink-0 ring-2 ${
+                                hasUnread ? 'ring-primary' : 'ring-border/50'
+                              }`}>
+                                <AvatarImage
+                                  src={
+                                    conversation.other_user?.avatar_url || undefined
+                                  }
+                                />
+                                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm md:text-base">
+                                  {getInitials(conversation.other_user?.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              {hasUnread && (
+                                <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full ring-2 ring-background animate-pulse">
+                                  {conversation.unread_count! > 9
+                                    ? "9+"
+                                    : conversation.unread_count}
+                                </span>
+                              )}
+                            </div>
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3
-                              className={`font-semibold text-sm md:text-base truncate group-hover:text-primary transition-colors ${
-                                (conversation.unread_count ?? 0) > 0
-                                  ? "text-foreground"
-                                  : ""
-                              }`}
-                            >
-                              {conversation.other_user?.full_name || "Usuário"}
-                            </h3>
-                            <span className="text-[11px] md:text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
-                              {formatDate(conversation.last_message_at)}
-                            </span>
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <h3
+                                    className={`font-semibold text-sm md:text-base truncate group-hover:text-primary transition-colors ${
+                                      hasUnread ? "text-foreground" : ""
+                                    }`}
+                                  >
+                                    {conversation.other_user?.full_name || "Usuário"}
+                                  </h3>
+                                  {hasUnread && (
+                                    <span className="flex-shrink-0 h-2 w-2 rounded-full bg-primary" />
+                                  )}
+                                </div>
+                                <span className="text-[11px] md:text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
+                                  {formatDate(conversation.last_message_at)}
+                                </span>
+                              </div>
+
+                              <p
+                                className={`text-xs md:text-sm truncate ${
+                                  hasUnread
+                                    ? "text-foreground font-medium"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {conversation.last_message?.sender_id ===
+                                  currentUserId && (
+                                  <span className="text-muted-foreground font-normal">
+                                    Você:{" "}
+                                  </span>
+                                )}
+                                {truncateMessage(
+                                  conversation.last_message?.content
+                                )}
+                              </p>
+                            </div>
+
+                            {/* Actions - Desktop */}
+                            <div className="hidden md:block">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger
+                                  asChild
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground transition-smooth"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={(e) =>
+                                      handleDeleteClick(e, conversation.id)
+                                    }
+                                    className="text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir conversa
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+
+                            {/* Actions - Mobile */}
+                            <div className="md:hidden">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger
+                                  asChild
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={(e) =>
+                                      handleDeleteClick(e, conversation.id)
+                                    }
+                                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </div>
-
-                          <p
-                            className={`text-xs md:text-sm truncate ${
-                              (conversation.unread_count ?? 0) > 0
-                                ? "text-foreground font-medium"
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            {conversation.last_message?.sender_id ===
-                              currentUserId && (
-                              <span className="text-muted-foreground font-normal">
-                                Você:{" "}
-                              </span>
-                            )}
-                            {truncateMessage(
-                              conversation.last_message?.content
-                            )}
-                          </p>
-                        </div>
-
-                        {/* Actions - Desktop */}
-                        <div className="hidden md:block">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:text-primary-foreground transition-smooth"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) =>
-                                  handleDeleteClick(e, conversation.id)
-                                }
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir conversa
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        {/* Actions - Mobile */}
-                        <div className="md:hidden">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) =>
-                                  handleDeleteClick(e, conversation.id)
-                                }
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
               </div>
             )}
           </div>
