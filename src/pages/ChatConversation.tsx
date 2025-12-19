@@ -53,6 +53,7 @@ import { useQuotes, Quote } from "@/hooks/useQuotes";
 import { QuoteCard } from "@/components/QuoteCard";
 import { CreateQuoteDialog } from "@/components/CreateQuoteDialog";
 import { CpfCollectionDialog } from "@/components/CpfCollectionDialog";
+import { PixCheckoutDialog } from "@/components/PixCheckoutDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -113,6 +114,17 @@ const ChatConversation = () => {
   );
   const [cpfDialogOpen, setCpfDialogOpen] = useState(false);
   const [pendingPaymentQuote, setPendingPaymentQuote] = useState<Quote | null>(null);
+  const [pixDialogOpen, setPixDialogOpen] = useState(false);
+  const [pixData, setPixData] = useState<{
+    pixId: string;
+    brCode: string;
+    brCodeBase64: string;
+    amount: number;
+    expiresAt: string;
+    quoteTitle: string;
+    quotePrice: number;
+  } | null>(null);
+  const [isLoadingPix, setIsLoadingPix] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -448,13 +460,41 @@ const ChatConversation = () => {
       setCpfDialogOpen(true);
       return false;
     }
-    return initiatePayment(quote);
+    
+    // Show PIX dialog and load payment data
+    setIsLoadingPix(true);
+    setPixDialogOpen(true);
+    setPixData(null);
+    
+    const paymentData = await initiatePayment(quote);
+    setIsLoadingPix(false);
+    
+    if (paymentData) {
+      setPixData(paymentData);
+      return true;
+    } else {
+      setPixDialogOpen(false);
+      return false;
+    }
   };
 
   const handleCpfSuccess = async () => {
     setCpfDialogOpen(false);
     if (pendingPaymentQuote) {
-      await initiatePayment(pendingPaymentQuote);
+      // Show PIX dialog and load payment data
+      setIsLoadingPix(true);
+      setPixDialogOpen(true);
+      setPixData(null);
+      
+      const paymentData = await initiatePayment(pendingPaymentQuote);
+      setIsLoadingPix(false);
+      
+      if (paymentData) {
+        setPixData(paymentData);
+      } else {
+        setPixDialogOpen(false);
+      }
+      
       setPendingPaymentQuote(null);
     }
   };
@@ -1118,6 +1158,13 @@ const ChatConversation = () => {
         open={cpfDialogOpen}
         onOpenChange={setCpfDialogOpen}
         onSuccess={handleCpfSuccess}
+      />
+
+      <PixCheckoutDialog
+        open={pixDialogOpen}
+        onOpenChange={setPixDialogOpen}
+        pixData={pixData}
+        isLoading={isLoadingPix}
       />
     </div>
   );

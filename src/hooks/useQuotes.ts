@@ -279,15 +279,20 @@ export const useQuotes = (conversationId: string | undefined) => {
     }
   };
 
-  const initiatePayment = async (quote: Quote): Promise<boolean> => {
+  interface PixPaymentData {
+    pixId: string;
+    brCode: string;
+    brCodeBase64: string;
+    amount: number;
+    expiresAt: string;
+    quoteTitle: string;
+    quotePrice: number;
+  }
+
+  const initiatePayment = async (quote: Quote): Promise<PixPaymentData | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
-
-      toast({
-        title: "Redirecionando...",
-        description: "Você será redirecionado para a página de pagamento.",
-      });
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { quoteId: quote.id },
@@ -295,11 +300,10 @@ export const useQuotes = (conversationId: string | undefined) => {
 
       if (error) throw error;
 
-      if (data?.url) {
-        window.location.href = data.url;
-        return true;
+      if (data?.brCode) {
+        return data as PixPaymentData;
       } else {
-        throw new Error("URL de pagamento não recebida");
+        throw new Error("Dados do PIX não recebidos");
       }
     } catch (error: any) {
       console.error("Error initiating payment:", error);
@@ -308,7 +312,7 @@ export const useQuotes = (conversationId: string | undefined) => {
         description: error.message || "Não foi possível iniciar o pagamento.",
         variant: "destructive",
       });
-      return false;
+      return null;
     }
   };
 
