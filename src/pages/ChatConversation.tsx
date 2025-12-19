@@ -49,9 +49,10 @@ import {
 } from "@/hooks/useChat";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
 import { useMarkMessagesAsRead } from "@/hooks/useUnreadMessages";
-import { useQuotes } from "@/hooks/useQuotes";
+import { useQuotes, Quote } from "@/hooks/useQuotes";
 import { QuoteCard } from "@/components/QuoteCard";
 import { CreateQuoteDialog } from "@/components/CreateQuoteDialog";
+import { CpfCollectionDialog } from "@/components/CpfCollectionDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -107,9 +108,11 @@ const ChatConversation = () => {
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
     isNewConversation ? undefined : conversationId
   );
-  const { quotes, createQuote, respondToQuote, cancelQuote, completeService, initiatePayment } = useQuotes(
+  const { quotes, createQuote, respondToQuote, cancelQuote, completeService, initiatePayment, checkUserCpf } = useQuotes(
     isNewConversation ? undefined : conversationId
   );
+  const [cpfDialogOpen, setCpfDialogOpen] = useState(false);
+  const [pendingPaymentQuote, setPendingPaymentQuote] = useState<Quote | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -438,6 +441,24 @@ const ChatConversation = () => {
     }
   };
 
+  const handlePayment = async (quote: Quote): Promise<boolean> => {
+    const cpf = await checkUserCpf();
+    if (!cpf) {
+      setPendingPaymentQuote(quote);
+      setCpfDialogOpen(true);
+      return false;
+    }
+    return initiatePayment(quote);
+  };
+
+  const handleCpfSuccess = async () => {
+    setCpfDialogOpen(false);
+    if (pendingPaymentQuote) {
+      await initiatePayment(pendingPaymentQuote);
+      setPendingPaymentQuote(null);
+    }
+  };
+
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
     return name
@@ -736,7 +757,7 @@ const ChatConversation = () => {
                             onReject={(id, response) => respondToQuote(id, 'rejected', response)}
                             onCancel={cancelQuote}
                             onComplete={completeService}
-                            onConfirmCompletion={initiatePayment}
+                            onConfirmCompletion={handlePayment}
                           />
                         </div>
                       </div>
@@ -1092,6 +1113,12 @@ const ChatConversation = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CpfCollectionDialog
+        open={cpfDialogOpen}
+        onOpenChange={setCpfDialogOpen}
+        onSuccess={handleCpfSuccess}
+      />
     </div>
   );
 };
