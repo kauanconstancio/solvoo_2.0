@@ -27,6 +27,7 @@ import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import WalletPage from "./pages/WalletPage";
 import BankAccountsPage from "./pages/BankAccountsPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import MyServicesPage from "./pages/MyServicesPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
@@ -250,6 +251,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <PageTransition>
                 <PaymentSuccess />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meus-servicos"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <MyServicesPage />
               </PageTransition>
             </ProtectedRoute>
           }
