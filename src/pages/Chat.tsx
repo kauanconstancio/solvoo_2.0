@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useConversations } from "@/hooks/useChat";
+import { useConversationTyping } from "@/hooks/useConversationTyping";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -48,6 +49,10 @@ const Chat = () => {
     string | null
   >(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Get conversation IDs for typing indicator
+  const conversationIds = conversations.map(c => c.id);
+  const { isTyping, getTypingUser } = useConversationTyping(conversationIds);
 
   useEffect(() => {
     const getUser = async () => {
@@ -315,23 +320,34 @@ const Chat = () => {
                                 </span>
                               </div>
 
-                              <p
-                                className={`text-xs md:text-sm truncate ${
-                                  hasUnread
-                                    ? "text-foreground font-medium"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                {conversation.last_message?.sender_id ===
-                                  currentUserId && (
-                                  <span className="text-muted-foreground font-normal">
-                                    Você:{" "}
+                              {isTyping(conversation.id) ? (
+                                <p className="text-xs md:text-sm text-primary font-medium flex items-center gap-1">
+                                  <span className="flex gap-0.5">
+                                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                                    <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                                   </span>
-                                )}
-                                {truncateMessage(
-                                  conversation.last_message?.content
-                                )}
-                              </p>
+                                  <span className="ml-1">Digitando...</span>
+                                </p>
+                              ) : (
+                                <p
+                                  className={`text-xs md:text-sm truncate ${
+                                    hasUnread
+                                      ? "text-foreground font-medium"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {conversation.last_message?.sender_id ===
+                                    currentUserId && (
+                                    <span className="text-muted-foreground font-normal">
+                                      Você:{" "}
+                                    </span>
+                                  )}
+                                  {truncateMessage(
+                                    conversation.last_message?.content
+                                  )}
+                                </p>
+                              )}
                             </div>
 
                             {/* Actions - Desktop */}
