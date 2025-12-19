@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Copy, Check, Clock, QrCode, Loader2, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Copy, Check, Clock, QrCode, Loader2, X, CheckCircle2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PixCheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  quoteId: string | null;
   pixData: {
     pixId: string;
     brCode: string;
@@ -24,18 +26,75 @@ interface PixCheckoutDialogProps {
     quotePrice: number;
   } | null;
   isLoading?: boolean;
+  onPaymentConfirmed?: () => void;
 }
 
 export const PixCheckoutDialog = ({
   open,
   onOpenChange,
+  quoteId,
   pixData,
   isLoading = false,
+  onPaymentConfirmed,
 }: PixCheckoutDialogProps) => {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const [paymentStatus, setPaymentStatus] = useState<"checking" | "pending" | "paid" | "expired">("pending");
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const { toast } = useToast();
 
+  // Check payment status
+  const checkPaymentStatus = useCallback(async () => {
+    if (!quoteId || !pixData?.pixId || paymentStatus === "paid") return;
+
+    try {
+      setIsCheckingStatus(true);
+      const { data, error } = await supabase.functions.invoke("check-payment-status", {
+        body: { quoteId },
+      });
+
+      if (error) throw error;
+
+      if (data?.status === "PAID") {
+        setPaymentStatus("paid");
+        toast({
+          title: "Pagamento confirmado!",
+          description: "Seu pagamento foi processado com sucesso.",
+        });
+        onPaymentConfirmed?.();
+      } else if (data?.status === "EXPIRED") {
+        setPaymentStatus("expired");
+      }
+    } catch (error) {
+      console.error("Error checking payment status:", error);
+    } finally {
+      setIsCheckingStatus(false);
+    }
+  }, [quoteId, pixData?.pixId, paymentStatus, toast, onPaymentConfirmed]);
+
+  // Poll for payment status every 5 seconds
+  useEffect(() => {
+    if (!open || !quoteId || !pixData?.pixId || paymentStatus === "paid" || paymentStatus === "expired") {
+      return;
+    }
+
+    // Initial check
+    checkPaymentStatus();
+
+    // Set up polling
+    const interval = setInterval(checkPaymentStatus, 5000);
+
+    return () => clearInterval(interval);
+  }, [open, quoteId, pixData?.pixId, paymentStatus, checkPaymentStatus]);
+
+  // Reset status when dialog opens with new data
+  useEffect(() => {
+    if (open && pixData) {
+      setPaymentStatus("pending");
+    }
+  }, [open, pixData?.pixId]);
+
+  // Timer for expiration
   useEffect(() => {
     if (!pixData?.expiresAt) return;
 
@@ -46,6 +105,7 @@ export const PixCheckoutDialog = ({
 
       if (diff <= 0) {
         setTimeLeft("Expirado");
+        setPaymentStatus("expired");
         return;
       }
 
@@ -92,11 +152,17 @@ export const PixCheckoutDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <QrCode className="h-5 w-5 text-primary" />
-            Pagamento via PIX
+            {paymentStatus === "paid" ? (
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+            ) : (
+              <QrCode className="h-5 w-5 text-primary" />
+            )}
+            {paymentStatus === "paid" ? "Pagamento Confirmado" : "Pagamento via PIX"}
           </DialogTitle>
           <DialogDescription>
-            Escaneie o QR Code ou copie o código para pagar
+            {paymentStatus === "paid" 
+              ? "Seu pagamento foi processado com sucesso!" 
+              : "Escaneie o QR Code ou copie o código para pagar"}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,6 +170,24 @@ export const PixCheckoutDialog = ({
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Gerando código PIX...</p>
+          </div>
+        ) : paymentStatus === "paid" ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-4">
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle2 className="h-12 w-12 text-green-600" />
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-green-600">Pagamento confirmado!</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                O valor de {formatPrice(pixData?.quotePrice || 0)} foi pago com sucesso.
+              </p>
+            </div>
+            <Button
+              className="w-full mt-4"
+              onClick={() => onOpenChange(false)}
+            >
+              Fechar
+            </Button>
           </div>
         ) : pixData ? (
           <div className="space-y-4 py-4">
@@ -131,6 +215,18 @@ export const PixCheckoutDialog = ({
               )}
             </div>
 
+            {/* Status Indicator */}
+            <div className="flex items-center justify-center gap-2 p-2 bg-yellow-500/10 rounded-lg">
+              {isCheckingStatus ? (
+                <Loader2 className="h-4 w-4 animate-spin text-yellow-600" />
+              ) : (
+                <RefreshCw className="h-4 w-4 text-yellow-600" />
+              )}
+              <span className="text-sm text-yellow-600 font-medium">
+                Aguardando pagamento...
+              </span>
+            </div>
+
             {/* Timer */}
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
@@ -144,7 +240,7 @@ export const PixCheckoutDialog = ({
               variant="outline"
               className="w-full h-12"
               onClick={handleCopy}
-              disabled={copied || timeLeft === "Expirado"}
+              disabled={copied || paymentStatus === "expired"}
             >
               {copied ? (
                 <>
