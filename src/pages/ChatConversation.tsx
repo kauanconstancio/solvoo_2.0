@@ -775,7 +775,7 @@ const ChatConversation = () => {
       {/* Messages */}
       <main className="flex-1 overflow-y-auto bg-muted/30">
         <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 space-y-3">
-          {messages.length === 0 ? (
+          {(messages.length === 0 && quotes.length === 0) ? (
             <div className="flex flex-col items-center justify-center py-16 md:py-24">
               <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
                 <MessageCircle className="h-10 w-10 text-primary" />
