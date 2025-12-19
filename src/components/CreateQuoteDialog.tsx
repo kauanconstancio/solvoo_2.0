@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useState, useEffect, useMemo } from "react";
+import { format, isToday, parse, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   FileText,
@@ -44,7 +44,7 @@ interface Service {
   price: string;
 }
 
-const timeSlots = [
+const allTimeSlots = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
   "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
   "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
@@ -86,6 +86,83 @@ export const CreateQuoteDialog = ({
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [scheduledTime, setScheduledTime] = useState<string>("");
+  const [occupiedSlots, setOccupiedSlots] = useState<string[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  // Filter time slots based on selected date and current time
+  const availableTimeSlots = useMemo(() => {
+    if (!scheduledDate) return allTimeSlots;
+
+    const now = new Date();
+    
+    // If selected date is today, filter out past times
+    if (isToday(scheduledDate)) {
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      
+      return allTimeSlots.filter((slot) => {
+        const [hours, minutes] = slot.split(":").map(Number);
+        // Add 30 min buffer - can't book within next 30 minutes
+        if (hours > currentHour) return true;
+        if (hours === currentHour && minutes > currentMinute + 30) return true;
+        return false;
+      });
+    }
+
+    return allTimeSlots;
+  }, [scheduledDate]);
+
+  // Filter out occupied slots
+  const finalAvailableSlots = useMemo(() => {
+    return availableTimeSlots.filter((slot) => !occupiedSlots.includes(slot));
+  }, [availableTimeSlots, occupiedSlots]);
+
+  // Reset time when date changes if the selected time is no longer available
+  useEffect(() => {
+    if (scheduledTime && !finalAvailableSlots.includes(scheduledTime)) {
+      setScheduledTime("");
+    }
+  }, [finalAvailableSlots, scheduledTime]);
+
+  // Fetch occupied slots when date changes
+  useEffect(() => {
+    const fetchOccupiedSlots = async () => {
+      if (!scheduledDate || !open) {
+        setOccupiedSlots([]);
+        return;
+      }
+
+      setIsLoadingSlots(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const formattedDate = format(scheduledDate, "yyyy-MM-dd");
+        
+        // Fetch appointments for this professional on the selected date
+        const { data: appointments } = await supabase
+          .from("appointments")
+          .select("scheduled_time")
+          .eq("professional_id", user.id)
+          .eq("scheduled_date", formattedDate)
+          .in("status", ["pending", "confirmed"]);
+
+        if (appointments) {
+          // Extract just the time portion (HH:mm)
+          const occupied = appointments.map((apt) => 
+            apt.scheduled_time.substring(0, 5)
+          );
+          setOccupiedSlots(occupied);
+        }
+      } catch (error) {
+        console.error("Error fetching occupied slots:", error);
+      } finally {
+        setIsLoadingSlots(false);
+      }
+    };
+
+    fetchOccupiedSlots();
+  }, [scheduledDate, open]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -316,8 +393,11 @@ export const CreateQuoteDialog = ({
                     <Calendar
                       mode="single"
                       selected={scheduledDate}
-                      onSelect={setScheduledDate}
-                      disabled={(date) => date < new Date()}
+                      onSelect={(date) => {
+                        setScheduledDate(date);
+                        setScheduledTime(""); // Reset time when date changes
+                      }}
+                      disabled={(date) => isBefore(date, startOfDay(new Date()))}
                       initialFocus
                       locale={ptBR}
                       className={cn("p-3 pointer-events-auto")}
@@ -328,19 +408,34 @@ export const CreateQuoteDialog = ({
 
               <div className="space-y-2">
                 <Label>Horário</Label>
-                <Select value={scheduledTime} onValueChange={setScheduledTime}>
+                <Select 
+                  value={scheduledTime} 
+                  onValueChange={setScheduledTime}
+                  disabled={!scheduledDate || isLoadingSlots}
+                >
                   <SelectTrigger>
                     <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder="Horário" />
+                    <SelectValue placeholder={isLoadingSlots ? "Carregando..." : "Horário"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {timeSlots.map((time) => (
-                      <SelectItem key={time} value={time}>
-                        {time}
-                      </SelectItem>
-                    ))}
+                    {finalAvailableSlots.length === 0 ? (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        Nenhum horário disponível
+                      </div>
+                    ) : (
+                      finalAvailableSlots.map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
+                {scheduledDate && occupiedSlots.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {occupiedSlots.length} horário(s) já ocupado(s)
+                  </p>
+                )}
               </div>
             </div>
           </div>
