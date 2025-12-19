@@ -169,7 +169,15 @@ export const useQuotes = (conversationId: string | undefined) => {
 
       // Create appointment with proposed schedule (pending confirmation)
       if (quoteData && scheduledDate && scheduledTime) {
-        const { error: appointmentError } = await supabase
+        console.log('Creating appointment with:', { 
+          client_id: clientId,
+          professional_id: user.id,
+          quote_id: quoteData.id,
+          scheduled_date: scheduledDate,
+          scheduled_time: scheduledTime
+        });
+        
+        const { data: appointmentData, error: appointmentError } = await supabase
           .from('appointments')
           .insert({
             client_id: clientId,
@@ -184,11 +192,17 @@ export const useQuotes = (conversationId: string | undefined) => {
             status: 'pending',
             professional_confirmed: true,
             client_confirmed: false,
-          });
+          })
+          .select()
+          .single();
 
         if (appointmentError) {
           console.error('Error creating appointment:', appointmentError);
+        } else {
+          console.log('Appointment created successfully:', appointmentData);
         }
+      } else {
+        console.log('Not creating appointment - missing data:', { quoteData, scheduledDate, scheduledTime });
       }
 
       toast({
