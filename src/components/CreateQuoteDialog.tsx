@@ -369,75 +369,127 @@ export const CreateQuoteDialog = ({
               <span className="text-sm font-medium">Data e horário do serviço *</span>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Data</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !scheduledDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {scheduledDate ? (
-                        format(scheduledDate, "dd/MM/yyyy", { locale: ptBR })
-                      ) : (
-                        <span>Selecionar</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={scheduledDate}
-                      onSelect={(date) => {
-                        setScheduledDate(date);
-                        setScheduledTime(""); // Reset time when date changes
-                      }}
-                      disabled={(date) => isBefore(date, startOfDay(new Date()))}
-                      initialFocus
-                      locale={ptBR}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Horário</Label>
-                <Select 
-                  value={scheduledTime} 
-                  onValueChange={setScheduledTime}
-                  disabled={!scheduledDate || isLoadingSlots}
-                >
-                  <SelectTrigger>
-                    <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder={isLoadingSlots ? "Carregando..." : "Horário"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {finalAvailableSlots.length === 0 ? (
-                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                        Nenhum horário disponível
-                      </div>
-                    ) : (
-                      finalAvailableSlots.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))
+            {/* Date Selection */}
+            <div className="space-y-2">
+              <Label>Data</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !scheduledDate && "text-muted-foreground"
                     )}
-                  </SelectContent>
-                </Select>
-                {scheduledDate && occupiedSlots.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {occupiedSlots.length} horário(s) já ocupado(s)
-                  </p>
-                )}
-              </div>
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {scheduledDate ? (
+                      format(scheduledDate, "EEEE, dd 'de' MMMM", { locale: ptBR })
+                    ) : (
+                      <span>Selecionar data</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={(date) => {
+                      setScheduledDate(date);
+                      setScheduledTime(""); // Reset time when date changes
+                    }}
+                    disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                    initialFocus
+                    locale={ptBR}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
+
+            {/* Time Grid */}
+            {scheduledDate && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Horário</Label>
+                  <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-primary/20 border border-primary/40" />
+                      <span className="text-muted-foreground">Disponível</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-destructive/20 border border-destructive/40" />
+                      <span className="text-muted-foreground">Ocupado</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 rounded bg-primary border border-primary" />
+                      <span className="text-muted-foreground">Selecionado</span>
+                    </div>
+                  </div>
+                </div>
+
+                {isLoadingSlots ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-sm text-muted-foreground">Carregando horários...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {allTimeSlots.map((time) => {
+                      const isOccupied = occupiedSlots.includes(time);
+                      const isPast = !availableTimeSlots.includes(time);
+                      const isUnavailable = isOccupied || isPast;
+                      const isSelected = scheduledTime === time;
+
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          disabled={isUnavailable}
+                          onClick={() => setScheduledTime(time)}
+                          className={cn(
+                            "relative px-2 py-1.5 text-xs font-medium rounded-md transition-all",
+                            "focus:outline-none focus:ring-2 focus:ring-primary/50",
+                            isSelected && "bg-primary text-primary-foreground shadow-md ring-2 ring-primary",
+                            !isSelected && !isUnavailable && "bg-primary/10 text-foreground hover:bg-primary/20 border border-primary/30 hover:border-primary/50",
+                            isOccupied && !isSelected && "bg-destructive/10 text-destructive/60 border border-destructive/30 cursor-not-allowed line-through",
+                            isPast && !isOccupied && !isSelected && "bg-muted/50 text-muted-foreground/50 border border-transparent cursor-not-allowed"
+                          )}
+                          title={
+                            isOccupied ? "Horário já agendado" : 
+                            isPast ? "Horário já passou" : 
+                            "Clique para selecionar"
+                          }
+                        >
+                          {time}
+                          {isOccupied && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Summary */}
+                <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                  <div className="text-xs text-muted-foreground">
+                    {finalAvailableSlots.length} de {allTimeSlots.length} horários disponíveis
+                  </div>
+                  {scheduledTime && (
+                    <div className="flex items-center gap-1 text-sm font-medium text-primary">
+                      <Clock className="h-3.5 w-3.5" />
+                      {scheduledTime}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!scheduledDate && (
+              <p className="text-xs text-muted-foreground text-center py-2">
+                Selecione uma data para ver os horários disponíveis
+              </p>
+            )}
           </div>
         </div>
 
