@@ -871,6 +871,7 @@ const ChatConversation = () => {
                             onCancel={cancelQuote}
                             onComplete={completeService}
                             onConfirmCompletion={handlePayment}
+                            appointment={quoteData.appointment}
                           />
                         </div>
                       </div>
