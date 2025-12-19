@@ -115,6 +115,7 @@ const ChatConversation = () => {
   const [cpfDialogOpen, setCpfDialogOpen] = useState(false);
   const [pendingPaymentQuote, setPendingPaymentQuote] = useState<Quote | null>(null);
   const [pixDialogOpen, setPixDialogOpen] = useState(false);
+  const [currentPayingQuoteId, setCurrentPayingQuoteId] = useState<string | null>(null);
   const [pixData, setPixData] = useState<{
     pixId: string;
     brCode: string;
@@ -465,6 +466,7 @@ const ChatConversation = () => {
     setIsLoadingPix(true);
     setPixDialogOpen(true);
     setPixData(null);
+    setCurrentPayingQuoteId(quote.id);
     
     const paymentData = await initiatePayment(quote);
     setIsLoadingPix(false);
@@ -474,6 +476,7 @@ const ChatConversation = () => {
       return true;
     } else {
       setPixDialogOpen(false);
+      setCurrentPayingQuoteId(null);
       return false;
     }
   };
@@ -485,6 +488,7 @@ const ChatConversation = () => {
       setIsLoadingPix(true);
       setPixDialogOpen(true);
       setPixData(null);
+      setCurrentPayingQuoteId(pendingPaymentQuote.id);
       
       const paymentData = await initiatePayment(pendingPaymentQuote);
       setIsLoadingPix(false);
@@ -493,10 +497,19 @@ const ChatConversation = () => {
         setPixData(paymentData);
       } else {
         setPixDialogOpen(false);
+        setCurrentPayingQuoteId(null);
       }
       
       setPendingPaymentQuote(null);
     }
+  };
+
+  const handlePaymentConfirmed = () => {
+    // Refetch quotes to update the UI
+    if (quotes) {
+      // The quotes hook should be refetched
+    }
+    setCurrentPayingQuoteId(null);
   };
 
   const getInitials = (name: string | null | undefined) => {
@@ -1163,8 +1176,10 @@ const ChatConversation = () => {
       <PixCheckoutDialog
         open={pixDialogOpen}
         onOpenChange={setPixDialogOpen}
+        quoteId={currentPayingQuoteId}
         pixData={pixData}
         isLoading={isLoadingPix}
+        onPaymentConfirmed={handlePaymentConfirmed}
       />
     </div>
   );
