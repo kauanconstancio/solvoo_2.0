@@ -19,6 +19,7 @@ import {
   Eraser,
   CheckCheck,
   FileText,
+  Calendar,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,15 @@ import { QuoteCard } from "@/components/QuoteCard";
 import { CreateQuoteDialog } from "@/components/CreateQuoteDialog";
 import { CpfCollectionDialog } from "@/components/CpfCollectionDialog";
 import { PixCheckoutDialog } from "@/components/PixCheckoutDialog";
+import { CreateAppointmentDialog } from "@/components/CreateAppointmentDialog";
+import { AppointmentsList } from "@/components/AppointmentsList";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -160,6 +170,8 @@ const ChatConversation = () => {
   const [pendingCaption, setPendingCaption] = useState("");
   const [isLoadingNewConversation, setIsLoadingNewConversation] =
     useState(isNewConversation);
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [appointmentsSheetOpen, setAppointmentsSheetOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1025,6 +1037,67 @@ const ChatConversation = () => {
               />
             )}
 
+            {/* Calendar Button - Only for professionals */}
+            {isProfessional && conversationId && clientId && (
+              <Sheet open={appointmentsSheetOpen} onOpenChange={setAppointmentsSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isSending}
+                    className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
+                  >
+                    <Calendar className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Agendamentos
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <Button 
+                      className="w-full mb-4" 
+                      onClick={() => setAppointmentDialogOpen(true)}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Novo Agendamento
+                    </Button>
+                    <AppointmentsList conversationId={conversationId} />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
+
+            {/* View Appointments - Only for clients */}
+            {!isProfessional && conversationId && (
+              <Sheet open={appointmentsSheetOpen} onOpenChange={setAppointmentsSheetOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isSending}
+                    className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
+                  >
+                    <Calendar className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Agendamentos
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <AppointmentsList conversationId={conversationId} />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
+
             <div className="flex-1 relative min-w-0">
               {/* Reply preview bar */}
               {replyingTo && (
@@ -1263,6 +1336,19 @@ const ChatConversation = () => {
         isLoading={isLoadingPix}
         onPaymentConfirmed={handlePaymentConfirmed}
       />
+
+      {/* Appointment Dialog */}
+      {isProfessional && conversationId && clientId && (
+        <CreateAppointmentDialog
+          open={appointmentDialogOpen}
+          onOpenChange={setAppointmentDialogOpen}
+          clientId={clientId}
+          professionalId={currentUserId || ""}
+          serviceId={service?.id}
+          conversationId={conversationId}
+          serviceName={service?.title}
+        />
+      )}
     </div>
   );
 };

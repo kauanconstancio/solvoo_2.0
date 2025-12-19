@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.verify-payment]
 verify_jwt = false
+
+[functions.send-appointment-reminders]
+verify_jwt = false

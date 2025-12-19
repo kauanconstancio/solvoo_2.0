@@ -44,6 +44,97 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          client_confirmed: boolean | null
+          client_id: string
+          conversation_id: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          location: string | null
+          notes: string | null
+          professional_confirmed: boolean | null
+          professional_id: string
+          quote_id: string | null
+          reminder_24h_sent: boolean | null
+          reminder_sent: boolean | null
+          scheduled_date: string
+          scheduled_time: string
+          service_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_confirmed?: boolean | null
+          client_id: string
+          conversation_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          location?: string | null
+          notes?: string | null
+          professional_confirmed?: boolean | null
+          professional_id: string
+          quote_id?: string | null
+          reminder_24h_sent?: boolean | null
+          reminder_sent?: boolean | null
+          scheduled_date: string
+          scheduled_time: string
+          service_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_confirmed?: boolean | null
+          client_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          location?: string | null
+          notes?: string | null
+          professional_confirmed?: boolean | null
+          professional_id?: string
+          quote_id?: string | null
+          reminder_24h_sent?: boolean | null
+          reminder_sent?: boolean | null
+          scheduled_date?: string
+          scheduled_time?: string
+          service_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bank_accounts: {
         Row: {
           account_holder_document: string
