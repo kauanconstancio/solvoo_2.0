@@ -172,17 +172,39 @@ export const useConversations = () => {
 export const useMessages = (conversationId: string | undefined) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [clearedAt, setClearedAt] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user has cleared this conversation
+      const { data: clearance } = await supabase
+        .from('conversation_clearances')
+        .select('cleared_at')
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const userClearedAt = clearance?.cleared_at || null;
+      setClearedAt(userClearedAt);
+
+      // Build query with optional filter
+      let query = supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
+
+      if (userClearedAt) {
+        query = query.gt('created_at', userClearedAt);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -359,7 +381,49 @@ export const useMessages = (conversationId: string | undefined) => {
     }
   };
 
-  return { messages, isLoading, sendMessage, sendFile, refetch: fetchMessages };
+  const clearConversation = async () => {
+    if (!conversationId) return false;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Upsert clearance record
+      const { error } = await supabase
+        .from('conversation_clearances')
+        .upsert(
+          {
+            user_id: user.id,
+            conversation_id: conversationId,
+            cleared_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id,conversation_id' }
+        );
+
+      if (error) throw error;
+
+      // Clear local messages state
+      setMessages([]);
+      setClearedAt(new Date().toISOString());
+
+      toast({
+        title: 'Conversa limpa',
+        description: 'As mensagens foram ocultadas para você.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error clearing conversation:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível limpar a conversa.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
+  return { messages, isLoading, sendMessage, sendFile, refetch: fetchMessages, clearConversation };
 };
 
 export const useCreateConversation = () => {

@@ -16,6 +16,7 @@ import {
   CornerDownRight,
   Flag,
   Check,
+  Eraser,
   CheckCheck,
   FileText,
 } from "lucide-react";
@@ -102,8 +103,11 @@ const ChatConversation = () => {
     isLoading: isLoadingMessages,
     sendMessage,
     sendFile,
+    clearConversation,
   } = useMessages(isNewConversation ? undefined : conversationId);
   const { deleteConversation } = useConversations();
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const { createOrGetConversation } = useCreateConversation();
   const { markAsRead } = useMarkMessagesAsRead();
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
@@ -305,6 +309,13 @@ const ChatConversation = () => {
       navigate("/chat");
     }
     setDeleteDialogOpen(false);
+  };
+
+  const handleClearConversation = async () => {
+    setIsClearing(true);
+    await clearConversation();
+    setIsClearing(false);
+    setClearDialogOpen(false);
   };
 
   const handleSend = async () => {
@@ -743,6 +754,13 @@ const ChatConversation = () => {
                 />
               )}
               <DropdownMenuItem
+                onClick={() => setClearDialogOpen(true)}
+                className="transition-smooth"
+              >
+                <Eraser className="h-4 w-4 mr-2" />
+                Limpar conversa
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 className="text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth"
                 onClick={() => setDeleteDialogOpen(true)}
               >
@@ -1161,6 +1179,40 @@ const ChatConversation = () => {
                 </>
               ) : (
                 "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <AlertDialogContent className="max-w-[90vw] md:max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Limpar conversa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              As mensagens serão ocultadas apenas para você. O outro usuário
+              continuará vendo todas as mensagens normalmente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel
+              disabled={isClearing}
+              className="rounded-xl hover:bg-primary hover:text-primary-foreground transition-smooth"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearConversation}
+              disabled={isClearing}
+              className="rounded-xl"
+            >
+              {isClearing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Limpando...
+                </>
+              ) : (
+                "Limpar"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
