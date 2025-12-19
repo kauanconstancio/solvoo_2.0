@@ -101,7 +101,8 @@ serve(async (req) => {
       logStep("New Stripe customer created", { customerId });
     }
 
-    // Create checkout session with PIX and card payment methods
+    // Create checkout session - let Stripe automatically determine available payment methods
+    // based on what's enabled in your Stripe dashboard
     logStep("Creating checkout session", { 
       customerId, 
       currency: "brl",
@@ -110,7 +111,7 @@ serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ["card", "pix"],
+      // Don't specify payment_method_types - Stripe will use all enabled methods from dashboard
       line_items: [
         {
           price_data: {
