@@ -94,7 +94,6 @@ serve(async (req) => {
     // Clean CPF (remove formatting)
     const cleanCpf = userProfile.cpf.replace(/\D/g, "");
 
-    const origin = req.headers.get("origin") || "https://solvoo.com.br";
     const abacatePayKey = Deno.env.get("ABACATEPAY_API_KEY");
 
     if (!abacatePayKey) {
@@ -103,19 +102,11 @@ serve(async (req) => {
 
     logStep("AbacatePay initialized");
 
-    // Create billing with AbacatePay
-    const billingPayload = {
-      frequency: "ONE_TIME",
-      methods: ["PIX"],
-      products: [{
-        externalId: quoteId,
-        name: quote.title,
-        description: quote.service?.title || "Pagamento de serviço",
-        quantity: 1,
-        price: Math.round(quote.price * 100) // Convert to cents
-      }],
-      returnUrl: `${origin}/chat/${quote.conversation_id}`,
-      completionUrl: `${origin}/pagamento-sucesso?quote_id=${quoteId}`,
+    // Create PIX QR Code directly with AbacatePay
+    const pixPayload = {
+      amount: Math.round(quote.price * 100), // Convert to cents
+      expiresIn: 3600, // 1 hour expiration
+      description: `${quote.title} - ${quote.service?.title || "Pagamento de serviço"}`,
       customer: {
         name: userProfile?.full_name || "Cliente",
         email: userData.user.email,
@@ -130,36 +121,41 @@ serve(async (req) => {
       }
     };
 
-    logStep("Creating AbacatePay billing", { 
-      amount: billingPayload.products[0].price,
+    logStep("Creating PIX QR Code", { 
+      amount: pixPayload.amount,
       customerEmail: userData.user.email
     });
 
-    const abacateResponse = await fetch("https://api.abacatepay.com/v1/billing/create", {
+    const pixResponse = await fetch("https://api.abacatepay.com/v1/pixQrCode/create", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${abacatePayKey}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(billingPayload)
+      body: JSON.stringify(pixPayload)
     });
 
-    if (!abacateResponse.ok) {
-      const errorData = await abacateResponse.text();
-      logStep("AbacatePay error", { status: abacateResponse.status, error: errorData });
+    if (!pixResponse.ok) {
+      const errorData = await pixResponse.text();
+      logStep("AbacatePay PIX error", { status: pixResponse.status, error: errorData });
       throw new Error(`AbacatePay error: ${errorData}`);
     }
 
-    const billingData = await abacateResponse.json();
+    const pixData = await pixResponse.json();
     
-    logStep("Billing created successfully", { 
-      billingId: billingData.data?.id,
-      url: billingData.data?.url
+    logStep("PIX QR Code created successfully", { 
+      pixId: pixData.data?.id,
+      status: pixData.data?.status
     });
 
     return new Response(JSON.stringify({ 
-      url: billingData.data?.url,
-      billingId: billingData.data?.id
+      pixId: pixData.data?.id,
+      brCode: pixData.data?.brCode,
+      brCodeBase64: pixData.data?.brCodeBase64,
+      amount: pixData.data?.amount,
+      expiresAt: pixData.data?.expiresAt,
+      quoteTitle: quote.title,
+      quotePrice: quote.price
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
