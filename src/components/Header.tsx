@@ -54,7 +54,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { unreadCount } = useUnreadMessages();
   const { hasAnyRole } = useUserRole();
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const {
@@ -482,9 +482,44 @@ const Header = () => {
                               </Button>
                             </Link>
                           )}
+                          
+                          {/* Theme Selection */}
+                          <div className="pt-4 border-t mt-2">
+                            <p className="text-sm font-medium text-muted-foreground mb-2">Tema</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant={theme === "light" ? "default" : "outline"}
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => setTheme("light")}
+                              >
+                                <Sun className="h-4 w-4 mr-1" />
+                                Claro
+                              </Button>
+                              <Button
+                                variant={theme === "dark" ? "default" : "outline"}
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => setTheme("dark")}
+                              >
+                                <Moon className="h-4 w-4 mr-1" />
+                                Escuro
+                              </Button>
+                              <Button
+                                variant={theme === "system" ? "default" : "outline"}
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => setTheme("system")}
+                              >
+                                <Laptop className="h-4 w-4 mr-1" />
+                                Auto
+                              </Button>
+                            </div>
+                          </div>
+                          
                           <Button
                             variant="destructive"
-                            className="w-full justify-start"
+                            className="w-full justify-start mt-2"
                             onClick={handleLogout}
                           >
                             <LogOut className="h-4 w-4 mr-2" />
