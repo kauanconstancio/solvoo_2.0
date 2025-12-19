@@ -273,7 +273,7 @@ export const CreateQuoteDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4 overflow-y-auto flex-1 pr-2">
+        <div className="space-y-4 py-4 overflow-y-auto flex-1 pr-2 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
           {/* Service Selection */}
           <div className="space-y-2">
             <Label>Serviço relacionado (opcional)</Label>
