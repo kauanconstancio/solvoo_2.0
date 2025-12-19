@@ -678,19 +678,56 @@ const ChatConversation = () => {
         </header>
         <main className="flex-1 overflow-hidden bg-muted/30 p-4">
           <div className="max-w-4xl mx-auto space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className={`flex gap-2 ${
-                  i % 2 === 0 ? "justify-end" : "justify-start"
-                }`}
-              >
-                {i % 2 !== 0 && <Skeleton className="h-8 w-8 rounded-full" />}
-                <Skeleton
-                  className={`h-12 rounded-2xl ${
-                    i % 2 === 0 ? "w-48 rounded-br-md" : "w-64 rounded-bl-md"
-                  }`}
-                />
+            {/* Date divider skeleton */}
+            <div className="flex items-center justify-center my-4">
+              <Skeleton className="h-6 w-24 rounded-full" />
+            </div>
+            
+            {/* Mixed messages and quote skeletons */}
+            {[
+              { type: 'message', isOwn: false },
+              { type: 'message', isOwn: true },
+              { type: 'quote', isOwn: false },
+              { type: 'message', isOwn: false },
+              { type: 'message', isOwn: true },
+              { type: 'message', isOwn: false },
+            ].map((item, i) => (
+              <div key={i}>
+                {item.type === 'quote' ? (
+                  // Quote card skeleton
+                  <div className="max-w-sm mx-auto">
+                    <div className="bg-card border rounded-2xl p-4 space-y-3 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-5 rounded" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <Skeleton className="h-5 w-40" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                      <div className="flex items-center justify-between pt-2">
+                        <Skeleton className="h-6 w-20" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Skeleton className="h-9 flex-1 rounded-lg" />
+                        <Skeleton className="h-9 flex-1 rounded-lg" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // Message skeleton
+                  <div className={`flex gap-2 ${item.isOwn ? "justify-end" : "justify-start"}`}>
+                    {!item.isOwn && <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />}
+                    <div className="space-y-1">
+                      <Skeleton
+                        className={`h-12 rounded-2xl ${
+                          item.isOwn ? "w-48 rounded-br-md" : "w-64 rounded-bl-md"
+                        }`}
+                      />
+                      <Skeleton className={`h-3 w-12 ${item.isOwn ? "ml-auto" : ""}`} />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
