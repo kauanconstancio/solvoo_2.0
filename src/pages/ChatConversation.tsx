@@ -738,33 +738,33 @@ const ChatConversation = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background">
-      {/* Chat Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur-sm">
-        <div className="flex h-16 items-center gap-3 px-3 md:px-4 max-w-4xl mx-auto">
+      {/* Chat Header - More compact on mobile */}
+      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur-sm safe-area-top">
+        <div className="flex h-14 md:h-16 items-center gap-2 md:gap-3 px-2 md:px-4 max-w-4xl mx-auto">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/chat")}
-            className="flex-shrink-0 h-10 w-10 rounded-xl hover:bg-primary transition-smooth"
+            className="flex-shrink-0 h-9 w-9 md:h-10 md:w-10 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-10 w-10 md:h-11 md:w-11 flex-shrink-0 ring-2 ring-border/50">
+          <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+            <Avatar className="h-9 w-9 md:h-11 md:w-11 flex-shrink-0 ring-2 ring-primary/20">
               <AvatarImage src={otherUser?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm md:text-base">
                 {getInitials(otherUser?.full_name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h1 className="font-semibold text-sm md:text-base truncate">
+              <h1 className="font-semibold text-sm md:text-base truncate leading-tight">
                 {otherUser?.full_name || "Usuário"}
               </h1>
               {isOtherUserTyping ? (
-                <p className="text-xs text-primary font-medium">Digitando...</p>
+                <p className="text-[11px] md:text-xs text-primary font-medium animate-pulse">Digitando...</p>
               ) : (
-                <p className="text-xs text-muted-foreground">Online</p>
+                <p className="text-[11px] md:text-xs text-muted-foreground">Online</p>
               )}
             </div>
           </div>
@@ -774,7 +774,7 @@ const ChatConversation = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="flex-shrink-0 h-10 w-10 rounded-xl hover:bg-primary transition-smooth"
+                className="flex-shrink-0 h-9 w-9 md:h-10 md:w-10 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
               >
                 <MoreVertical className="h-5 w-5" />
               </Button>
@@ -815,15 +815,15 @@ const ChatConversation = () => {
       </header>
 
       {/* Messages */}
-      <main className="flex-1 overflow-y-auto bg-muted/30">
-        <div className="max-w-4xl mx-auto px-3 md:px-4 py-4 space-y-3">
+      <main className="flex-1 overflow-y-auto bg-muted/20 overscroll-contain">
+        <div className="max-w-4xl mx-auto px-2 md:px-4 py-3 md:py-4 space-y-2 md:space-y-3">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 md:py-24">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-                <MessageCircle className="h-10 w-10 text-primary" />
+            <div className="flex flex-col items-center justify-center py-12 md:py-24 px-4">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 md:mb-6">
+                <MessageCircle className="h-8 w-8 md:h-10 md:w-10 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Inicie a conversa</h3>
-              <p className="text-sm text-muted-foreground text-center max-w-xs">
+              <h3 className="font-semibold text-base md:text-lg mb-2 text-center">Inicie a conversa</h3>
+              <p className="text-xs md:text-sm text-muted-foreground text-center max-w-xs">
                 Envie uma mensagem para começar a negociar com o profissional.
               </p>
             </div>
@@ -873,8 +873,8 @@ const ChatConversation = () => {
                     <div key={message.id}>
                       {/* Date Divider */}
                       {showDateDivider && (
-                        <div className="flex items-center justify-center my-4 md:my-6">
-                          <div className="bg-background border px-4 py-1.5 rounded-full text-xs text-muted-foreground font-medium shadow-sm">
+                        <div className="flex items-center justify-center my-3 md:my-6">
+                          <div className="bg-background/80 backdrop-blur-sm border px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[10px] md:text-xs text-muted-foreground font-medium shadow-sm">
                             {formatDateDivider(message.created_at)}
                           </div>
                         </div>
@@ -883,7 +883,7 @@ const ChatConversation = () => {
                       {/* Message */}
                       <div
                         className={cn(
-                          "flex gap-2 animate-fade-in group",
+                          "flex gap-1.5 md:gap-2 animate-fade-in group",
                           isOwn ? "justify-end" : "justify-start"
                         )}
                       >
@@ -892,29 +892,29 @@ const ChatConversation = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 md:h-7 md:w-7 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center bg-muted/50 md:bg-transparent hover:bg-primary hover:text-primary-foreground transition-smooth"
+                            className="h-7 w-7 md:h-7 md:w-7 opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center hover:bg-primary/10 active:scale-95"
                             onClick={() => handleReply(message)}
                           >
-                            <Reply className="h-4 w-4" />
+                            <Reply className="h-3.5 w-3.5 md:h-4 md:w-4" />
                           </Button>
                         )}
 
                         {!isOwn && (
-                          <Avatar className="h-8 w-8 flex-shrink-0 mt-1 ring-1 ring-border/50">
+                          <Avatar className="h-7 w-7 md:h-8 md:w-8 flex-shrink-0 mt-1 ring-1 ring-primary/20">
                             <AvatarImage
                               src={otherUser?.avatar_url || undefined}
                             />
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                            <AvatarFallback className="bg-primary/10 text-primary text-[10px] md:text-xs font-medium">
                               {getInitials(otherUser?.full_name)}
                             </AvatarFallback>
                           </Avatar>
                         )}
                         <div
                           className={cn(
-                            "max-w-[80%] md:max-w-[65%] rounded-2xl px-4 py-2.5 shadow-sm",
+                            "max-w-[82%] md:max-w-[65%] rounded-2xl px-3 md:px-4 py-2 md:py-2.5 shadow-sm active:scale-[0.98] transition-transform",
                             isOwn
-                              ? "bg-primary text-primary-foreground rounded-br-md"
-                              : "bg-card border border-border/50 rounded-bl-md"
+                              ? "bg-primary text-primary-foreground rounded-br-sm md:rounded-br-md"
+                              : "bg-card border border-border/50 rounded-bl-sm md:rounded-bl-md"
                           )}
                         >
                           {/* Reply quote */}
@@ -980,10 +980,10 @@ const ChatConversation = () => {
         </div>
       </main>
 
-      {/* Input */}
-      <footer className="sticky bottom-0 border-t bg-card/95 backdrop-blur-sm p-3 md:p-4">
+      {/* Input - Optimized for mobile */}
+      <footer className="sticky bottom-0 border-t bg-card/95 backdrop-blur-sm p-2 md:p-4 safe-area-bottom">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-end gap-2 md:gap-3">
+          <div className="flex items-end gap-1.5 md:gap-3">
             {/* File Upload Button */}
             <input
               ref={fileInputRef}
@@ -997,7 +997,7 @@ const ChatConversation = () => {
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingFile || isSending}
-              className="h-12 w-12 flex-shrink-0 rounded-xl hover:bg-primary transition-smooth"
+              className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
             >
               {isUploadingFile ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -1017,7 +1017,7 @@ const ChatConversation = () => {
                     variant="ghost"
                     size="icon"
                     disabled={isSending}
-                    className="h-12 w-12 flex-shrink-0 rounded-xl hover:bg-primary transition-smooth"
+                    className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
                   >
                     <FileText className="h-5 w-5" />
                   </Button>
@@ -1025,29 +1025,29 @@ const ChatConversation = () => {
               />
             )}
 
-            <div className="flex-1 relative">
+            <div className="flex-1 relative min-w-0">
               {/* Reply preview bar */}
               {replyingTo && (
-                <div className="mb-2 flex items-center gap-2 p-2 bg-muted/50 rounded-lg border border-border/50">
+                <div className="mb-1.5 md:mb-2 flex items-center gap-2 p-1.5 md:p-2 bg-muted/50 rounded-lg border border-border/50">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 text-xs text-primary font-medium">
+                    <div className="flex items-center gap-1 text-[10px] md:text-xs text-primary font-medium">
                       <Reply className="h-3 w-3" />
-                      <span>
+                      <span className="truncate">
                         Respondendo a{" "}
                         {getReplyingSenderName(replyingTo.sender_id)}
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">
                       {getReplyPreviewText(replyingTo)}
                     </p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 flex-shrink-0 hover:bg-primary hover:text-primary-foreground transition-smooth"
+                    className="h-6 w-6 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive active:scale-95 transition-all"
                     onClick={cancelReply}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               )}
@@ -1057,7 +1057,7 @@ const ChatConversation = () => {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Digite sua mensagem..."
-                className="min-h-[48px] max-h-32 resize-none bg-muted/50 border-border/50 rounded-xl pr-4 text-sm md:text-base focus-visible:ring-primary/50"
+                className="min-h-[40px] md:min-h-[48px] max-h-28 md:max-h-32 resize-none bg-muted/50 border-border/50 rounded-xl px-3 md:px-4 py-2.5 text-sm md:text-base focus-visible:ring-primary/50 placeholder:text-muted-foreground/60"
                 disabled={isSending || isUploadingFile}
                 rows={1}
               />
@@ -1066,7 +1066,7 @@ const ChatConversation = () => {
               onClick={handleSend}
               disabled={!newMessage.trim() || isSending || isUploadingFile}
               size="icon"
-              className="h-12 w-12 flex-shrink-0 rounded-xl shadow-sm hover:bg-primary hover:text-primary-foreground transition-smooth"
+              className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl shadow-sm bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-40"
             >
               {isSending ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
