@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
@@ -7,9 +6,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper logging function for debugging
-const logStep = (step: string, details?: unknown) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: Record<string, unknown>) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
@@ -27,34 +25,41 @@ serve(async (req) => {
 
     logStep("Starting checkout for quote", { quoteId });
 
-    // Use anon client for auth verification
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    // Authenticate the user
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const authHeader = req.headers.get("Authorization");
 
-    // Get the user from the auth header
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
+
+    const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: userData, error: userError } = await supabaseAnon.auth.getUser();
     
     if (userError || !userData.user) {
-      throw new Error("Unauthorized");
+      throw new Error("User not authenticated");
     }
 
     logStep("User authenticated", { userId: userData.user.id, email: userData.user.email });
 
-    // Use service role to bypass RLS for reading quote
+    // Use service role to get quote details
     const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
+      supabaseUrl,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Fetch the quote
+    // Get quote details
     const { data: quote, error: quoteError } = await supabaseAdmin
       .from("quotes")
-      .select("*, service:services(title)")
+      .select(`
+        *,
+        service:services(title)
+      `)
       .eq("id", quoteId)
       .single();
 
@@ -62,95 +67,98 @@ serve(async (req) => {
       throw new Error("Quote not found");
     }
 
-    logStep("Quote found", { quoteId: quote.id, price: quote.price, title: quote.title });
+    logStep("Quote found", { quoteId, price: quote.price, title: quote.title });
 
-    // Verify the user is the client
+    // Verify the user is the client for this quote
     if (quote.client_id !== userData.user.id) {
-      throw new Error("Only the client can pay for this quote");
+      throw new Error("User is not the client for this quote");
     }
 
-    // Check if quote is completed and pending client confirmation
-    if (!quote.completed_at || quote.client_confirmed) {
-      throw new Error("Quote is not ready for payment");
+    // Verify quote is in accepted status
+    if (quote.status !== "accepted") {
+      throw new Error("Quote must be accepted to proceed with payment");
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
+    // Get user profile for customer info
+    const { data: userProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name, phone")
+      .eq("user_id", userData.user.id)
+      .single();
 
-    logStep("Stripe initialized");
+    const origin = req.headers.get("origin") || "https://solvoo.com.br";
+    const abacatePayKey = Deno.env.get("ABACATEPAY_API_KEY");
 
-    // Get or create Stripe customer
-    let customerId: string | undefined;
-    const { data: customers } = await stripe.customers.list({
-      email: userData.user.email,
-      limit: 1,
-    });
+    if (!abacatePayKey) {
+      throw new Error("AbacatePay API key not configured");
+    }
 
-    if (customers && customers.length > 0) {
-      customerId = customers[0].id;
-      logStep("Existing Stripe customer found", { customerId });
-    } else {
-      const customer = await stripe.customers.create({
+    logStep("AbacatePay initialized");
+
+    // Create billing with AbacatePay
+    const billingPayload = {
+      frequency: "ONE_TIME",
+      methods: ["PIX"],
+      products: [{
+        externalId: quoteId,
+        name: quote.title,
+        description: quote.service?.title || "Pagamento de serviço",
+        quantity: 1,
+        price: Math.round(quote.price * 100) // Convert to cents
+      }],
+      returnUrl: `${origin}/chat/${quote.conversation_id}`,
+      completionUrl: `${origin}/pagamento-sucesso?quote_id=${quoteId}`,
+      customer: {
+        name: userProfile?.full_name || "Cliente",
         email: userData.user.email,
-        metadata: {
-          supabase_user_id: userData.user.id,
-        },
-      });
-      customerId = customer.id;
-      logStep("New Stripe customer created", { customerId });
-    }
-
-    // Create checkout session - let Stripe automatically determine available payment methods
-    // based on what's enabled in your Stripe dashboard
-    logStep("Creating checkout session", { 
-      customerId, 
-      currency: "brl",
-      amount: Math.round(quote.price * 100)
-    });
-
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      // Don't specify payment_method_types - Stripe will use all enabled methods from dashboard
-      line_items: [
-        {
-          price_data: {
-            currency: "brl",
-            product_data: {
-              name: quote.title,
-              description: quote.service?.title 
-                ? `Serviço: ${quote.service.title}` 
-                : "Pagamento de serviço",
-            },
-            unit_amount: Math.round(quote.price * 100), // Convert to cents
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/pagamento-sucesso?quote_id=${quoteId}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/chat/${quote.conversation_id}`,
+        cellphone: userProfile?.phone || undefined,
+        taxId: undefined // CPF optional
+      },
       metadata: {
         quote_id: quoteId,
         client_id: userData.user.id,
         professional_id: quote.professional_id,
+        conversation_id: quote.conversation_id
+      }
+    };
+
+    logStep("Creating AbacatePay billing", { 
+      amount: billingPayload.products[0].price,
+      customerEmail: userData.user.email
+    });
+
+    const abacateResponse = await fetch("https://api.abacatepay.com/v1/billing/create", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${abacatePayKey}`,
+        "Content-Type": "application/json"
       },
+      body: JSON.stringify(billingPayload)
     });
 
-    logStep("Checkout session created successfully", { 
-      sessionId: session.id,
-      url: session.url,
-      paymentMethodTypes: session.payment_method_types,
-      paymentMethodOptions: session.payment_method_options
+    if (!abacateResponse.ok) {
+      const errorData = await abacateResponse.text();
+      logStep("AbacatePay error", { status: abacateResponse.status, error: errorData });
+      throw new Error(`AbacatePay error: ${errorData}`);
+    }
+
+    const billingData = await abacateResponse.json();
+    
+    logStep("Billing created successfully", { 
+      billingId: billingData.data?.id,
+      url: billingData.data?.url
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ 
+      url: billingData.data?.url,
+      billingId: billingData.data?.id
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    logStep("ERROR", { message: errorMessage, error });
+    logStep("Error creating checkout", { error: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
