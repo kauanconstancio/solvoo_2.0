@@ -170,7 +170,9 @@ export const useQuotes = (conversationId: string | undefined) => {
   const respondToQuote = async (
     quoteId: string,
     status: 'accepted' | 'rejected',
-    response?: string
+    response?: string,
+    scheduledDate?: string,
+    scheduledTime?: string
   ): Promise<boolean> => {
     try {
       const { error } = await supabase
@@ -184,10 +186,40 @@ export const useQuotes = (conversationId: string | undefined) => {
 
       if (error) throw error;
 
+      // If accepted with schedule, create appointment
+      if (status === 'accepted' && scheduledDate && scheduledTime) {
+        const quote = quotes.find(q => q.id === quoteId);
+        if (quote) {
+          const { error: appointmentError } = await supabase
+            .from('appointments')
+            .insert({
+              client_id: quote.client_id,
+              professional_id: quote.professional_id,
+              service_id: quote.service_id,
+              conversation_id: quote.conversation_id,
+              quote_id: quoteId,
+              title: quote.title,
+              description: quote.description,
+              scheduled_date: scheduledDate,
+              scheduled_time: scheduledTime,
+              status: 'confirmed',
+              client_confirmed: true,
+              professional_confirmed: true,
+            });
+
+          if (appointmentError) {
+            console.error('Error creating appointment:', appointmentError);
+            // Don't throw - quote was already accepted
+          }
+        }
+      }
+
       toast({
         title: status === 'accepted' ? 'Orçamento aceito' : 'Orçamento recusado',
         description: status === 'accepted' 
-          ? 'Você aceitou o orçamento. O profissional será notificado.'
+          ? scheduledDate 
+            ? 'Orçamento aceito e agendamento confirmado!'
+            : 'Você aceitou o orçamento. O profissional será notificado.'
           : 'Você recusou o orçamento.',
       });
 
