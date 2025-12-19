@@ -173,21 +173,46 @@ export const useMessages = (conversationId: string | undefined) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [clearedAt, setClearedAt] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (mounted) setUserId(user?.id ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUserId(session?.user?.id ?? null);
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const fetchMessages = useCallback(async () => {
     if (!conversationId) return;
 
+    setIsLoading(true);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!userId) {
+        setMessages([]);
+        setClearedAt(null);
+        return;
+      }
 
       // Check if user has cleared this conversation
       const { data: clearance } = await supabase
         .from('conversation_clearances')
         .select('cleared_at')
         .eq('conversation_id', conversationId)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       const userClearedAt = clearance?.cleared_at || null;
@@ -207,7 +232,7 @@ export const useMessages = (conversationId: string | undefined) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      
+
       // Fetch reply_to messages for those that have replies
       const messagesWithReplies = await Promise.all(
         (data || []).map(async (msg) => {
@@ -222,7 +247,7 @@ export const useMessages = (conversationId: string | undefined) => {
           return msg;
         })
       );
-      
+
       setMessages(messagesWithReplies);
     } catch (error: any) {
       console.error('Error fetching messages:', error);
@@ -234,7 +259,7 @@ export const useMessages = (conversationId: string | undefined) => {
     } finally {
       setIsLoading(false);
     }
-  }, [conversationId, toast]);
+  }, [conversationId, toast, userId]);
 
   useEffect(() => {
     fetchMessages();
