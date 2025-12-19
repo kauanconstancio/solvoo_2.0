@@ -13,11 +13,10 @@ const PaymentSuccess = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const quoteId = searchParams.get("quote_id");
-  const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!quoteId || !sessionId) {
+      if (!quoteId) {
         setStatus("error");
         setErrorMessage("Informações de pagamento não encontradas.");
         return;
@@ -25,7 +24,7 @@ const PaymentSuccess = () => {
 
       try {
         const { data, error } = await supabase.functions.invoke("verify-payment", {
-          body: { sessionId, quoteId },
+          body: { quoteId },
         });
 
         if (error) throw error;
@@ -47,7 +46,7 @@ const PaymentSuccess = () => {
     };
 
     verifyPayment();
-  }, [quoteId, sessionId, toast]);
+  }, [quoteId, toast]);
 
   const handleGoToChat = async () => {
     if (!quoteId) {

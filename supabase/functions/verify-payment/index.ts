@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
@@ -9,37 +8,29 @@ const corsHeaders = {
 
 const PLATFORM_FEE_RATE = 0.10; // 10% platform fee
 
+const logStep = (step: string, details?: Record<string, unknown>) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
+  console.log(`[VERIFY-PAYMENT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { sessionId, quoteId } = await req.json();
+    const { quoteId } = await req.json();
     
-    if (!sessionId || !quoteId) {
-      throw new Error("Session ID and Quote ID are required");
+    if (!quoteId) {
+      throw new Error("Quote ID is required");
     }
 
-    console.log("Verifying payment for session:", sessionId, "quote:", quoteId);
+    logStep("Verifying payment for quote", { quoteId });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
-
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    
-    if (session.payment_status !== "paid") {
-      throw new Error("Payment not completed");
+    const abacatePayKey = Deno.env.get("ABACATEPAY_API_KEY");
+    if (!abacatePayKey) {
+      throw new Error("AbacatePay API key not configured");
     }
-
-    // Verify quote_id matches
-    if (session.metadata?.quote_id !== quoteId) {
-      throw new Error("Quote ID mismatch");
-    }
-
-    console.log("Payment verified, session:", session.id);
 
     // Use service role to update the database
     const supabaseAdmin = createClient(
@@ -51,7 +42,7 @@ serve(async (req) => {
     // Check if already processed
     const { data: existingQuote } = await supabaseAdmin
       .from("quotes")
-      .select("client_confirmed, client_id, professional_id, title, price")
+      .select("client_confirmed, client_id, professional_id, title, price, conversation_id")
       .eq("id", quoteId)
       .single();
 
@@ -60,12 +51,54 @@ serve(async (req) => {
     }
 
     if (existingQuote.client_confirmed) {
-      console.log("Quote already confirmed, skipping...");
+      logStep("Quote already confirmed, skipping...");
       return new Response(JSON.stringify({ success: true, alreadyProcessed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
+
+    // Check payment status with AbacatePay
+    // We need to find the billing by the quote metadata
+    logStep("Fetching billings from AbacatePay");
+
+    const billingListResponse = await fetch("https://api.abacatepay.com/v1/billing/list", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${abacatePayKey}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!billingListResponse.ok) {
+      const errorText = await billingListResponse.text();
+      logStep("Error fetching billings", { error: errorText });
+      throw new Error(`Failed to fetch billings: ${errorText}`);
+    }
+
+    const billingList = await billingListResponse.json();
+    logStep("Billings fetched", { count: billingList.data?.length || 0 });
+
+    // Find the billing for this quote
+    const billing = billingList.data?.find((b: { metadata?: { quote_id?: string }; products?: Array<{ externalId?: string }> }) => 
+      b.metadata?.quote_id === quoteId || 
+      b.products?.some((p: { externalId?: string }) => p.externalId === quoteId)
+    );
+
+    if (!billing) {
+      logStep("Billing not found for quote", { quoteId });
+      throw new Error("Billing not found for this quote");
+    }
+
+    logStep("Billing found", { billingId: billing.id, status: billing.status });
+
+    // Check if payment was completed
+    if (billing.status !== "PAID") {
+      logStep("Payment not completed yet", { status: billing.status });
+      throw new Error(`Payment not completed. Status: ${billing.status}`);
+    }
+
+    logStep("Payment verified, processing...");
 
     // Get client name
     const { data: clientProfile } = await supabaseAdmin
@@ -86,7 +119,7 @@ serve(async (req) => {
       .eq("id", quoteId);
 
     if (quoteError) {
-      console.error("Error updating quote:", quoteError);
+      logStep("Error updating quote", { error: quoteError });
       throw quoteError;
     }
 
@@ -109,19 +142,22 @@ serve(async (req) => {
       });
 
     if (transactionError) {
-      console.error("Error creating transaction:", transactionError);
+      logStep("Error creating transaction", { error: transactionError });
       throw transactionError;
     }
 
-    console.log("Payment processed successfully for quote:", quoteId);
+    logStep("Payment processed successfully", { quoteId, netAmount });
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      conversationId: existingQuote.conversation_id 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error verifying payment:", error);
+    logStep("Error verifying payment", { error: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
