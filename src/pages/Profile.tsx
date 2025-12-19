@@ -61,6 +61,7 @@ interface Profile {
   account_type: string | null;
   city: string | null;
   state: string | null;
+  cpf: string | null;
   created_at: string;
 }
 
@@ -95,6 +96,7 @@ const Profile = () => {
     account_type: "cliente",
     city: "",
     state: "",
+    cpf: "",
   });
 
   // Calculate profile completion percentage
@@ -153,6 +155,7 @@ const Profile = () => {
           account_type: data.account_type || "cliente",
           city: data.city || "",
           state: data.state || "",
+          cpf: data.cpf || "",
         });
       }
 
@@ -208,6 +211,7 @@ const Profile = () => {
         account_type: formData.account_type,
         city: formData.city,
         state: formData.state,
+        cpf: formData.cpf,
       })
       .eq("user_id", session.user.id);
 
@@ -228,6 +232,7 @@ const Profile = () => {
               account_type: formData.account_type,
               city: formData.city,
               state: formData.state,
+              cpf: formData.cpf,
             }
           : null
       );
@@ -654,6 +659,20 @@ const Profile = () => {
                     </div>
                   </div>
 
+                  <div className="space-y-1.5 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <FileText className="h-3.5 w-3.5" />
+                      CPF
+                    </p>
+                    <p className="font-semibold text-lg">
+                      {formData.cpf || (
+                        <span className="text-muted-foreground italic font-normal">
+                          Não informado
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
                   <Separator />
 
                   {/* Location Section */}
@@ -779,6 +798,33 @@ const Profile = () => {
                           className="h-12"
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="cpf"
+                        className="flex items-center gap-2 text-sm font-medium"
+                      >
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        CPF
+                        <span className="text-xs text-muted-foreground">(necessário para pagamentos)</span>
+                      </Label>
+                      <Input
+                        id="cpf"
+                        value={formData.cpf}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          const formatted = value
+                            .replace(/(\d{3})(\d)/, "$1.$2")
+                            .replace(/(\d{3})(\d)/, "$1.$2")
+                            .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+                            .replace(/(-\d{2})\d+?$/, "$1");
+                          setFormData({ ...formData, cpf: formatted });
+                        }}
+                        placeholder="000.000.000-00"
+                        maxLength={14}
+                        className="h-12"
+                      />
                     </div>
 
                     <Separator />
