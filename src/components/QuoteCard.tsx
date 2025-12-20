@@ -273,7 +273,7 @@ export const QuoteCard = ({
                 </div>
                 <div className="mt-2 space-y-1">
                   <p className="text-sm">
-                    {format(new Date(appointment.scheduled_date), "EEEE, dd 'de' MMMM", { locale: ptBR })} às {appointment.scheduled_time}
+                    {format(new Date(appointment.scheduled_date + 'T12:00:00'), "EEEE, dd 'de' MMMM", { locale: ptBR })} às {appointment.scheduled_time}
                   </p>
                   {appointment.location && (
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
