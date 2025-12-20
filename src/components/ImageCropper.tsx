@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { compressBlob } from "@/lib/imageCompression";
 
 interface ImageCropperProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface ImageCropperProps {
   outputWidth?: number;
   outputHeight?: number;
   title?: string;
+  maxSizeMB?: number;
 }
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
@@ -47,6 +49,7 @@ export const ImageCropper = ({
   outputWidth = 400,
   outputHeight,
   title = "Ajustar Imagem",
+  maxSizeMB = 1,
 }: ImageCropperProps) => {
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
@@ -106,6 +109,20 @@ export const ImageCropper = ({
   const handleConfirm = async () => {
     setIsProcessing(true);
     try {
+      const croppedBlob = await getCroppedImg();
+      if (croppedBlob) {
+        // Compress the cropped image before returning
+        const compressedBlob = await compressBlob(croppedBlob, {
+          maxWidth: outputWidth,
+          maxHeight: finalOutputHeight,
+          quality: 0.85,
+          maxSizeMB,
+        });
+        onCropComplete(compressedBlob);
+      }
+    } catch (error) {
+      console.error('Error processing image:', error);
+      // Fallback to uncompressed if compression fails
       const croppedBlob = await getCroppedImg();
       if (croppedBlob) {
         onCropComplete(croppedBlob);
