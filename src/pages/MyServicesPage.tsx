@@ -75,8 +75,8 @@ const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null 
       <Card className="group active:scale-[0.98] hover:shadow-md transition-all duration-200 border-border/50 hover:border-primary/20 overflow-hidden">
         <CardContent className="p-0">
           <div className="flex">
-            {/* Service Image - Smaller on mobile */}
-            <div className="w-16 h-full min-h-[88px] sm:w-24 sm:min-h-[100px] flex-shrink-0 bg-muted">
+            {/* Service Image - Aspect 4:3 */}
+            <div className="w-20 sm:w-28 flex-shrink-0 bg-muted aspect-[4/3]">
               {quote.service?.images?.[0] ? (
                 <img 
                   src={quote.service.images[0]} 
