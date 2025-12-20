@@ -20,6 +20,7 @@ import {
   CheckCheck,
   FileText,
   Calendar,
+  Crop,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ import { CpfCollectionDialog } from "@/components/CpfCollectionDialog";
 import { PixCheckoutDialog } from "@/components/PixCheckoutDialog";
 import { CreateAppointmentDialog } from "@/components/CreateAppointmentDialog";
 import { AppointmentsList } from "@/components/AppointmentsList";
+import { ImageCropper } from "@/components/ImageCropper";
 import {
   Sheet,
   SheetContent,
@@ -172,6 +174,10 @@ const ChatConversation = () => {
     useState(isNewConversation);
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
   const [appointmentsSheetOpen, setAppointmentsSheetOpen] = useState(false);
+  // Image cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string>("");
+  const [originalImageFile, setOriginalImageFile] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -431,18 +437,55 @@ const ChatConversation = () => {
     }
 
     const isImage = file.type.startsWith("image/");
-    const previewUrl = isImage ? URL.createObjectURL(file) : "";
-
-    setPendingFile({ file, previewUrl, isImage });
-    setPendingCaption("");
 
     // Reset input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
 
-    // Focus caption input after modal opens
+    if (isImage) {
+      // For images, open the cropper first
+      const imageUrl = URL.createObjectURL(file);
+      setImageToCrop(imageUrl);
+      setOriginalImageFile(file);
+      setCropperOpen(true);
+    } else {
+      // For non-image files, go directly to caption dialog
+      setPendingFile({ file, previewUrl: "", isImage: false });
+      setPendingCaption("");
+      setTimeout(() => captionInputRef.current?.focus(), 100);
+    }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    setCropperOpen(false);
+    
+    // Create a file from the cropped blob
+    const croppedFile = new File([croppedBlob], `image_${Date.now()}.jpg`, {
+      type: "image/jpeg",
+    });
+    const previewUrl = URL.createObjectURL(croppedBlob);
+    
+    setPendingFile({ file: croppedFile, previewUrl, isImage: true });
+    setPendingCaption("");
+    
+    // Cleanup original image URL
+    if (imageToCrop) {
+      URL.revokeObjectURL(imageToCrop);
+      setImageToCrop("");
+    }
+    setOriginalImageFile(null);
+    
     setTimeout(() => captionInputRef.current?.focus(), 100);
+  };
+
+  const handleCropperClose = () => {
+    setCropperOpen(false);
+    if (imageToCrop) {
+      URL.revokeObjectURL(imageToCrop);
+      setImageToCrop("");
+    }
+    setOriginalImageFile(null);
   };
 
   const handleCancelFilePreview = () => {
@@ -749,7 +792,20 @@ const ChatConversation = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <>
+      {/* Image Cropper Dialog */}
+      <ImageCropper
+        open={cropperOpen}
+        onClose={handleCropperClose}
+        imageSrc={imageToCrop}
+        onCropComplete={handleCropComplete}
+        aspectRatio={undefined}
+        outputWidth={1200}
+        title="Ajustar Imagem"
+        maxSizeMB={2}
+      />
+
+      <div className="h-screen flex flex-col bg-background">
       {/* Chat Header - More compact on mobile */}
       <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur-sm safe-area-top">
         <div className="flex h-14 md:h-16 items-center gap-2 md:gap-3 px-2 md:px-4 max-w-4xl mx-auto">
@@ -1351,6 +1407,7 @@ const ChatConversation = () => {
         />
       )}
     </div>
+    </>
   );
 };
 
