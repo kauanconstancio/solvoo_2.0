@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Message, ReplyToMessage } from './useChat';
 import { Quote } from './useQuotes';
+import { compressImage, isImageFile } from '@/lib/imageCompression';
 
 export type ChatItemType = 'message' | 'quote';
 
@@ -391,12 +392,33 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const fileExt = file.name.split('.').pop();
+      const isImage = isImageFile(file);
+      let fileToUpload: File | Blob = file;
+      let fileExt = file.name.split('.').pop();
+
+      // Compress image before upload
+      if (isImage) {
+        try {
+          const compressedBlob = await compressImage(file, {
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.8,
+            maxSizeMB: 2,
+          });
+          fileToUpload = compressedBlob;
+          fileExt = 'jpg';
+        } catch (compressionError) {
+          console.warn('Image compression failed, using original:', compressionError);
+        }
+      }
+
       const filePath = `${user.id}/${conversationId}/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('chat-files')
-        .upload(filePath, file);
+        .upload(filePath, fileToUpload, {
+          contentType: isImage ? 'image/jpeg' : file.type,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -404,14 +426,13 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
         .from('chat-files')
         .getPublicUrl(filePath);
 
-      const isImage = file.type.startsWith('image/');
       const messageType = isImage ? 'image' : 'file';
 
       await sendMessage(
         isImage ? '📷 Imagem' : `📎 ${file.name}`,
         messageType,
         publicUrl,
-        file.name
+        isImage ? `${Date.now()}.jpg` : file.name
       );
     } catch (error: any) {
       console.error('Error sending file:', error);
