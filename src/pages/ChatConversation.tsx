@@ -21,6 +21,8 @@ import {
   FileText,
   Calendar,
   Crop,
+  Clock,
+  QrCode,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { Button } from "@/components/ui/button";
@@ -881,6 +883,46 @@ const ChatConversation = () => {
           </DropdownMenu>
         </div>
       </header>
+
+      {/* Pending Payment Banner */}
+      {(() => {
+        // Find quotes with pending PIX payment (has pix_id but not yet confirmed)
+        const pendingPaymentQuote = quotes?.find(
+          (q) =>
+            (q as any).pix_id &&
+            !q.client_confirmed &&
+            q.client_id === currentUserId
+        );
+        if (!pendingPaymentQuote) return null;
+        return (
+          <div className="bg-yellow-500/10 border-b border-yellow-500/20 px-4 py-3">
+            <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 rounded-full bg-yellow-500/20 flex-shrink-0">
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400 truncate">
+                    Pagamento pendente
+                  </p>
+                  <p className="text-xs text-yellow-600/80 dark:text-yellow-500/80 truncate">
+                    {pendingPaymentQuote.title} - R$ {pendingPaymentQuote.price.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-shrink-0 border-yellow-500/30 text-yellow-700 hover:bg-yellow-500/10 hover:text-yellow-700 dark:text-yellow-400 dark:hover:text-yellow-300"
+                onClick={() => handlePayment(pendingPaymentQuote)}
+              >
+                <QrCode className="h-4 w-4 mr-1.5" />
+                Ver PIX
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto bg-muted/20 overscroll-contain">
