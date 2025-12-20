@@ -64,6 +64,7 @@ const ServiceCard = ({
             src={displayImage}
             alt={title}
             className="object-cover w-full h-full group-hover:scale-105 transition-smooth duration-500"
+            loading="lazy"
           />
           <Button
             size="icon"
