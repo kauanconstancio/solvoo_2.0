@@ -30,33 +30,37 @@ interface PixCheckoutDialogProps {
 }
 
 // Success Animation Component
-const PaymentSuccessAnimation = ({ 
-  price, 
-  onClose 
-}: { 
-  price: number; 
+const PaymentSuccessAnimation = ({
+  price,
+  onClose,
+}: {
+  price: number;
   onClose: () => void;
 }) => {
-  const formatPrice = (price: number) => {
+  const formatPrice = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(price);
+    }).format(value);
   };
 
+  const particleColors = ["bg-primary", "bg-accent", "bg-primary/70", "bg-accent/70"];
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="relative bg-card rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl animate-scale-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/60 backdrop-blur-sm animate-fade-in">
+      <div className="relative bg-card rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl animate-scale-in border border-border/50">
         {/* Confetti-like particles */}
         <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
           {[...Array(12)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-2 h-2 rounded-full animate-bounce"
+              className={cn(
+                "absolute w-2 h-2 rounded-full animate-bounce",
+                particleColors[i % particleColors.length]
+              )}
               style={{
-                left: `${10 + (i * 7)}%`,
+                left: `${10 + i * 7}%`,
                 top: `${5 + (i % 3) * 10}%`,
-                backgroundColor: ['#22c55e', '#10b981', '#34d399', '#6ee7b7'][i % 4],
                 animationDelay: `${i * 0.1}s`,
                 animationDuration: `${1 + (i % 3) * 0.3}s`,
               }}
@@ -67,40 +71,33 @@ const PaymentSuccessAnimation = ({
         {/* Success Icon with Animation */}
         <div className="flex flex-col items-center text-center relative z-10">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg animate-pulse">
-              <CheckCircle2 className="h-14 w-14 text-white" />
+            <div className="w-24 h-24 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg animate-pulse">
+              <CheckCircle2 className="h-14 w-14" />
             </div>
             <div className="absolute -top-1 -right-1">
-              <Sparkles className="h-6 w-6 text-yellow-400 animate-bounce" />
+              <Sparkles className="h-6 w-6 text-accent-foreground animate-bounce" />
             </div>
             <div className="absolute -bottom-1 -left-1">
-              <Sparkles className="h-5 w-5 text-yellow-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
+              <Sparkles
+                className="h-5 w-5 text-accent-foreground animate-bounce"
+                style={{ animationDelay: "0.3s" }}
+              />
             </div>
           </div>
 
-          <h2 className="mt-6 text-2xl font-bold text-foreground">
-            Pagamento Confirmado!
-          </h2>
-          
-          <p className="mt-2 text-muted-foreground">
-            Seu pagamento foi processado com sucesso
-          </p>
+          <h2 className="mt-6 text-2xl font-bold text-foreground">Pagamento Confirmado!</h2>
 
-          <div className="mt-4 py-3 px-6 bg-green-500/10 rounded-xl">
-            <p className="text-3xl font-bold text-green-600">
-              {formatPrice(price)}
-            </p>
+          <p className="mt-2 text-muted-foreground">Seu pagamento foi processado com sucesso</p>
+
+          <div className="mt-4 py-3 px-6 bg-primary/10 rounded-xl border border-primary/15">
+            <p className="text-3xl font-bold text-primary">{formatPrice(price)}</p>
           </div>
 
           <p className="mt-4 text-sm text-muted-foreground">
             O profissional foi notificado e entrará em contato em breve.
           </p>
 
-          <Button
-            className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white"
-            size="lg"
-            onClick={onClose}
-          >
+          <Button className="mt-6 w-full" size="lg" onClick={onClose}>
             <CheckCircle2 className="h-5 w-5 mr-2" />
             Entendido
           </Button>
@@ -138,16 +135,19 @@ export const PixCheckoutDialog = ({
 
       if (error) throw error;
 
-      if (data?.status === "PAID") {
+      const status = String(data?.status ?? "").toUpperCase();
+      const isPaid = status === "PAID" || data?.paid === true;
+
+      if (isPaid) {
         setPaymentStatus("paid");
         setPaidAmount(pixData?.quotePrice || 0);
-        
-        // Close the PIX dialog and show success popup
-        onOpenChange(false);
+
+        // Show success popup even if the user closes the PIX dialog early
         setShowSuccessPopup(true);
-        
+        onOpenChange(false);
+
         onPaymentConfirmed?.();
-      } else if (data?.status === "EXPIRED") {
+      } else if (status === "EXPIRED") {
         setPaymentStatus("expired");
       }
     } catch (error) {
@@ -157,20 +157,18 @@ export const PixCheckoutDialog = ({
     }
   }, [quoteId, pixData?.pixId, pixData?.quotePrice, paymentStatus, onOpenChange, onPaymentConfirmed]);
 
-  // Poll for payment status every 5 seconds
+  // Poll for payment status every 5 seconds (even if dialog is closed)
   useEffect(() => {
-    if (!open || !quoteId || !pixData?.pixId || paymentStatus === "paid" || paymentStatus === "expired") {
+    if (!quoteId || !pixData?.pixId || paymentStatus === "paid" || paymentStatus === "expired") {
       return;
     }
 
     // Initial check
     checkPaymentStatus();
 
-    // Set up polling
     const interval = setInterval(checkPaymentStatus, 5000);
-
     return () => clearInterval(interval);
-  }, [open, quoteId, pixData?.pixId, paymentStatus, checkPaymentStatus]);
+  }, [quoteId, pixData?.pixId, paymentStatus, checkPaymentStatus]);
 
   // Reset status when dialog opens with new data
   useEffect(() => {
