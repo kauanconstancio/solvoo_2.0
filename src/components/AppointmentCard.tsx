@@ -69,7 +69,7 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
             <div className="flex items-center gap-2 min-w-0">
               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm font-medium truncate">
-                {format(parseISO(appointment.scheduled_date), "dd/MM", { locale: ptBR })}
+                {format(parseISO(appointment.scheduled_date + 'T12:00:00'), "dd/MM", { locale: ptBR })}
               </span>
               <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm">{appointment.scheduled_time}</span>
@@ -134,7 +134,7 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>
-                {format(parseISO(appointment.scheduled_date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {format(parseISO(appointment.scheduled_date + 'T12:00:00'), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm">

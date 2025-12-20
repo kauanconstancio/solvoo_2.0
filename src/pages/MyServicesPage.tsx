@@ -105,7 +105,7 @@ const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null 
             <div className="flex items-center gap-1.5 mb-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-500/10 rounded-md px-2 py-1 w-fit">
               <Calendar className="w-3 h-3 flex-shrink-0" />
               <span>
-                {format(new Date(quote.appointment.scheduled_date), "dd 'de' MMMM", { locale: ptBR })}
+                {format(new Date(quote.appointment.scheduled_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR })}
               </span>
               {quote.appointment.location && (
                 <>
