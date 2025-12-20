@@ -50,7 +50,7 @@ export function AppointmentsList({ conversationId, compact = false }: Appointmen
     const past: Appointment[] = [];
 
     apts.forEach((apt) => {
-      const date = parseISO(apt.scheduled_date);
+      const date = parseISO(apt.scheduled_date + 'T12:00:00');
       if (isAfter(new Date(), parseISO(`${apt.scheduled_date}T${apt.scheduled_time}`))) {
         past.push(apt);
       } else if (isToday(date)) {
