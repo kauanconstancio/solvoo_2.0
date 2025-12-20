@@ -1136,66 +1136,6 @@ const ChatConversation = () => {
               />
             )}
 
-            {/* Calendar Button - Only for professionals */}
-            {isProfessional && conversationId && clientId && (
-              <Sheet open={appointmentsSheetOpen} onOpenChange={setAppointmentsSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={isSending}
-                    className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
-                  >
-                    <Calendar className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Agendamentos
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6">
-                    <Button 
-                      className="w-full mb-4" 
-                      onClick={() => setAppointmentDialogOpen(true)}
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Novo Agendamento
-                    </Button>
-                    <AppointmentsList conversationId={conversationId} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            )}
-
-            {/* View Appointments - Only for clients */}
-            {!isProfessional && conversationId && (
-              <Sheet open={appointmentsSheetOpen} onOpenChange={setAppointmentsSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={isSending}
-                    className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
-                  >
-                    <Calendar className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Agendamentos
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6">
-                    <AppointmentsList conversationId={conversationId} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-            )}
 
             <div className="flex-1 relative min-w-0">
               {/* Reply preview bar */}
