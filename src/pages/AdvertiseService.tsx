@@ -49,6 +49,7 @@ import { supabase } from "@/integrations/supabase/client";
 import MyServices from "@/components/MyServices";
 import { PriceSuggestionPanel } from "@/components/PriceSuggestionPanel";
 import { ServicePreview } from "@/components/ServicePreview";
+import { ImageCropper } from "@/components/ImageCropper";
 
 const AdvertiseService = () => {
   const { toast } = useToast();
@@ -69,6 +70,10 @@ const AdvertiseService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Image cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string>("");
 
   // Form fields
   const [title, setTitle] = useState("");
@@ -108,7 +113,7 @@ const AdvertiseService = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -132,6 +137,18 @@ const AdvertiseService = () => {
       return;
     }
 
+    // Create object URL and open cropper
+    const imageUrl = URL.createObjectURL(file);
+    setImageToCrop(imageUrl);
+    setCropperOpen(true);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    setCropperOpen(false);
     setUploadingImage(true);
 
     try {
@@ -147,12 +164,13 @@ const AdvertiseService = () => {
         return;
       }
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from("service-images")
-        .upload(fileName, file);
+        .upload(fileName, croppedBlob, {
+          contentType: "image/jpeg",
+        });
 
       if (uploadError) throw uploadError;
 
@@ -175,9 +193,19 @@ const AdvertiseService = () => {
       });
     } finally {
       setUploadingImage(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      // Clean up the object URL
+      if (imageToCrop) {
+        URL.revokeObjectURL(imageToCrop);
+        setImageToCrop("");
       }
+    }
+  };
+
+  const handleCropperClose = () => {
+    setCropperOpen(false);
+    if (imageToCrop) {
+      URL.revokeObjectURL(imageToCrop);
+      setImageToCrop("");
     }
   };
 
@@ -288,6 +316,17 @@ const AdvertiseService = () => {
   return (
     <div className="min-h-screen ">
       <Header />
+
+      {/* Image Cropper Dialog */}
+      <ImageCropper
+        open={cropperOpen}
+        onClose={handleCropperClose}
+        imageSrc={imageToCrop}
+        onCropComplete={handleCropComplete}
+        aspectRatio={4 / 3}
+        outputWidth={800}
+        title="Ajustar Foto do Serviço"
+      />
 
       <main className="container mx-auto px-4 py-8 ">
         {/* Header */}
@@ -474,12 +513,12 @@ const AdvertiseService = () => {
                     Adicione fotos do seu trabalho para atrair mais clientes
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+              <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                     {images.map((image, index) => (
                       <div
                         key={index}
-                        className="relative aspect-square rounded-lg border border-border overflow-hidden group"
+                        className="relative aspect-[4/3] rounded-lg border border-border overflow-hidden group"
                       >
                         <img
                           src={image}
@@ -505,7 +544,7 @@ const AdvertiseService = () => {
                         <input
                           type="file"
                           ref={fileInputRef}
-                          onChange={handleImageUpload}
+                          onChange={handleImageSelect}
                           accept="image/*"
                           className="hidden"
                         />
@@ -513,7 +552,7 @@ const AdvertiseService = () => {
                           type="button"
                           onClick={handleImageClick}
                           disabled={uploadingImage}
-                          className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {uploadingImage ? (
                             <Loader2 className="w-6 h-6 animate-spin" />

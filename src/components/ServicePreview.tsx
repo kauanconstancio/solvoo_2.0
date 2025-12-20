@@ -66,7 +66,7 @@ export const ServicePreview = ({
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-3">Como aparecerá na listagem:</h3>
             <div className="border rounded-lg overflow-hidden max-w-sm">
-              <div className="aspect-video bg-muted relative">
+              <div className="aspect-[4/3] bg-muted relative">
                 {images.length > 0 ? (
                   <img
                     src={images[0]}
@@ -121,17 +121,17 @@ export const ServicePreview = ({
               <div className="grid grid-cols-4 gap-2">
                 {images.length > 0 ? (
                   <>
-                    <div className="col-span-4 md:col-span-2 row-span-2 aspect-video rounded-lg overflow-hidden bg-muted">
+                    <div className="col-span-4 md:col-span-2 row-span-2 aspect-[4/3] rounded-lg overflow-hidden bg-muted">
                       <img src={images[0]} alt="" className="w-full h-full object-cover" />
                     </div>
                     {images.slice(1, 5).map((img, idx) => (
-                      <div key={idx} className="aspect-video rounded-lg overflow-hidden bg-muted hidden md:block">
+                      <div key={idx} className="aspect-[4/3] rounded-lg overflow-hidden bg-muted hidden md:block">
                         <img src={img} alt="" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </>
                 ) : (
-                  <div className="col-span-4 aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                  <div className="col-span-4 aspect-[4/3] rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
                     Adicione imagens para visualizar
                   </div>
                 )}
