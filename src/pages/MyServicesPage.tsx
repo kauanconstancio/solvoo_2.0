@@ -16,10 +16,8 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle, 
-  MessageCircle, 
   Loader2,
   AlertCircle,
-  Package,
   User,
   ChevronRight,
   Briefcase,
@@ -72,90 +70,70 @@ const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null 
 
   return (
     <Link to={`/chat/${quote.conversation_id}`} className="block">
-      <Card className="group active:scale-[0.98] hover:shadow-md transition-all duration-200 border-border/50 hover:border-primary/20 overflow-hidden">
-        <CardContent className="p-0">
-          <div className="flex">
-            {/* Service Image - Aspect 4:3 */}
-            <div className="w-20 sm:w-28 flex-shrink-0 bg-muted aspect-[4/3]">
-              {quote.service?.images?.[0] ? (
-                <img 
-                  src={quote.service.images[0]} 
-                  alt={quote.service.title} 
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-                  <Package className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground/40" />
-                </div>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 p-3 sm:p-4 min-w-0 flex flex-col justify-between">
-              {/* Top Row: Title & Status */}
-              <div className="flex items-start justify-between gap-2 mb-1.5">
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-1">
-                    {quote.title}
-                  </h3>
-                  {quote.service && (
-                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-                      {quote.service.title}
-                    </p>
-                  )}
-                </div>
-                <Badge className={`${statusConfig.className} text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 whitespace-nowrap flex-shrink-0`}>
-                  {statusConfig.label}
-                </Badge>
-              </div>
-
-              {/* Appointment Info */}
+      <Card className="group hover:shadow-md transition-all border-l-4 border-l-primary">
+        <CardContent className="p-3 sm:p-4">
+          {/* Top Row: Time, Status & Price */}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
               {quote.appointment && (
-                <div className="flex items-center gap-1.5 mb-1.5 text-xs text-blue-600 dark:text-blue-400 bg-blue-500/10 rounded-md px-2 py-1">
-                  <Calendar className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">
-                    {format(new Date(quote.appointment.scheduled_date), "dd/MM", { locale: ptBR })} às {quote.appointment.scheduled_time}
-                  </span>
-                  {quote.appointment.location && (
-                    <>
-                      <MapPin className="w-3 h-3 flex-shrink-0 ml-1" />
-                      <span className="truncate hidden sm:inline">{quote.appointment.location}</span>
-                    </>
-                  )}
+                <div className="flex items-center gap-1.5 text-primary font-semibold text-sm">
+                  <Clock className="w-3.5 h-3.5" />
+                  {quote.appointment.scheduled_time}
                 </div>
               )}
-
-              {/* Middle Row: Person */}
-              <div className="flex items-center gap-1.5 mb-2">
-                <Avatar className="w-5 h-5 sm:w-6 sm:h-6 border border-border">
-                  <AvatarImage src={otherPerson?.avatar_url || undefined} />
-                  <AvatarFallback className="text-[10px] sm:text-xs bg-muted">
-                    {otherPerson?.full_name?.charAt(0) || <User className="w-2.5 h-2.5" />}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-xs text-muted-foreground truncate">
-                  <span className="hidden sm:inline">{roleLabel}: </span>
-                  <span className="text-foreground font-medium">{otherPerson?.full_name || 'Usuário'}</span>
-                </span>
-              </div>
-
-              {/* Bottom Row: Price & Time */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="font-bold text-sm sm:text-base text-primary">
-                    {formatPrice(quote.price)}
-                  </span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(quote.updated_at), { 
-                      addSuffix: true, 
-                      locale: ptBR 
-                    })}
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
+              <Badge className={`${statusConfig.className} text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5`}>
+                {statusConfig.label}
+              </Badge>
             </div>
+            <span className="font-bold text-sm sm:text-base text-primary">
+              {formatPrice(quote.price)}
+            </span>
+          </div>
+
+          {/* Title & Service */}
+          <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-1 mb-1">
+            {quote.title}
+          </h3>
+          {quote.service && (
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 mb-2">
+              {quote.service.title}
+            </p>
+          )}
+
+          {/* Appointment Date */}
+          {quote.appointment && (
+            <div className="flex items-center gap-1.5 mb-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-500/10 rounded-md px-2 py-1 w-fit">
+              <Calendar className="w-3 h-3 flex-shrink-0" />
+              <span>
+                {format(new Date(quote.appointment.scheduled_date), "dd 'de' MMMM", { locale: ptBR })}
+              </span>
+              {quote.appointment.location && (
+                <>
+                  <MapPin className="w-3 h-3 flex-shrink-0 ml-1" />
+                  <span className="truncate hidden sm:inline">{quote.appointment.location}</span>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Person & Arrow */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Avatar className="w-5 h-5 sm:w-6 sm:h-6 border border-border">
+                <AvatarImage src={otherPerson?.avatar_url || undefined} />
+                <AvatarFallback className="text-[10px] sm:text-xs bg-muted">
+                  {otherPerson?.full_name?.charAt(0) || <User className="w-2.5 h-2.5" />}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-muted-foreground truncate">
+                <span className="hidden sm:inline">{roleLabel}: </span>
+                <span className="text-foreground font-medium">{otherPerson?.full_name || 'Usuário'}</span>
+              </span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground">
+                · {formatDistanceToNow(new Date(quote.updated_at), { addSuffix: true, locale: ptBR })}
+              </span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
         </CardContent>
       </Card>
