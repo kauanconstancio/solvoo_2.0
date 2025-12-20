@@ -383,7 +383,7 @@ const ServiceDetails = () => {
                 {/* Image Gallery */}
                 <Card className="overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="relative aspect-[16/10] bg-muted">
+                    <div className="relative aspect-[4/3] bg-muted">
                       <img
                         src={displayImages[selectedImage]}
                         alt={service.title}
@@ -432,7 +432,7 @@ const ServiceDetails = () => {
                           <button
                             key={index}
                             onClick={() => setSelectedImage(index)}
-                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                            className={`relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all ${
                               selectedImage === index
                                 ? "border-primary"
                                 : "border-transparent hover:border-muted-foreground"

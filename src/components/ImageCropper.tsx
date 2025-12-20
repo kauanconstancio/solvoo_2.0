@@ -17,6 +17,9 @@ interface ImageCropperProps {
   imageSrc: string;
   onCropComplete: (croppedBlob: Blob) => void;
   aspectRatio?: number;
+  outputWidth?: number;
+  outputHeight?: number;
+  title?: string;
 }
 
 function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {
@@ -41,11 +44,17 @@ export const ImageCropper = ({
   imageSrc,
   onCropComplete,
   aspectRatio = 1,
+  outputWidth = 400,
+  outputHeight,
+  title = "Ajustar Imagem",
 }: ImageCropperProps) => {
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [isProcessing, setIsProcessing] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // Calculate output height based on aspect ratio if not provided
+  const finalOutputHeight = outputHeight || Math.round(outputWidth / aspectRatio);
 
   const onImageLoad = useCallback(
     (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -63,9 +72,8 @@ export const ImageCropper = ({
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
-    const outputSize = 400; // Output a 400x400 image for avatars
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    canvas.width = outputWidth;
+    canvas.height = finalOutputHeight;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
@@ -80,8 +88,8 @@ export const ImageCropper = ({
       completedCrop.height * scaleY,
       0,
       0,
-      outputSize,
-      outputSize
+      outputWidth,
+      finalOutputHeight
     );
 
     return new Promise((resolve) => {
@@ -93,7 +101,7 @@ export const ImageCropper = ({
         0.9
       );
     });
-  }, [completedCrop]);
+  }, [completedCrop, outputWidth, finalOutputHeight]);
 
   const handleConfirm = async () => {
     setIsProcessing(true);
@@ -111,7 +119,7 @@ export const ImageCropper = ({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Ajustar Foto de Perfil</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="flex items-center justify-center py-4">
           <ReactCrop
@@ -119,7 +127,6 @@ export const ImageCropper = ({
             onChange={(_, percentCrop) => setCrop(percentCrop)}
             onComplete={(c) => setCompletedCrop(c)}
             aspect={aspectRatio}
-            circularCrop
             className="max-h-[400px]"
           >
             <img

@@ -147,7 +147,7 @@ const MyServices = () => {
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Image */}
-              <div className="w-full sm:w-28 h-28 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+              <div className="w-full sm:w-32 aspect-[4/3] sm:aspect-auto sm:h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 <img
                   src={service.images?.[0] || "/placeholder.svg"}
                   alt={service.title}
