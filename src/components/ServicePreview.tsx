@@ -72,6 +72,7 @@ export const ServicePreview = ({
                     src={images[0]}
                     alt={title || 'Imagem do serviço'}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -122,11 +123,11 @@ export const ServicePreview = ({
                 {images.length > 0 ? (
                   <>
                     <div className="col-span-4 md:col-span-2 row-span-2 aspect-[4/3] rounded-lg overflow-hidden bg-muted">
-                      <img src={images[0]} alt="" className="w-full h-full object-cover" />
+                      <img src={images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                     {images.slice(1, 5).map((img, idx) => (
                       <div key={idx} className="aspect-[4/3] rounded-lg overflow-hidden bg-muted hidden md:block">
-                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
                       </div>
                     ))}
                   </>

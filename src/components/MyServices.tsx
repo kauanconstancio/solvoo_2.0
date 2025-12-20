@@ -152,6 +152,7 @@ const MyServices = () => {
                   src={service.images?.[0] || "/placeholder.svg"}
                   alt={service.title}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
 

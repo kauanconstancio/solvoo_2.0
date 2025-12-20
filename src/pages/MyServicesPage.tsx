@@ -82,6 +82,7 @@ const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null 
                   src={quote.service.images[0]} 
                   alt={quote.service.title} 
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
