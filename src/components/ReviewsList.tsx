@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Star } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Star, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Review } from "@/hooks/useReviews";
@@ -7,15 +7,28 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface ReviewsListProps {
   reviews: Review[];
   initialLimit?: number;
 }
 
+interface GalleryState {
+  images: string[];
+  currentIndex: number;
+}
+
 const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
   const [visibleCount, setVisibleCount] = useState(initialLimit);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [gallery, setGallery] = useState<GalleryState | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -33,6 +46,35 @@ const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const openGallery = (images: string[], startIndex: number) => {
+    setGallery({ images, currentIndex: startIndex });
+    setZoomLevel(1);
+  };
+
+  const closeGallery = () => {
+    setGallery(null);
+    setZoomLevel(1);
+  };
+
+  const navigateGallery = useCallback((direction: 'prev' | 'next') => {
+    if (!gallery) return;
+    
+    const newIndex = direction === 'next'
+      ? (gallery.currentIndex + 1) % gallery.images.length
+      : (gallery.currentIndex - 1 + gallery.images.length) % gallery.images.length;
+    
+    setGallery({ ...gallery, currentIndex: newIndex });
+    setZoomLevel(1);
+  }, [gallery]);
+
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.5, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.5, 1));
   };
 
   if (reviews.length === 0) {
@@ -92,22 +134,53 @@ const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
                   </p>
                 )}
                 
-                {/* Review Images */}
+                {/* Review Images with Carousel Preview */}
                 {review.images && review.images.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {review.images.map((imageUrl, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImage(imageUrl)}
-                        className="relative group"
-                      >
-                        <img
-                          src={imageUrl}
-                          alt={`Foto ${index + 1} da avaliação`}
-                          className="w-20 h-20 object-cover rounded-lg border hover:opacity-90 transition-opacity cursor-pointer"
-                        />
-                      </button>
-                    ))}
+                  <div className="mt-2">
+                    {review.images.length <= 4 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {review.images.map((imageUrl, index) => (
+                          <button
+                            key={index}
+                            onClick={() => openGallery(review.images!, index)}
+                            className="relative group overflow-hidden rounded-lg"
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={`Foto ${index + 1} da avaliação`}
+                              className="w-20 h-20 object-cover border hover:scale-105 transition-transform duration-200 cursor-pointer"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <Carousel className="w-full max-w-[300px]">
+                        <CarouselContent>
+                          {review.images.map((imageUrl, index) => (
+                            <CarouselItem key={index} className="basis-1/3">
+                              <button
+                                onClick={() => openGallery(review.images!, index)}
+                                className="relative group overflow-hidden rounded-lg"
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt={`Foto ${index + 1} da avaliação`}
+                                  className="w-20 h-20 object-cover border hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                  <ZoomIn className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                              </button>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-0 h-8 w-8" />
+                        <CarouselNext className="right-0 h-8 w-8" />
+                      </Carousel>
+                    )}
                   </div>
                 )}
               </div>
@@ -127,15 +200,115 @@ const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
         )}
       </div>
 
-      {/* Image Preview Dialog */}
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden">
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt="Foto da avaliação"
-              className="w-full h-auto max-h-[80vh] object-contain"
-            />
+      {/* Full Screen Image Gallery with Zoom */}
+      <Dialog open={!!gallery} onOpenChange={closeGallery}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden bg-black/95 border-none">
+          {gallery && (
+            <div className="relative w-full h-[90vh] flex flex-col">
+              {/* Header Controls */}
+              <div className="absolute top-4 left-0 right-0 z-10 flex items-center justify-between px-4">
+                <span className="text-white/80 text-sm bg-black/50 px-3 py-1 rounded-full">
+                  {gallery.currentIndex + 1} / {gallery.images.length}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 text-white hover:bg-white/20"
+                    onClick={handleZoomOut}
+                    disabled={zoomLevel <= 1}
+                  >
+                    <ZoomOut className="h-5 w-5" />
+                  </Button>
+                  <span className="text-white/80 text-sm min-w-[50px] text-center">
+                    {Math.round(zoomLevel * 100)}%
+                  </span>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 text-white hover:bg-white/20"
+                    onClick={handleZoomIn}
+                    disabled={zoomLevel >= 3}
+                  >
+                    <ZoomIn className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-10 w-10 text-white hover:bg-white/20 ml-2"
+                    onClick={closeGallery}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Main Image Area */}
+              <div className="flex-1 flex items-center justify-center overflow-auto">
+                <div 
+                  className="transition-transform duration-200 ease-out"
+                  style={{ transform: `scale(${zoomLevel})` }}
+                >
+                  <img
+                    src={gallery.images[gallery.currentIndex]}
+                    alt={`Foto ${gallery.currentIndex + 1} da avaliação`}
+                    className="max-w-full max-h-[80vh] object-contain cursor-zoom-in"
+                    onClick={handleZoomIn}
+                    draggable={false}
+                  />
+                </div>
+              </div>
+
+              {/* Navigation Arrows */}
+              {gallery.images.length > 1 && (
+                <>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 text-white hover:bg-white/20 rounded-full"
+                    onClick={() => navigateGallery('prev')}
+                  >
+                    <ChevronLeft className="h-8 w-8" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 text-white hover:bg-white/20 rounded-full"
+                    onClick={() => navigateGallery('next')}
+                  >
+                    <ChevronRight className="h-8 w-8" />
+                  </Button>
+                </>
+              )}
+
+              {/* Thumbnail Strip */}
+              {gallery.images.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+                  <div className="flex gap-2 bg-black/50 p-2 rounded-lg max-w-full overflow-x-auto">
+                    {gallery.images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setGallery({ ...gallery, currentIndex: idx });
+                          setZoomLevel(1);
+                        }}
+                        className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden transition-all ${
+                          idx === gallery.currentIndex 
+                            ? "ring-2 ring-white scale-110" 
+                            : "opacity-60 hover:opacity-100"
+                        }`}
+                      >
+                        <img
+                          src={img}
+                          alt={`Miniatura ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>
