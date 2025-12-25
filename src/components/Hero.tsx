@@ -18,6 +18,7 @@ import { serviceCategories } from "@/data/services";
 import { states } from "@/data/locations";
 import { getCategoryConfig } from "@/data/categoryIcons";
 import { FloatingParticles } from "./FloatingParticles";
+import ServiceAutocomplete from "./ServiceAutocomplete";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -77,6 +78,14 @@ const Hero = () => {
               Conectamos você com os melhores prestadores de serviços da sua
               região. Rápido, seguro e confiável.
             </p>
+          </div>
+
+          {/* Quick Search Autocomplete */}
+          <div className="max-w-xl mx-auto mb-6">
+            <ServiceAutocomplete 
+              placeholder="Busque serviços rapidamente..." 
+              className="shadow-lg"
+            />
           </div>
 
           <Item className="w-full max-w-5xl mx-auto p-4 md:p-6 shadow-lg">
