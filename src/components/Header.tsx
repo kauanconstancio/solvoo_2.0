@@ -342,8 +342,8 @@ const Header = () => {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <SheetHeader>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col overflow-hidden">
+              <SheetHeader className="flex-shrink-0">
                 <SheetTitle className="flex items-center gap-2">
                   <img
                     src="/solvoo_favicon.png"
@@ -353,7 +353,7 @@ const Header = () => {
                   Solvoo
                 </SheetTitle>
               </SheetHeader>
-              <div className="mt-6 space-y-4">
+              <div className="mt-6 space-y-4 flex-1 overflow-y-auto pr-2">
                 <nav className="space-y-2">
                   <a
                     href="/categorias"
