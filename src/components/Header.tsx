@@ -353,7 +353,7 @@ const Header = () => {
                   Solvoo
                 </SheetTitle>
               </SheetHeader>
-              <div className="mt-6 space-y-4 flex-1 overflow-y-auto pr-2">
+              <div className="mt-6 space-y-4 flex-1 overflow-y-auto pr-2 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
                 <nav className="space-y-2">
                   <a
                     href="/categorias"
