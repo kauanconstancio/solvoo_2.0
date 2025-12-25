@@ -1,17 +1,15 @@
 import { useRef, useState, useEffect } from "react";
-import { ChevronRight, ChevronLeft, Settings2 } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMessageTemplates } from "@/hooks/useMessageTemplates";
-import { MessageTemplatesSheet } from "@/components/MessageTemplatesSheet";
 import { cn } from "@/lib/utils";
 
 // Default quick replies available for all users
 const DEFAULT_QUICK_REPLIES = [
-  { id: "default-1", title: "Olá, tudo bem?", content: "Olá, tudo bem?" },
-  { id: "default-2", title: "Ainda está disponível?", content: "Olá! Ainda está disponível?" },
-  { id: "default-3", title: "Aceita oferta?", content: "Olá! Aceita proposta de valor?" },
-  { id: "default-4", title: "Qual o prazo?", content: "Olá! Qual seria o prazo de entrega?" },
-  { id: "default-5", title: "Obrigado!", content: "Muito obrigado pelo atendimento!" },
+  { id: "1", title: "Olá, tudo bem?", content: "Olá, tudo bem?" },
+  { id: "2", title: "Ainda está disponível?", content: "Olá! Ainda está disponível?" },
+  { id: "3", title: "Aceita oferta?", content: "Olá! Aceita proposta de valor?" },
+  { id: "4", title: "Qual o prazo?", content: "Olá! Qual seria o prazo de entrega?" },
+  { id: "5", title: "Obrigado!", content: "Muito obrigado pelo atendimento!" },
 ];
 
 interface QuickRepliesBarProps {
@@ -19,16 +17,9 @@ interface QuickRepliesBarProps {
 }
 
 export const QuickRepliesBar = ({ onSelectTemplate }: QuickRepliesBarProps) => {
-  const { templates, isLoading } = useMessageTemplates();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
-
-  // Combine user templates with defaults (user templates first)
-  const allReplies = [
-    ...templates.map(t => ({ id: t.id, title: t.title, content: t.content })),
-    ...DEFAULT_QUICK_REPLIES,
-  ];
 
   const checkScrollArrows = () => {
     if (scrollRef.current) {
@@ -42,7 +33,7 @@ export const QuickRepliesBar = ({ onSelectTemplate }: QuickRepliesBarProps) => {
     checkScrollArrows();
     window.addEventListener("resize", checkScrollArrows);
     return () => window.removeEventListener("resize", checkScrollArrows);
-  }, [templates]);
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -54,10 +45,6 @@ export const QuickRepliesBar = ({ onSelectTemplate }: QuickRepliesBarProps) => {
       setTimeout(checkScrollArrows, 300);
     }
   };
-
-  if (isLoading) {
-    return null;
-  }
 
   return (
     <div className="relative flex items-center gap-1 py-2 px-2 border-t border-border/50 bg-background/80 backdrop-blur-sm">
@@ -83,7 +70,7 @@ export const QuickRepliesBar = ({ onSelectTemplate }: QuickRepliesBarProps) => {
           showRightArrow && "pr-7"
         )}
       >
-        {allReplies.map((reply) => (
+        {DEFAULT_QUICK_REPLIES.map((reply) => (
           <button
             key={reply.id}
             onClick={() => onSelectTemplate(reply.content)}
@@ -92,16 +79,6 @@ export const QuickRepliesBar = ({ onSelectTemplate }: QuickRepliesBarProps) => {
             {reply.title}
           </button>
         ))}
-
-        {/* Settings button to manage templates */}
-        <MessageTemplatesSheet
-          onSelectTemplate={onSelectTemplate}
-          trigger={
-            <button className="flex-shrink-0 p-2 rounded-full border border-dashed border-border hover:bg-muted/50 hover:border-primary/50 transition-all active:scale-95">
-              <Settings2 className="h-4 w-4 text-muted-foreground" />
-            </button>
-          }
-        />
       </div>
 
       {/* Right arrow */}
