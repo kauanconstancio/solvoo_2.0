@@ -23,6 +23,7 @@ import {
   Crop,
   Clock,
   QrCode,
+  Archive,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { QuickRepliesBar } from "@/components/QuickRepliesBar";
@@ -128,9 +129,10 @@ const ChatConversation = () => {
     initiatePayment,
     checkUserCpf,
   } = useChatItems(isNewConversation ? undefined : conversationId);
-  const { deleteConversation } = useConversations();
+  const { deleteConversation, archiveConversation } = useConversations();
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const { createOrGetConversation } = useCreateConversation();
   const { markAsRead } = useMarkMessagesAsRead();
   const { typingUsers, setTyping, isOtherUserTyping } = useTypingIndicator(
@@ -335,6 +337,16 @@ const ChatConversation = () => {
       navigate("/chat");
     }
     setDeleteDialogOpen(false);
+  };
+
+  const handleArchiveConversation = async () => {
+    if (!conversationId) return;
+    setIsArchiving(true);
+    const success = await archiveConversation(conversationId);
+    setIsArchiving(false);
+    if (success) {
+      navigate("/chat");
+    }
   };
 
   const handleClearConversation = async () => {
@@ -866,6 +878,14 @@ const ChatConversation = () => {
                   }
                 />
               )}
+              <DropdownMenuItem
+                onClick={handleArchiveConversation}
+                disabled={isArchiving}
+                className="transition-smooth"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                {isArchiving ? "Arquivando..." : "Arquivar conversa"}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setClearDialogOpen(true)}
                 className="transition-smooth"
