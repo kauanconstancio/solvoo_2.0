@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageCircle, X, Send, Bot, Loader2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,6 +101,7 @@ const renderMarkdown = (text: string) => {
 };
 
 export const SupportChatbot = () => {
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -110,6 +112,13 @@ export const SupportChatbot = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Hide on chat pages
+  const isChatPage = location.pathname.startsWith('/chat');
+  
+  if (isChatPage) {
+    return null;
+  }
 
   useEffect(() => {
     const fetchUserProfile = async () => {
