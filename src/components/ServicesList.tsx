@@ -18,6 +18,7 @@ interface Service {
   images: string[];
   verified: boolean;
   provider_name: string | null;
+  slug: string | null;
 }
 
 const ServicesList = () => {
@@ -34,7 +35,7 @@ const ServicesList = () => {
       try {
         const { data: servicesData, error } = await supabase
           .from("services")
-          .select("id, title, category, subcategory, price, city, state, images, verified, user_id")
+          .select("id, title, category, subcategory, price, city, state, images, verified, user_id, slug")
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(12);
@@ -61,6 +62,7 @@ const ServicesList = () => {
               images: service.images || [],
               verified: service.verified,
               provider_name: profileData?.full_name || null,
+              slug: (service as any).slug || null,
             };
           })
         );
@@ -190,6 +192,7 @@ const ServicesList = () => {
                         providerName={service.provider_name}
                         rating={serviceRating?.average_rating}
                         reviewCount={serviceRating?.review_count}
+                        slug={service.slug}
                       />
                     </AnimateOnScroll>
                   );

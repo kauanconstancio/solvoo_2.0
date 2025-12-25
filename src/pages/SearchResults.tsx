@@ -60,6 +60,7 @@ interface ServiceFromDB {
   images: string[];
   verified: boolean;
   provider_name: string | null;
+  slug: string | null;
 }
 
 const SearchResults = () => {
@@ -101,7 +102,7 @@ const SearchResults = () => {
       try {
         let query = supabase
           .from("services")
-          .select("id, title, category, subcategory, price, city, state, images, verified, user_id")
+          .select("id, title, category, subcategory, price, city, state, images, verified, user_id, slug")
           .eq("status", "active")
           .order("created_at", { ascending: false });
 
@@ -151,6 +152,7 @@ const SearchResults = () => {
               images: service.images || [],
               verified: service.verified,
               provider_name: profileData?.full_name || null,
+              slug: (service as any).slug || null,
             };
           })
         );
@@ -614,6 +616,7 @@ const SearchResults = () => {
                     providerName={service.provider_name}
                     rating={serviceRating?.average_rating || 0}
                     reviewCount={serviceRating?.review_count || 0}
+                    slug={service.slug}
                   />
                 );
               })}

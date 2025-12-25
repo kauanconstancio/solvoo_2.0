@@ -32,6 +32,7 @@ import ReviewsList from "@/components/ReviewsList";
 import ReviewDialog from "@/components/ReviewDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateConversation } from "@/hooks/useChat";
+import { isUUID } from "@/lib/slugUtils";
 
 interface ProviderProfile {
   user_id: string;
@@ -161,11 +162,18 @@ const ServiceDetails = () => {
       }
 
       try {
-        const { data: serviceData, error: serviceError } = await supabase
+        // Buscar por ID (UUID) ou slug
+        let query = supabase
           .from("services")
-          .select("*")
-          .eq("id", id)
-          .maybeSingle();
+          .select("*");
+        
+        if (isUUID(id)) {
+          query = query.eq("id", id);
+        } else {
+          query = query.eq("slug", id);
+        }
+        
+        const { data: serviceData, error: serviceError } = await query.maybeSingle();
 
         if (serviceError) throw serviceError;
 
@@ -192,7 +200,7 @@ const ServiceDetails = () => {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user || user.id !== serviceData.user_id) {
-          await supabase.rpc("increment_views", { service_id: id });
+          await supabase.rpc("increment_views", { service_id: serviceData.id });
         }
       } catch (err: any) {
         console.error("Error fetching service:", err);

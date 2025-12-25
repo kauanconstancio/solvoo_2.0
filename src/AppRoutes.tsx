@@ -141,6 +141,15 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        {/* Rota alternativa para categorias */}
+        <Route
+          path="/categoria/:categorySlug"
+          element={
+            <PageTransition>
+              <SearchResults />
+            </PageTransition>
+          }
+        />
 
         {/* Página de Auth */}
         <Route

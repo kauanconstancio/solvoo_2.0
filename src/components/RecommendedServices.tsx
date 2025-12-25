@@ -113,6 +113,7 @@ const RecommendedServices = () => {
                 providerName={providerName}
                 rating={serviceRating?.average_rating}
                 reviewCount={serviceRating?.review_count}
+                slug={(service as any).slug || null}
               />
             );
           })}

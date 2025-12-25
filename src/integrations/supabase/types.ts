@@ -636,6 +636,7 @@ export type Database = {
           phone: string | null
           price: string
           price_type: string
+          slug: string | null
           state: string
           status: string
           subcategory: string | null
@@ -657,6 +658,7 @@ export type Database = {
           phone?: string | null
           price: string
           price_type?: string
+          slug?: string | null
           state: string
           status?: string
           subcategory?: string | null
@@ -678,6 +680,7 @@ export type Database = {
           phone?: string | null
           price?: string
           price_type?: string
+          slug?: string | null
           state?: string
           status?: string
           subcategory?: string | null
@@ -796,6 +799,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_slug: { Args: { title: string }; Returns: string }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -806,6 +810,7 @@ export type Database = {
       }
       increment_views: { Args: { service_id: string }; Returns: undefined }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "support"
