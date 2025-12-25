@@ -159,103 +159,103 @@ export const useProviderRating = (userId: string | null) => {
   const [allReviews, setAllReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchProviderRating = async () => {
-      if (!userId) return;
+  const fetchProviderRating = useCallback(async () => {
+    if (!userId) return;
 
-      setIsLoading(true);
-      try {
-        // Get all services from this provider
-        const { data: services } = await supabase
-          .from("services")
-          .select("id, title")
-          .eq("user_id", userId)
-          .eq("status", "active");
+    setIsLoading(true);
+    try {
+      // Get all services from this provider
+      const { data: services } = await supabase
+        .from("services")
+        .select("id, title")
+        .eq("user_id", userId)
+        .eq("status", "active");
 
-        if (!services || services.length === 0) {
-          setProviderRating(null);
-          setServiceRatings([]);
-          setAllReviews([]);
-          setIsLoading(false);
-          return;
+      if (!services || services.length === 0) {
+        setProviderRating(null);
+        setServiceRatings([]);
+        setAllReviews([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const serviceIds = services.map((s) => s.id);
+
+      // Get all reviews for these services
+      const { data: reviewsData } = await supabase
+        .from("reviews")
+        .select("*")
+        .in("service_id", serviceIds)
+        .order("created_at", { ascending: false });
+
+      if (!reviewsData || reviewsData.length === 0) {
+        setProviderRating(null);
+        setServiceRatings([]);
+        setAllReviews([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch profiles for each reviewer
+      const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", userIds);
+
+      const profilesMap = new Map(
+        (profilesData || []).map((p) => [p.user_id, p])
+      );
+
+      const reviewsWithProfiles: Review[] = reviewsData.map((r) => ({
+        ...r,
+        profile: profilesMap.get(r.user_id) || null,
+      }));
+
+      setAllReviews(reviewsWithProfiles);
+
+      // Calculate per-service ratings
+      const ratingsMap: Record<string, { total: number; count: number; title: string }> = {};
+      services.forEach((s) => {
+        ratingsMap[s.id] = { total: 0, count: 0, title: s.title };
+      });
+
+      reviewsData.forEach((r) => {
+        if (ratingsMap[r.service_id]) {
+          ratingsMap[r.service_id].total += r.rating;
+          ratingsMap[r.service_id].count += 1;
         }
+      });
 
-        const serviceIds = services.map((s) => s.id);
-
-        // Get all reviews for these services
-        const { data: reviewsData } = await supabase
-          .from("reviews")
-          .select("*")
-          .in("service_id", serviceIds)
-          .order("created_at", { ascending: false });
-
-        if (!reviewsData || reviewsData.length === 0) {
-          setProviderRating(null);
-          setServiceRatings([]);
-          setAllReviews([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // Fetch profiles for each reviewer
-        const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
-        const { data: profilesData } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, avatar_url")
-          .in("user_id", userIds);
-
-        const profilesMap = new Map(
-          (profilesData || []).map((p) => [p.user_id, p])
-        );
-
-        const reviewsWithProfiles: Review[] = reviewsData.map((r) => ({
-          ...r,
-          profile: profilesMap.get(r.user_id) || null,
+      const serviceRatingsArray = Object.entries(ratingsMap)
+        .filter(([_, data]) => data.count > 0)
+        .map(([serviceId, data]) => ({
+          service_id: serviceId,
+          title: data.title,
+          average_rating: Math.round((data.total / data.count) * 10) / 10,
+          review_count: data.count,
         }));
 
-        setAllReviews(reviewsWithProfiles);
+      setServiceRatings(serviceRatingsArray);
 
-        // Calculate per-service ratings
-        const ratingsMap: Record<string, { total: number; count: number; title: string }> = {};
-        services.forEach((s) => {
-          ratingsMap[s.id] = { total: 0, count: 0, title: s.title };
-        });
-
-        reviewsData.forEach((r) => {
-          if (ratingsMap[r.service_id]) {
-            ratingsMap[r.service_id].total += r.rating;
-            ratingsMap[r.service_id].count += 1;
-          }
-        });
-
-        const serviceRatingsArray = Object.entries(ratingsMap)
-          .filter(([_, data]) => data.count > 0)
-          .map(([serviceId, data]) => ({
-            service_id: serviceId,
-            title: data.title,
-            average_rating: Math.round((data.total / data.count) * 10) / 10,
-            review_count: data.count,
-          }));
-
-        setServiceRatings(serviceRatingsArray);
-
-        // Calculate overall provider rating
-        const totalRating = reviewsData.reduce((sum, r) => sum + r.rating, 0);
-        setProviderRating({
-          average_rating: Math.round((totalRating / reviewsData.length) * 10) / 10,
-          total_reviews: reviewsData.length,
-        });
-      } catch (error) {
-        console.error("Error fetching provider rating:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProviderRating();
+      // Calculate overall provider rating
+      const totalRating = reviewsData.reduce((sum, r) => sum + r.rating, 0);
+      setProviderRating({
+        average_rating: Math.round((totalRating / reviewsData.length) * 10) / 10,
+        total_reviews: reviewsData.length,
+      });
+    } catch (error) {
+      console.error("Error fetching provider rating:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId]);
 
-  return { providerRating, serviceRatings, allReviews, isLoading };
+  useEffect(() => {
+    fetchProviderRating();
+  }, [fetchProviderRating]);
+
+  return { providerRating, serviceRatings, allReviews, isLoading, refetchProviderRating: fetchProviderRating };
 };
 
 // Hook to get ratings for multiple services
