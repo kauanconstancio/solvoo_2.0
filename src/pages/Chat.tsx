@@ -53,6 +53,7 @@ const Chat = () => {
     archivedConversations, 
     activeCount,
     archivedCount,
+    archivedUnreadCount,
     isLoading, 
     deleteConversation, 
     archiveConversation, 
@@ -258,12 +259,17 @@ const Chat = () => {
                     </span>
                   )}
                 </TabsTrigger>
-                <TabsTrigger value="archived" className="gap-2">
+                <TabsTrigger value="archived" className="gap-2 relative">
                   <Archive className="h-4 w-4" />
                   Arquivadas
                   {archivedCount > 0 && (
                     <span className="ml-1 text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
                       {archivedCount}
+                    </span>
+                  )}
+                  {archivedUnreadCount > 0 && !showArchived && (
+                    <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full animate-pulse">
+                      {archivedUnreadCount > 9 ? "9+" : archivedUnreadCount}
                     </span>
                   )}
                 </TabsTrigger>

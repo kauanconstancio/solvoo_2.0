@@ -297,11 +297,15 @@ export const useConversationsWithCache = () => {
     }
   }, [toast]);
 
+  // Calculate unread counts
+  const archivedUnreadCount = cache.archived.reduce((sum, c) => sum + (c.unread_count || 0), 0);
+
   return {
     activeConversations: cache.active,
     archivedConversations: cache.archived,
     activeCount: cache.active.length,
     archivedCount: cache.archived.length,
+    archivedUnreadCount,
     isLoading,
     refetch: fetchAllConversations,
     deleteConversation,
