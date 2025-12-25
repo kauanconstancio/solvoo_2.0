@@ -23,8 +23,10 @@ import {
   Crop,
   Clock,
   QrCode,
+  Zap,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
+import { MessageTemplatesSheet } from "@/components/MessageTemplatesSheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -1136,7 +1138,21 @@ const ChatConversation = () => {
               />
             )}
 
-
+            {/* Message Templates Button */}
+            <MessageTemplatesSheet
+              onSelectTemplate={(content) => setNewMessage(content)}
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={isSending}
+                  className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
+                  title="Respostas rápidas"
+                >
+                  <Zap className="h-5 w-5" />
+                </Button>
+              }
+            />
             <div className="flex-1 relative min-w-0">
               {/* Reply preview bar */}
               {replyingTo && (
