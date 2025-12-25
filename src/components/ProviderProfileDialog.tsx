@@ -71,6 +71,7 @@ const ProviderProfileDialog = ({
     serviceRatings,
     allReviews,
     isLoading: isRatingLoading,
+    refetchProviderRating,
   } = useProviderRating(userId);
   const { toast } = useToast();
 
@@ -204,6 +205,9 @@ const ProviderProfileDialog = ({
         title: "Sucesso",
         description: "Avaliação enviada com sucesso!",
       });
+
+      // Refetch reviews to update the list
+      await refetchProviderRating();
 
       return { error: null };
     } catch (error: any) {
