@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { getServiceLabel } from "@/data/services";
 import { useFavorites } from "@/hooks/useFavorites";
+import { getServiceUrl } from "@/lib/slugUtils";
 
 interface ServiceCardProps {
   id: string;
@@ -19,6 +20,7 @@ interface ServiceCardProps {
   subcategory?: string | null;
   verified?: boolean;
   providerName?: string | null;
+  slug?: string | null;
 }
 
 const ServiceCard = ({
@@ -34,6 +36,7 @@ const ServiceCard = ({
   subcategory,
   verified = false,
   providerName = null,
+  slug = null,
 }: ServiceCardProps) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const displayImage =
@@ -41,6 +44,7 @@ const ServiceCard = ({
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
   const categoryLabel = getServiceLabel(category);
   const favorited = isFavorite(id);
+  const serviceUrl = getServiceUrl({ id, slug });
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -57,7 +61,7 @@ const ServiceCard = ({
   };
 
   return (
-    <Link to={`/servico/${id}`}>
+    <Link to={serviceUrl}>
       <Card className="overflow-hidden cursor-pointer group hover:shadow-soft-lg transition-smooth border-2">
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <img
