@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Star, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, X, MessageSquare, CornerDownRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Review } from "@/hooks/useReviews";
@@ -14,10 +14,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import ReviewResponseDialog from "./ReviewResponseDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReviewsListProps {
   reviews: Review[];
   initialLimit?: number;
+  currentUserId?: string | null;
+  serviceOwnerId?: string | null;
+  onReviewUpdated?: () => void;
 }
 
 interface GalleryState {
@@ -25,10 +31,20 @@ interface GalleryState {
   currentIndex: number;
 }
 
-const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
+const ReviewsList = ({ 
+  reviews, 
+  initialLimit = 10, 
+  currentUserId,
+  serviceOwnerId,
+  onReviewUpdated 
+}: ReviewsListProps) => {
   const [visibleCount, setVisibleCount] = useState(initialLimit);
   const [gallery, setGallery] = useState<GalleryState | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [responseDialogReview, setResponseDialogReview] = useState<Review | null>(null);
+  const { toast } = useToast();
+
+  const canRespond = currentUserId && serviceOwnerId && currentUserId === serviceOwnerId;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -75,6 +91,41 @@ const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
 
   const handleZoomOut = () => {
     setZoomLevel((prev) => Math.max(prev - 0.5, 1));
+  };
+
+  const handleSubmitResponse = async (responseText: string) => {
+    if (!responseDialogReview || !currentUserId) {
+      return { error: "Invalid state" };
+    }
+
+    try {
+      const { error } = await supabase
+        .from("reviews")
+        .update({
+          response_text: responseText,
+          response_at: new Date().toISOString(),
+          responded_by: currentUserId,
+        })
+        .eq("id", responseDialogReview.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Resposta enviada com sucesso!",
+      });
+
+      onReviewUpdated?.();
+      return { error: null };
+    } catch (error: any) {
+      console.error("Error submitting response:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar a resposta",
+        variant: "destructive",
+      });
+      return { error: error.message };
+    }
   };
 
   if (reviews.length === 0) {
@@ -182,6 +233,52 @@ const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
                       </Carousel>
                     )}
                   </div>
+                )}
+
+                {/* Professional Response Section */}
+                {review.response_text && (
+                  <div className="mt-4 pl-4 border-l-2 border-primary/30 bg-muted/30 p-3 rounded-r-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CornerDownRight className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium text-primary">
+                        Resposta do profissional
+                      </span>
+                      {review.response_at && (
+                        <span className="text-xs text-muted-foreground">
+                          • {formatDate(review.response_at)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {review.response_text}
+                    </p>
+                  </div>
+                )}
+
+                {/* Reply Button for Professional */}
+                {canRespond && !review.response_text && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-3 text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={() => setResponseDialogReview(review)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Responder avaliação
+                  </Button>
+                )}
+
+                {/* Edit Response Button for Professional */}
+                {canRespond && review.response_text && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2 text-muted-foreground hover:text-primary"
+                    onClick={() => setResponseDialogReview(review)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Editar resposta
+                  </Button>
                 )}
               </div>
             </div>
@@ -312,6 +409,17 @@ const ReviewsList = ({ reviews, initialLimit = 10 }: ReviewsListProps) => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Response Dialog */}
+      {responseDialogReview && (
+        <ReviewResponseDialog
+          open={!!responseDialogReview}
+          onOpenChange={(open) => !open && setResponseDialogReview(null)}
+          onSubmit={handleSubmitResponse}
+          reviewerName={responseDialogReview.profile?.full_name || "Usuário"}
+          existingResponse={responseDialogReview.response_text}
+        />
+      )}
     </>
   );
 };
