@@ -8,6 +8,7 @@ export interface Review {
   user_id: string;
   rating: number;
   comment: string | null;
+  images: string[] | null;
   created_at: string;
   updated_at: string;
   profile?: {
@@ -90,7 +91,7 @@ export const useReviews = (serviceId?: string) => {
     fetchReviews();
   }, [fetchReviews]);
 
-  const addReview = async (rating: number, comment: string) => {
+  const addReview = async (rating: number, comment: string, images: string[] = []) => {
     if (!serviceId) return { error: "Service ID is required" };
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -109,6 +110,7 @@ export const useReviews = (serviceId?: string) => {
         user_id: user.id,
         rating,
         comment: comment || null,
+        images: images.length > 0 ? images : null,
       });
 
       if (error) {

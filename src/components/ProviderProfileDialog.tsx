@@ -174,7 +174,7 @@ const ProviderProfileDialog = ({
     }
   };
 
-  const handleSubmitReview = async (rating: number, comment: string) => {
+  const handleSubmitReview = async (rating: number, comment: string, images: string[] = []) => {
     if (!selectedServiceForReview || !currentUserId) {
       return { error: "Invalid state" };
     }
@@ -185,6 +185,7 @@ const ProviderProfileDialog = ({
         user_id: currentUserId,
         rating,
         comment: comment || null,
+        images: images.length > 0 ? images : null,
       });
 
       if (error) {

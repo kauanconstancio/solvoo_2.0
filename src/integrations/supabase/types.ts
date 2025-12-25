@@ -552,6 +552,7 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          images: string[] | null
           rating: number
           service_id: string
           updated_at: string
@@ -561,6 +562,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          images?: string[] | null
           rating: number
           service_id: string
           updated_at?: string
@@ -570,6 +572,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          images?: string[] | null
           rating?: number
           service_id?: string
           updated_at?: string
