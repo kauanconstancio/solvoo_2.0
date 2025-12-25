@@ -46,7 +46,7 @@ export interface Conversation {
   unread_count?: number;
 }
 
-export const useConversations = () => {
+export const useConversations = (showArchived: boolean = false) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -66,6 +66,14 @@ export const useConversations = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get archived conversation IDs for this user
+      const { data: archivedData } = await supabase
+        .from('conversation_archives')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      const archivedIds = new Set((archivedData || []).map(a => a.conversation_id));
+
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
@@ -74,9 +82,15 @@ export const useConversations = () => {
 
       if (error) throw error;
 
+      // Filter based on archived status
+      const filteredData = (data || []).filter(conv => {
+        const isArchived = archivedIds.has(conv.id);
+        return showArchived ? isArchived : !isArchived;
+      });
+
       // Fetch additional data for each conversation
       const enrichedConversations = await Promise.all(
-        (data || []).map(async (conv) => {
+        filteredData.map(async (conv) => {
           const otherUserId = conv.client_id === user.id ? conv.professional_id : conv.client_id;
           
           // Fetch other user's profile
@@ -134,7 +148,7 @@ export const useConversations = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, showArchived]);
 
   useEffect(() => {
     fetchConversations();
@@ -242,7 +256,81 @@ export const useConversations = () => {
     }
   }, [toast]);
 
-  return { conversations, isLoading, refetch: fetchConversations, deleteConversation };
+  const archiveConversation = useCallback(async (conversationId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { error } = await supabase
+        .from('conversation_archives')
+        .insert({
+          user_id: user.id,
+          conversation_id: conversationId,
+        });
+
+      if (error) throw error;
+
+      // Update local state
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+
+      toast({
+        title: 'Conversa arquivada',
+        description: 'A conversa foi movida para o arquivo.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error archiving conversation:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível arquivar a conversa.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [toast]);
+
+  const unarchiveConversation = useCallback(async (conversationId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { error } = await supabase
+        .from('conversation_archives')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('conversation_id', conversationId);
+
+      if (error) throw error;
+
+      // Update local state
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+
+      toast({
+        title: 'Conversa desarquivada',
+        description: 'A conversa foi restaurada.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Error unarchiving conversation:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível desarquivar a conversa.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  }, [toast]);
+
+  return { 
+    conversations, 
+    isLoading, 
+    refetch: fetchConversations, 
+    deleteConversation,
+    archiveConversation,
+    unarchiveConversation,
+  };
 };
 
 export const useMessages = (conversationId: string | undefined) => {
