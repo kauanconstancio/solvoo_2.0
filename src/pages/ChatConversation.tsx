@@ -23,10 +23,9 @@ import {
   Crop,
   Clock,
   QrCode,
-  Zap,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
-import { MessageTemplatesSheet } from "@/components/MessageTemplatesSheet";
+import { QuickRepliesBar } from "@/components/QuickRepliesBar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -1094,9 +1093,12 @@ const ChatConversation = () => {
       </main>
 
       {/* Input - Optimized for mobile */}
-      <footer className="sticky bottom-0 border-t bg-card/95 backdrop-blur-sm p-2 md:p-4 safe-area-bottom">
+      <footer className="sticky bottom-0 border-t bg-card/95 backdrop-blur-sm safe-area-bottom">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-end gap-1.5 md:gap-3">
+          {/* Quick Replies Bar */}
+          <QuickRepliesBar onSelectTemplate={(content) => setNewMessage(content)} />
+          
+          <div className="flex items-end gap-1.5 md:gap-3 p-2 md:p-4 pt-2 md:pt-2">
             {/* File Upload Button */}
             <input
               ref={fileInputRef}
@@ -1138,21 +1140,6 @@ const ChatConversation = () => {
               />
             )}
 
-            {/* Message Templates Button */}
-            <MessageTemplatesSheet
-              onSelectTemplate={(content) => setNewMessage(content)}
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={isSending}
-                  className="h-10 w-10 md:h-12 md:w-12 flex-shrink-0 rounded-xl hover:bg-primary/10 active:scale-95 transition-all"
-                  title="Respostas rápidas"
-                >
-                  <Zap className="h-5 w-5" />
-                </Button>
-              }
-            />
             <div className="flex-1 relative min-w-0">
               {/* Reply preview bar */}
               {replyingTo && (
