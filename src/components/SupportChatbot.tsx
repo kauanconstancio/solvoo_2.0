@@ -115,10 +115,6 @@ export const SupportChatbot = () => {
 
   // Hide on chat pages
   const isChatPage = location.pathname.startsWith('/chat');
-  
-  if (isChatPage) {
-    return null;
-  }
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -149,6 +145,11 @@ export const SupportChatbot = () => {
       inputRef.current.focus();
     }
   }, [isOpen, isMinimized]);
+
+  // Return null after all hooks are called
+  if (isChatPage) {
+    return null;
+  }
 
   const getUserInitials = () => {
     if (userProfile?.full_name) {
