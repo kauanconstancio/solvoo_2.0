@@ -75,7 +75,7 @@ const ServiceDetails = () => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
-  const { reviews, serviceRating, addReview } = useReviews(id);
+  const { reviews, serviceRating, addReview } = useReviews(service?.id);
   const { providerRating } = useProviderRating(provider?.user_id || null);
   const { createOrGetConversation } = useCreateConversation();
   const [isRequestingQuote, setIsRequestingQuote] = useState(false);
