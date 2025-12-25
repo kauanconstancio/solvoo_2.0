@@ -75,7 +75,7 @@ const ServiceDetails = () => {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
-  const { reviews, serviceRating, addReview } = useReviews(service?.id);
+  const { reviews, serviceRating, addReview, refetchReviews } = useReviews(service?.id);
   const { providerRating } = useProviderRating(provider?.user_id || null);
   const { createOrGetConversation } = useCreateConversation();
   const [isRequestingQuote, setIsRequestingQuote] = useState(false);
@@ -537,7 +537,12 @@ const ServiceDetails = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <ReviewsList reviews={reviews} />
+                    <ReviewsList 
+                      reviews={reviews} 
+                      currentUserId={currentUserId}
+                      serviceOwnerId={service?.user_id}
+                      onReviewUpdated={refetchReviews}
+                    />
                   </CardContent>
                 </Card>
               </div>

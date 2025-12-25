@@ -554,6 +554,9 @@ export type Database = {
           id: string
           images: string[] | null
           rating: number
+          responded_by: string | null
+          response_at: string | null
+          response_text: string | null
           service_id: string
           updated_at: string
           user_id: string
@@ -564,6 +567,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           rating: number
+          responded_by?: string | null
+          response_at?: string | null
+          response_text?: string | null
           service_id: string
           updated_at?: string
           user_id: string
@@ -574,6 +580,9 @@ export type Database = {
           id?: string
           images?: string[] | null
           rating?: number
+          responded_by?: string | null
+          response_at?: string | null
+          response_text?: string | null
           service_id?: string
           updated_at?: string
           user_id?: string

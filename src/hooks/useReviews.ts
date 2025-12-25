@@ -11,6 +11,9 @@ export interface Review {
   images: string[] | null;
   created_at: string;
   updated_at: string;
+  response_text: string | null;
+  response_at: string | null;
+  responded_by: string | null;
   profile?: {
     full_name: string | null;
     avatar_url: string | null;

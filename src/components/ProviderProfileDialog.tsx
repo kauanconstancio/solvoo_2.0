@@ -412,7 +412,12 @@ const ProviderProfileDialog = ({
                     </div>
                   )}
                 </div>
-                <ReviewsList reviews={allReviews} />
+                <ReviewsList 
+                  reviews={allReviews} 
+                  currentUserId={currentUserId}
+                  serviceOwnerId={userId}
+                  onReviewUpdated={refetchProviderRating}
+                />
               </div>
             </div>
           ) : (
