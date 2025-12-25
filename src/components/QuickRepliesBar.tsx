@@ -1,15 +1,15 @@
 import { useRef, useState, useEffect } from "react";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Hand, Package, Tag, Clock, Heart, LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Default quick replies available for all users
-const DEFAULT_QUICK_REPLIES = [
-  { id: "1", title: "Olá, tudo bem?", content: "Olá, tudo bem?" },
-  { id: "2", title: "Ainda está disponível?", content: "Olá! Ainda está disponível?" },
-  { id: "3", title: "Aceita oferta?", content: "Olá! Aceita proposta de valor?" },
-  { id: "4", title: "Qual o prazo?", content: "Olá! Qual seria o prazo de entrega?" },
-  { id: "5", title: "Obrigado!", content: "Muito obrigado pelo atendimento!" },
+const DEFAULT_QUICK_REPLIES: { id: string; title: string; content: string; icon: LucideIcon; color: string }[] = [
+  { id: "1", title: "Olá!", content: "Olá, tudo bem?", icon: Hand, color: "text-amber-500" },
+  { id: "2", title: "Disponível?", content: "Olá! Ainda está disponível?", icon: Package, color: "text-blue-500" },
+  { id: "3", title: "Aceita oferta?", content: "Olá! Aceita proposta de valor?", icon: Tag, color: "text-emerald-500" },
+  { id: "4", title: "Qual o prazo?", content: "Olá! Qual seria o prazo de entrega?", icon: Clock, color: "text-purple-500" },
+  { id: "5", title: "Obrigado!", content: "Muito obrigado pelo atendimento!", icon: Heart, color: "text-rose-500" },
 ];
 
 interface QuickRepliesBarProps {
@@ -70,15 +70,19 @@ export const QuickRepliesBar = ({ onSelectTemplate }: QuickRepliesBarProps) => {
           showRightArrow && "pr-7"
         )}
       >
-        {DEFAULT_QUICK_REPLIES.map((reply) => (
-          <button
-            key={reply.id}
-            onClick={() => onSelectTemplate(reply.content)}
-            className="flex-shrink-0 px-4 py-2 text-sm font-medium rounded-full border border-border bg-background hover:bg-muted/50 hover:border-primary/50 transition-all active:scale-95 whitespace-nowrap"
-          >
-            {reply.title}
-          </button>
-        ))}
+        {DEFAULT_QUICK_REPLIES.map((reply) => {
+          const Icon = reply.icon;
+          return (
+            <button
+              key={reply.id}
+              onClick={() => onSelectTemplate(reply.content)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full border border-border bg-background hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-95 whitespace-nowrap shadow-sm"
+            >
+              <Icon className={cn("h-3.5 w-3.5", reply.color)} />
+              <span>{reply.title}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Right arrow */}
