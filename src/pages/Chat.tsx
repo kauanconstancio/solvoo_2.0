@@ -11,6 +11,8 @@ import {
   MessagesSquare,
   Check,
   CheckCheck,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -19,10 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -43,7 +47,8 @@ import { ptBR } from "date-fns/locale";
 
 const Chat = () => {
   const navigate = useNavigate();
-  const { conversations, isLoading, deleteConversation } = useConversations();
+  const [showArchived, setShowArchived] = useState(false);
+  const { conversations, isLoading, deleteConversation, archiveConversation, unarchiveConversation } = useConversations(showArchived);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -51,6 +56,7 @@ const Chat = () => {
     string | null
   >(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   // Get conversation IDs for typing indicator
   const conversationIds = conversations.map(c => c.id);
@@ -127,6 +133,20 @@ const Chat = () => {
     setConversationToDelete(null);
   };
 
+  const handleArchiveClick = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    setIsArchiving(true);
+    await archiveConversation(conversationId);
+    setIsArchiving(false);
+  };
+
+  const handleUnarchiveClick = async (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    setIsArchiving(true);
+    await unarchiveConversation(conversationId);
+    setIsArchiving(false);
+  };
+
   const filteredConversations = conversations.filter((conv) => {
     if (!searchQuery) return true;
     const searchLower = searchQuery.toLowerCase();
@@ -192,19 +212,40 @@ const Chat = () => {
           <div className="max-w-4xl mx-auto">
             {/* Header Section */}
             <div className="mb-6 md:mb-8">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <MessagesSquare className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold">Mensagens</h1>
-                  <p className="text-muted-foreground text-sm">
-                    {conversations.length}{" "}
-                    {conversations.length === 1 ? "conversa" : "conversas"}
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <MessagesSquare className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl md:text-2xl font-bold">Mensagens</h1>
+                    <p className="text-muted-foreground text-sm">
+                      {conversations.length}{" "}
+                      {conversations.length === 1 ? "conversa" : "conversas"}
+                      {showArchived && " arquivadas"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Tabs */}
+            <Tabs 
+              value={showArchived ? "archived" : "active"} 
+              onValueChange={(v) => setShowArchived(v === "archived")}
+              className="mb-4 md:mb-6"
+            >
+              <TabsList className="grid w-full grid-cols-2 h-11">
+                <TabsTrigger value="active" className="gap-2">
+                  <MessagesSquare className="h-4 w-4" />
+                  Conversas
+                </TabsTrigger>
+                <TabsTrigger value="archived" className="gap-2">
+                  <Archive className="h-4 w-4" />
+                  Arquivadas
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
 
             {/* Search Bar */}
             {conversations.length > 0 && (
@@ -226,23 +267,31 @@ const Chat = () => {
               <Card className="border-dashed border-2 bg-card/50">
                 <CardContent className="py-16 md:py-20 text-center">
                   <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                    <Inbox className="h-10 w-10 text-primary" />
+                    {showArchived ? (
+                      <Archive className="h-10 w-10 text-primary" />
+                    ) : (
+                      <Inbox className="h-10 w-10 text-primary" />
+                    )}
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
-                    Sua caixa de entrada está vazia
+                    {showArchived ? "Nenhuma conversa arquivada" : "Sua caixa de entrada está vazia"}
                   </h3>
                   <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                    Encontre um serviço e solicite um orçamento para iniciar uma
-                    conversa com o profissional.
+                    {showArchived 
+                      ? "Conversas arquivadas aparecerão aqui."
+                      : "Encontre um serviço e solicite um orçamento para iniciar uma conversa com o profissional."
+                    }
                   </p>
-                  <Button
-                    size="lg"
-                    onClick={() => navigate("/categorias")}
-                    className="rounded-xl"
-                  >
-                    Explorar Serviços
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  {!showArchived && (
+                    <Button
+                      size="lg"
+                      onClick={() => navigate("/categorias")}
+                      className="rounded-xl"
+                    >
+                      Explorar Serviços
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : filteredConversations.length === 0 ? (
@@ -374,6 +423,24 @@ const Chat = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                  {showArchived ? (
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleUnarchiveClick(e, conversation.id)}
+                                      disabled={isArchiving}
+                                    >
+                                      <ArchiveRestore className="h-4 w-4 mr-2" />
+                                      Desarquivar
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleArchiveClick(e, conversation.id)}
+                                      disabled={isArchiving}
+                                    >
+                                      <Archive className="h-4 w-4 mr-2" />
+                                      Arquivar
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     onClick={(e) =>
                                       handleDeleteClick(e, conversation.id)
@@ -403,6 +470,24 @@ const Chat = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                  {showArchived ? (
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleUnarchiveClick(e, conversation.id)}
+                                      disabled={isArchiving}
+                                    >
+                                      <ArchiveRestore className="h-4 w-4 mr-2" />
+                                      Desarquivar
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={(e) => handleArchiveClick(e, conversation.id)}
+                                      disabled={isArchiving}
+                                    >
+                                      <Archive className="h-4 w-4 mr-2" />
+                                      Arquivar
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuItem
                                     onClick={(e) =>
                                       handleDeleteClick(e, conversation.id)
