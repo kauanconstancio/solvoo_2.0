@@ -39,7 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useConversations } from "@/hooks/useChat";
+import { useConversationsWithCache } from "@/hooks/useConversationsWithCache";
 import { useConversationTyping } from "@/hooks/useConversationTyping";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
@@ -48,7 +48,20 @@ import { ptBR } from "date-fns/locale";
 const Chat = () => {
   const navigate = useNavigate();
   const [showArchived, setShowArchived] = useState(false);
-  const { conversations, isLoading, deleteConversation, archiveConversation, unarchiveConversation } = useConversations(showArchived);
+  const { 
+    activeConversations, 
+    archivedConversations, 
+    activeCount,
+    archivedCount,
+    isLoading, 
+    deleteConversation, 
+    archiveConversation, 
+    unarchiveConversation 
+  } = useConversationsWithCache();
+  
+  // Get the conversations for the current tab
+  const conversations = showArchived ? archivedConversations : activeConversations;
+  
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -58,8 +71,8 @@ const Chat = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
-  // Get conversation IDs for typing indicator
-  const conversationIds = conversations.map(c => c.id);
+  // Get conversation IDs for typing indicator (only active conversations)
+  const conversationIds = activeConversations.map(c => c.id);
   const { isTyping, getTypingUser } = useConversationTyping(conversationIds);
 
   useEffect(() => {
@@ -239,10 +252,20 @@ const Chat = () => {
                 <TabsTrigger value="active" className="gap-2">
                   <MessagesSquare className="h-4 w-4" />
                   Conversas
+                  {activeCount > 0 && (
+                    <span className="ml-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                      {activeCount}
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="archived" className="gap-2">
                   <Archive className="h-4 w-4" />
                   Arquivadas
+                  {archivedCount > 0 && (
+                    <span className="ml-1 text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">
+                      {archivedCount}
+                    </span>
+                  )}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
