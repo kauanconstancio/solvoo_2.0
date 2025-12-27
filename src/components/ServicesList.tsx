@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
 import { AnimateOnScroll } from "./AnimateOnScroll";
+import { useServicesRatings } from "@/hooks/useReviews";
 
 interface Service {
   id: string;
@@ -24,6 +25,9 @@ const ServicesList = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
+  const { ratingsMap } = useServicesRatings(serviceIds);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -162,26 +166,31 @@ const ServicesList = () => {
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
               <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-                {filteredServices.map((service, index) => (
-                  <AnimateOnScroll
-                    key={service.id}
-                    animation="fade-up"
-                    delay={index * 30}
-                    duration={300}
-                    className="flex-shrink-0"
-                  >
-                    <ServiceCardCompact
-                      id={service.id}
-                      title={service.title}
-                      price={service.price}
-                      image={service.images?.[0]}
-                      category={service.category}
-                      subcategory={service.subcategory}
-                      providerName={service.provider_name}
-                      slug={service.slug}
-                    />
-                  </AnimateOnScroll>
-                ))}
+                {filteredServices.map((service, index) => {
+                  const serviceRating = ratingsMap[service.id];
+                  return (
+                    <AnimateOnScroll
+                      key={service.id}
+                      animation="fade-up"
+                      delay={index * 30}
+                      duration={300}
+                      className="flex-shrink-0"
+                    >
+                      <ServiceCardCompact
+                        id={service.id}
+                        title={service.title}
+                        price={service.price}
+                        image={service.images?.[0]}
+                        category={service.category}
+                        subcategory={service.subcategory}
+                        providerName={service.provider_name}
+                        slug={service.slug}
+                        rating={serviceRating?.average_rating}
+                        reviewCount={serviceRating?.review_count}
+                      />
+                    </AnimateOnScroll>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
