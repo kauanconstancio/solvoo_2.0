@@ -6,6 +6,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
 import { useServicesRatings } from "@/hooks/useReviews";
 import { AnimateOnScroll } from "./AnimateOnScroll";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface Service {
   id: string;
@@ -100,9 +107,9 @@ const ServicesList = () => {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="space-y-3">
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="min-w-[280px] sm:min-w-[320px] space-y-3">
                 <Skeleton className="aspect-[4/3] rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
@@ -169,35 +176,51 @@ const ServicesList = () => {
 
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {filteredServices.map((service, index) => {
-                  const serviceRating = ratingsMap[service.id];
-                  return (
-                    <AnimateOnScroll
-                      key={service.id}
-                      animation="fade-up"
-                      delay={index * 75}
-                      duration={400}
-                    >
-                      <ServiceCard
-                        id={service.id}
-                        title={service.title}
-                        provider={service.provider_name || undefined}
-                        location={getLocation(service.city, service.state)}
-                        price={service.price}
-                        image={service.images?.[0]}
-                        category={service.category}
-                        subcategory={service.subcategory}
-                        verified={service.verified}
-                        providerName={service.provider_name}
-                        rating={serviceRating?.average_rating}
-                        reviewCount={serviceRating?.review_count}
-                        slug={service.slug}
-                      />
-                    </AnimateOnScroll>
-                  );
-                })}
-              </div>
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {filteredServices.map((service, index) => {
+                    const serviceRating = ratingsMap[service.id];
+                    return (
+                      <CarouselItem
+                        key={service.id}
+                        className="pl-2 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3"
+                      >
+                        <AnimateOnScroll
+                          animation="fade-up"
+                          delay={index * 50}
+                          duration={400}
+                        >
+                          <ServiceCard
+                            id={service.id}
+                            title={service.title}
+                            provider={service.provider_name || undefined}
+                            location={getLocation(service.city, service.state)}
+                            price={service.price}
+                            image={service.images?.[0]}
+                            category={service.category}
+                            subcategory={service.subcategory}
+                            verified={service.verified}
+                            providerName={service.provider_name}
+                            rating={serviceRating?.average_rating}
+                            reviewCount={serviceRating?.review_count}
+                            slug={service.slug}
+                          />
+                        </AnimateOnScroll>
+                      </CarouselItem>
+                    );
+                  })}
+                </CarouselContent>
+                <div className="hidden sm:block">
+                  <CarouselPrevious className="-left-4 md:-left-6" />
+                  <CarouselNext className="-right-4 md:-right-6" />
+                </div>
+              </Carousel>
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
