@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { Sparkles } from "lucide-react";
-import ServiceCard from "./ServiceCard";
+import ServiceCardCompact from "./ServiceCardCompact";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useServicesRatings } from "@/hooks/useReviews";
 import { supabase } from "@/integrations/supabase/client";
+import { AnimateOnScroll } from "./AnimateOnScroll";
 
 interface ProviderInfo {
   [userId: string]: string | null;
@@ -39,9 +40,6 @@ const RecommendedServices = () => {
     fetchProviders();
   }, [recommendations]);
 
-  const getLocation = (city: string, state: string) => {
-    return `${city}, ${state.toUpperCase()}`;
-  };
 
   if (isLoading) {
     return (
@@ -56,11 +54,11 @@ const RecommendedServices = () => {
               <Skeleton className="h-4 w-48 mt-1" />
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="aspect-[4/3] rounded-lg" />
-                <Skeleton className="h-4 w-3/4" />
+          <div className="flex gap-3 overflow-hidden">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="w-[160px] sm:w-[180px] flex-shrink-0 space-y-2">
+                <Skeleton className="aspect-square rounded-lg" />
+                <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
             ))}
@@ -77,7 +75,7 @@ const RecommendedServices = () => {
   return (
     <section className="py-12 md:py-16">
       <div className="container px-4">
-        <div className="flex items-center gap-3 mb-8 md:mb-12">
+        <AnimateOnScroll animation="fade-up" className="flex items-center gap-3 mb-8">
           <div className="p-2 rounded-lg bg-primary/10">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
@@ -91,30 +89,34 @@ const RecommendedServices = () => {
               </p>
             )}
           </div>
-        </div>
+        </AnimateOnScroll>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {recommendations.map((service) => {
+        <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+          {recommendations.map((service, index) => {
             const serviceRating = ratingsMap[service.id];
             const providerName = providers[service.user_id] || null;
             
             return (
-              <ServiceCard
+              <AnimateOnScroll
                 key={service.id}
-                id={service.id}
-                title={service.title}
-                provider={providerName || undefined}
-                location={getLocation(service.city, service.state)}
-                price={service.price}
-                image={service.images?.[0]}
-                category={service.category}
-                subcategory={service.subcategory}
-                verified={service.verified}
-                providerName={providerName}
-                rating={serviceRating?.average_rating}
-                reviewCount={serviceRating?.review_count}
-                slug={(service as any).slug || null}
-              />
+                animation="fade-up"
+                delay={index * 30}
+                duration={300}
+                className="flex-shrink-0"
+              >
+                <ServiceCardCompact
+                  id={service.id}
+                  title={service.title}
+                  price={service.price}
+                  image={service.images?.[0]}
+                  category={service.category}
+                  subcategory={service.subcategory}
+                  providerName={providerName}
+                  rating={serviceRating?.average_rating}
+                  reviewCount={serviceRating?.review_count}
+                  slug={(service as any).slug || null}
+                />
+              </AnimateOnScroll>
             );
           })}
         </div>

@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -14,6 +14,8 @@ interface ServiceCardCompactProps {
   subcategory?: string | null;
   providerName?: string | null;
   slug?: string | null;
+  rating?: number;
+  reviewCount?: number;
 }
 
 const ServiceCardCompact = ({
@@ -25,6 +27,8 @@ const ServiceCardCompact = ({
   subcategory,
   providerName = null,
   slug = null,
+  rating = 0,
+  reviewCount = 0,
 }: ServiceCardCompactProps) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const displayImage =
@@ -75,6 +79,13 @@ const ServiceCardCompact = ({
           <h3 className="font-medium text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {title}
           </h3>
+          {rating > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="font-medium">{rating.toFixed(1)}</span>
+              <span className="text-muted-foreground">({reviewCount})</span>
+            </div>
+          )}
           <p className="text-base font-bold text-primary">
             {price}
           </p>
