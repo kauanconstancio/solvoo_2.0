@@ -6,13 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
 import { useServicesRatings } from "@/hooks/useReviews";
 import { AnimateOnScroll } from "./AnimateOnScroll";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 interface Service {
   id: string;
@@ -176,51 +169,36 @@ const ServicesList = () => {
 
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="-ml-2 md:-ml-4">
-                  {filteredServices.map((service, index) => {
-                    const serviceRating = ratingsMap[service.id];
-                    return (
-                      <CarouselItem
-                        key={service.id}
-                        className="pl-2 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3"
-                      >
-                        <AnimateOnScroll
-                          animation="fade-up"
-                          delay={index * 50}
-                          duration={400}
-                        >
-                          <ServiceCard
-                            id={service.id}
-                            title={service.title}
-                            provider={service.provider_name || undefined}
-                            location={getLocation(service.city, service.state)}
-                            price={service.price}
-                            image={service.images?.[0]}
-                            category={service.category}
-                            subcategory={service.subcategory}
-                            verified={service.verified}
-                            providerName={service.provider_name}
-                            rating={serviceRating?.average_rating}
-                            reviewCount={serviceRating?.review_count}
-                            slug={service.slug}
-                          />
-                        </AnimateOnScroll>
-                      </CarouselItem>
-                    );
-                  })}
-                </CarouselContent>
-                <div className="hidden sm:block">
-                  <CarouselPrevious className="-left-4 md:-left-6" />
-                  <CarouselNext className="-right-4 md:-right-6" />
-                </div>
-              </Carousel>
+              <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+                {filteredServices.map((service, index) => {
+                  const serviceRating = ratingsMap[service.id];
+                  return (
+                    <AnimateOnScroll
+                      key={service.id}
+                      animation="fade-up"
+                      delay={index * 50}
+                      duration={400}
+                      className="min-w-[280px] sm:min-w-[320px] flex-shrink-0"
+                    >
+                      <ServiceCard
+                        id={service.id}
+                        title={service.title}
+                        provider={service.provider_name || undefined}
+                        location={getLocation(service.city, service.state)}
+                        price={service.price}
+                        image={service.images?.[0]}
+                        category={service.category}
+                        subcategory={service.subcategory}
+                        verified={service.verified}
+                        providerName={service.provider_name}
+                        rating={serviceRating?.average_rating}
+                        reviewCount={serviceRating?.review_count}
+                        slug={service.slug}
+                      />
+                    </AnimateOnScroll>
+                  );
+                })}
+              </div>
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
