@@ -1,10 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import ServiceCard from "./ServiceCard";
+import ServiceCardCompact from "./ServiceCardCompact";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
-import { useServicesRatings } from "@/hooks/useReviews";
 import { AnimateOnScroll } from "./AnimateOnScroll";
 
 interface Service {
@@ -25,9 +24,6 @@ const ServicesList = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  
-  const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
-  const { ratingsMap } = useServicesRatings(serviceIds);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -82,10 +78,6 @@ const ServicesList = () => {
     ? services 
     : services.filter(s => s.category === selectedCategory);
 
-  const getLocation = (city: string, state: string) => {
-    return `${city}, ${state.toUpperCase()}`;
-  };
-
   if (isLoading) {
     return (
       <section className="py-12 md:py-16 bg-muted/30">
@@ -100,11 +92,11 @@ const ServicesList = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-4 overflow-hidden">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="min-w-[280px] sm:min-w-[320px] space-y-3">
-                <Skeleton className="aspect-[4/3] rounded-lg" />
-                <Skeleton className="h-4 w-3/4" />
+          <div className="flex gap-3 overflow-hidden">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="w-[160px] sm:w-[180px] flex-shrink-0 space-y-2">
+                <Skeleton className="aspect-square rounded-lg" />
+                <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
             ))}
@@ -169,35 +161,27 @@ const ServicesList = () => {
 
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-                {filteredServices.map((service, index) => {
-                  const serviceRating = ratingsMap[service.id];
-                  return (
-                    <AnimateOnScroll
-                      key={service.id}
-                      animation="fade-up"
-                      delay={index * 50}
-                      duration={400}
-                      className="min-w-[280px] sm:min-w-[320px] flex-shrink-0"
-                    >
-                      <ServiceCard
-                        id={service.id}
-                        title={service.title}
-                        provider={service.provider_name || undefined}
-                        location={getLocation(service.city, service.state)}
-                        price={service.price}
-                        image={service.images?.[0]}
-                        category={service.category}
-                        subcategory={service.subcategory}
-                        verified={service.verified}
-                        providerName={service.provider_name}
-                        rating={serviceRating?.average_rating}
-                        reviewCount={serviceRating?.review_count}
-                        slug={service.slug}
-                      />
-                    </AnimateOnScroll>
-                  );
-                })}
+              <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+                {filteredServices.map((service, index) => (
+                  <AnimateOnScroll
+                    key={service.id}
+                    animation="fade-up"
+                    delay={index * 30}
+                    duration={300}
+                    className="flex-shrink-0"
+                  >
+                    <ServiceCardCompact
+                      id={service.id}
+                      title={service.title}
+                      price={service.price}
+                      image={service.images?.[0]}
+                      category={service.category}
+                      subcategory={service.subcategory}
+                      providerName={service.provider_name}
+                      slug={service.slug}
+                    />
+                  </AnimateOnScroll>
+                ))}
               </div>
             ) : (
               <div className="text-center py-12">
