@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { Sparkles } from "lucide-react";
 import ServiceCardCompact from "./ServiceCardCompact";
+import HorizontalScrollSection from "./HorizontalScrollSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useServicesRatings } from "@/hooks/useReviews";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimateOnScroll } from "./AnimateOnScroll";
-
 interface ProviderInfo {
   [userId: string]: string | null;
 }
@@ -91,7 +91,7 @@ const RecommendedServices = () => {
           </div>
         </AnimateOnScroll>
 
-        <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+        <HorizontalScrollSection>
           {recommendations.map((service, index) => {
             const serviceRating = ratingsMap[service.id];
             const providerName = providers[service.user_id] || null;
@@ -119,7 +119,7 @@ const RecommendedServices = () => {
               </AnimateOnScroll>
             );
           })}
-        </div>
+        </HorizontalScrollSection>
       </div>
     </section>
   );
