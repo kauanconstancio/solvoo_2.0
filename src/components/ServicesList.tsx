@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import ServiceCardCompact from "./ServiceCardCompact";
+import HorizontalScrollSection from "./HorizontalScrollSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
 import { AnimateOnScroll } from "./AnimateOnScroll";
 import { useServicesRatings } from "@/hooks/useReviews";
-
 interface Service {
   id: string;
   title: string;
@@ -165,7 +165,7 @@ const ServicesList = () => {
 
           <TabsContent value={selectedCategory} className="mt-0">
             {filteredServices.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+              <HorizontalScrollSection>
                 {filteredServices.map((service, index) => {
                   const serviceRating = ratingsMap[service.id];
                   return (
@@ -191,7 +191,7 @@ const ServicesList = () => {
                     </AnimateOnScroll>
                   );
                 })}
-              </div>
+              </HorizontalScrollSection>
             ) : (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">
