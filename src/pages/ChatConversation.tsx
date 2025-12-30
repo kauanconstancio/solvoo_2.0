@@ -24,6 +24,7 @@ import {
   Clock,
   QrCode,
   Archive,
+  ChevronDown,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import { QuickRepliesBar } from "@/components/QuickRepliesBar";
@@ -183,7 +184,9 @@ const ChatConversation = () => {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string>("");
   const [originalImageFile, setOriginalImageFile] = useState<File | null>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const captionInputRef = useRef<HTMLTextAreaElement>(null);
@@ -327,6 +330,18 @@ const ChatConversation = () => {
       markAsRead(conversationId);
     }
   }, [messages, conversationId, markAsRead]);
+
+  // Handle scroll to show/hide scroll-to-bottom button
+  const handleScroll = () => {
+    if (!messagesContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setShowScrollButton(!isNearBottom);
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleDeleteConversation = async () => {
     if (!conversationId) return;
@@ -946,7 +961,22 @@ const ChatConversation = () => {
       })()}
 
       {/* Messages */}
-      <main className="flex-1 overflow-y-auto bg-muted/20 overscroll-contain">
+      <main 
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto bg-muted/20 overscroll-contain relative"
+      >
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={scrollToBottom}
+            className="fixed bottom-24 right-4 md:right-8 z-40 h-10 w-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm border hover:bg-primary hover:text-primary-foreground transition-all animate-fade-in"
+          >
+            <ChevronDown className="h-5 w-5" />
+          </Button>
+        )}
         <div className="max-w-4xl mx-auto px-2 md:px-4 py-3 md:py-4 space-y-2 md:space-y-3">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 md:py-24 px-4">
