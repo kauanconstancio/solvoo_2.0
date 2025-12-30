@@ -190,7 +190,7 @@ const BottomNavigation = () => {
               </SheetTitle>
             </SheetHeader>
 
-            <div className="space-y-4 overflow-y-auto max-h-[calc(85vh-100px)] pb-8">
+            <div className="space-y-4 overflow-y-auto max-h-[calc(85vh-100px)] pb-8 scrollbar-hide">
               {user ? (
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                   <Avatar className="h-12 w-12">
