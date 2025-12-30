@@ -75,18 +75,22 @@ const ServiceCardCompact = ({
           </Button>
         </div>
 
-        <div className="p-2.5 space-y-1">
+        <div className="p-2.5 flex flex-col h-[88px]">
           <h3 className="font-medium text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {title}
           </h3>
-          {rating > 0 && (
-            <div className="flex items-center gap-1 text-xs">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">{rating.toFixed(1)}</span>
-              <span className="text-muted-foreground">({reviewCount})</span>
-            </div>
-          )}
-          <p className="text-base font-bold text-primary">
+          <div className="flex items-center gap-1 text-xs h-4 mt-1">
+            {rating > 0 ? (
+              <>
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{rating.toFixed(1)}</span>
+                <span className="text-muted-foreground">({reviewCount})</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">Sem avaliações</span>
+            )}
+          </div>
+          <p className="text-base font-bold text-primary mt-auto">
             {price}
           </p>
         </div>
