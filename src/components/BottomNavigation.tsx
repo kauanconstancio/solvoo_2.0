@@ -127,6 +127,12 @@ const BottomNavigation = () => {
     return location.pathname === path;
   };
 
+  // Hide bottom navigation on individual chat conversation pages
+  const isConversationPage = location.pathname.match(/^\/chat\/[^/]+$/);
+  if (isConversationPage) {
+    return null;
+  }
+
   const navItems = [
     { path: "/", icon: Home, label: "Início" },
     { path: "/busca", icon: Search, label: "Buscar" },
