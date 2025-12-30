@@ -324,23 +324,43 @@ const ChatConversation = () => {
     sendPendingMessage();
   }, [conversationId, isNewConversation, sendMessage]);
 
+  // Track if user is at bottom to control auto-scroll
+  const isUserAtBottomRef = useRef(true);
+  const prevMessagesLengthRef = useRef(0);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only auto-scroll if:
+    // 1. User is already at bottom, OR
+    // 2. It's the initial load (first messages), OR
+    // 3. User just sent a new message (they would want to see it)
+    const isInitialLoad = prevMessagesLengthRef.current === 0 && messages.length > 0;
+    const newMessageReceived = messages.length > prevMessagesLengthRef.current;
+    const lastMessage = messages[messages.length - 1];
+    const isOwnNewMessage = newMessageReceived && lastMessage?.sender_id === currentUserId;
+
+    if (isInitialLoad || isUserAtBottomRef.current || isOwnNewMessage) {
+      messagesEndRef.current?.scrollIntoView({ behavior: isInitialLoad ? "auto" : "smooth" });
+    }
+
+    prevMessagesLengthRef.current = messages.length;
+
     if (conversationId && messages.length > 0) {
       markAsRead(conversationId);
     }
-  }, [messages, conversationId, markAsRead]);
+  }, [messages, conversationId, markAsRead, currentUserId]);
 
   // Handle scroll to show/hide scroll-to-bottom button
   const handleScroll = () => {
     if (!messagesContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
     const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    isUserAtBottomRef.current = isNearBottom;
     setShowScrollButton(!isNearBottom);
   };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setShowScrollButton(false);
   };
 
   const handleDeleteConversation = async () => {
