@@ -52,7 +52,7 @@ const HorizontalScrollSection = ({ children, className = "" }: HorizontalScrollS
         <Button
           variant="secondary"
           size="icon"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg opacity-0 group-hover/scroll:opacity-100 transition-opacity hidden sm:flex"
+          className="absolute -left-2 md:left-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 md:h-10 md:w-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm border hover:bg-primary hover:text-primary-foreground transition-all"
           onClick={() => scroll("left")}
         >
           <ChevronLeft className="h-5 w-5" />
@@ -72,7 +72,7 @@ const HorizontalScrollSection = ({ children, className = "" }: HorizontalScrollS
         <Button
           variant="secondary"
           size="icon"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full shadow-lg opacity-0 group-hover/scroll:opacity-100 transition-opacity hidden sm:flex"
+          className="absolute -right-2 md:right-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 md:h-10 md:w-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm border hover:bg-primary hover:text-primary-foreground transition-all"
           onClick={() => scroll("right")}
         >
           <ChevronRight className="h-5 w-5" />
