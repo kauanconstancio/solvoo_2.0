@@ -122,11 +122,14 @@ const BottomNavigation = () => {
     return user?.email?.split("@")[0] || "Usuário";
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === "/chat") return location.pathname.startsWith("/chat");
+    return location.pathname === path;
+  };
 
   const navItems = [
     { path: "/", icon: Home, label: "Início" },
-    { path: "/buscar", icon: Search, label: "Buscar" },
+    { path: "/busca", icon: Search, label: "Buscar" },
     { path: "/anunciar", icon: PlusCircle, label: "Anunciar", highlight: true },
     { path: "/chat", icon: MessageSquare, label: "Chat", badge: unreadCount },
   ];
@@ -152,12 +155,12 @@ const BottomNavigation = () => {
               ) : (
                 <item.icon className="h-5 w-5" />
               )}
-              {typeof item.badge === 'number' && item.badge > 0 && (
+              {Number(item.badge ?? 0) > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-2 -right-2 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center"
+                  className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 h-4 min-w-4 px-1 text-[10px] leading-none flex items-center justify-center"
                 >
-                  {item.badge > 99 ? "99+" : item.badge}
+                  {Number(item.badge) > 99 ? "99+" : Number(item.badge)}
                 </Badge>
               )}
             </div>
