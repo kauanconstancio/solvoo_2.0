@@ -31,6 +31,7 @@ import { QuickRepliesBar } from "@/components/QuickRepliesBar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -185,6 +186,7 @@ const ChatConversation = () => {
   const [imageToCrop, setImageToCrop] = useState<string>("");
   const [originalImageFile, setOriginalImageFile] = useState<File | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [unreadWhileScrolled, setUnreadWhileScrolled] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -334,12 +336,17 @@ const ChatConversation = () => {
     // 2. It's the initial load (first messages), OR
     // 3. User just sent a new message (they would want to see it)
     const isInitialLoad = prevMessagesLengthRef.current === 0 && messages.length > 0;
-    const newMessageReceived = messages.length > prevMessagesLengthRef.current;
+    const newMessagesCount = messages.length - prevMessagesLengthRef.current;
+    const newMessageReceived = newMessagesCount > 0;
     const lastMessage = messages[messages.length - 1];
     const isOwnNewMessage = newMessageReceived && lastMessage?.sender_id === currentUserId;
 
     if (isInitialLoad || isUserAtBottomRef.current || isOwnNewMessage) {
       messagesEndRef.current?.scrollIntoView({ behavior: isInitialLoad ? "auto" : "smooth" });
+      setUnreadWhileScrolled(0);
+    } else if (newMessageReceived && !isUserAtBottomRef.current) {
+      // User is scrolled up and received new messages from others
+      setUnreadWhileScrolled((prev) => prev + newMessagesCount);
     }
 
     prevMessagesLengthRef.current = messages.length;
@@ -356,11 +363,17 @@ const ChatConversation = () => {
     const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
     isUserAtBottomRef.current = isNearBottom;
     setShowScrollButton(!isNearBottom);
+    
+    // Clear unread counter when user scrolls to bottom
+    if (isNearBottom) {
+      setUnreadWhileScrolled(0);
+    }
   };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     setShowScrollButton(false);
+    setUnreadWhileScrolled(0);
   };
 
   const handleDeleteConversation = async () => {
@@ -995,6 +1008,14 @@ const ChatConversation = () => {
             className="fixed bottom-24 right-4 md:right-8 z-40 h-10 w-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm border hover:bg-primary hover:text-primary-foreground transition-all animate-fade-in"
           >
             <ChevronDown className="h-5 w-5" />
+            {unreadWhileScrolled > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-5 min-w-5 px-1.5 text-[10px] leading-none flex items-center justify-center animate-scale-in"
+              >
+                {unreadWhileScrolled > 99 ? "99+" : unreadWhileScrolled}
+              </Badge>
+            )}
           </Button>
         )}
         <div className="max-w-4xl mx-auto px-2 md:px-4 py-3 md:py-4 space-y-2 md:space-y-3">
