@@ -152,7 +152,7 @@ const BottomNavigation = () => {
               ) : (
                 <item.icon className="h-5 w-5" />
               )}
-              {item.badge && item.badge > 0 && (
+              {typeof item.badge === 'number' && item.badge > 0 && (
                 <Badge
                   variant="destructive"
                   className="absolute -top-2 -right-2 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center"
