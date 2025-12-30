@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "./components/ThemeProvider";
 import ChatNotificationProvider from "./components/ChatNotificationProvider";
@@ -12,6 +12,24 @@ import AnimatedRoutes from "./AppRoutes";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  const location = useLocation();
+  
+  // Check if we're on a chat conversation page (not the chat list)
+  const isConversationPage = location.pathname.match(/^\/chat\/[^/]+$/);
+  
+  return (
+    <>
+      <ChatNotificationProvider />
+      <div className={isConversationPage ? "" : "pb-16 lg:pb-0"}>
+        <AnimatedRoutes />
+      </div>
+      <BottomNavigation />
+      <SupportChatbot />
+    </>
+  );
+};
+
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
@@ -20,12 +38,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <ChatNotificationProvider />
-            <div className="pb-16 lg:pb-0">
-              <AnimatedRoutes />
-            </div>
-            <BottomNavigation />
-            <SupportChatbot />
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
