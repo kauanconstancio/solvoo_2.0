@@ -248,7 +248,7 @@ export const SupportChatbot = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-50 bg-primary hover:bg-primary/90"
+        className="fixed bottom-20 lg:bottom-6 right-4 lg:right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-50 bg-primary hover:bg-primary/90"
         size="icon"
       >
         <MessageCircle className="h-6 w-6" />
@@ -259,7 +259,7 @@ export const SupportChatbot = () => {
   return (
     <div 
       className={cn(
-        "fixed bottom-6 right-6 z-50 transition-all duration-300 ease-in-out",
+        "fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-50 transition-all duration-300 ease-in-out",
         isMinimized ? "w-72" : "w-80 sm:w-96"
       )}
     >
