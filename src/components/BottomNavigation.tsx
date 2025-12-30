@@ -147,13 +147,23 @@ const BottomNavigation = () => {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
+            {/* Active indicator line */}
+            {isActive(item.path) && !item.highlight && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full animate-scale-in" />
+            )}
             <div className="relative">
               {item.highlight ? (
-                <div className="p-1.5 rounded-full bg-primary text-primary-foreground">
+                <div className={`p-1.5 rounded-full transition-transform duration-200 ${
+                  isActive(item.path) 
+                    ? "bg-primary text-primary-foreground scale-110" 
+                    : "bg-primary text-primary-foreground"
+                }`}>
                   <item.icon className="h-5 w-5" />
                 </div>
               ) : (
-                <item.icon className="h-5 w-5" />
+                <item.icon className={`h-5 w-5 transition-transform duration-200 ${
+                  isActive(item.path) ? "scale-110" : ""
+                }`} />
               )}
               {Number(item.badge ?? 0) > 0 && (
                 <Badge
@@ -164,7 +174,9 @@ const BottomNavigation = () => {
                 </Badge>
               )}
             </div>
-            <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+            <span className={`text-[10px] mt-1 font-medium transition-all duration-200 ${
+              isActive(item.path) ? "font-semibold" : ""
+            }`}>{item.label}</span>
           </Link>
         ))}
 
