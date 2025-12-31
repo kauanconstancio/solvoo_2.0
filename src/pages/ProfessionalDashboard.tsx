@@ -14,6 +14,7 @@ import {
   Users,
   Zap,
   Calendar,
+  CalendarClock,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -228,6 +229,10 @@ const ProfessionalDashboard = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Button variant="outline" onClick={() => navigate("/agenda")} className="w-fit">
+                <CalendarClock className="h-4 w-4 mr-2" />
+                Configurar Agenda
+              </Button>
               <Button onClick={() => navigate("/anunciar")} className="w-fit">
                 <Package className="h-4 w-4 mr-2" />
                 Gerenciar Anúncios

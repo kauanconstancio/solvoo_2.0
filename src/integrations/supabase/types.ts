@@ -405,6 +405,33 @@ export type Database = {
           },
         ]
       }
+      professional_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          id: string
+          is_available: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          id?: string
+          is_available?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          is_available?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_type: string | null
@@ -660,6 +687,68 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      schedule_blocks: {
+        Row: {
+          block_date: string
+          created_at: string
+          end_time: string | null
+          id: string
+          reason: string | null
+          start_time: string | null
+          user_id: string
+        }
+        Insert: {
+          block_date: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          reason?: string | null
+          start_time?: string | null
+          user_id: string
+        }
+        Update: {
+          block_date?: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          reason?: string | null
+          start_time?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      schedule_time_slots: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          schedule_id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          schedule_id: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          schedule_id?: string
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_time_slots_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "professional_schedules"
+            referencedColumns: ["id"]
           },
         ]
       }
