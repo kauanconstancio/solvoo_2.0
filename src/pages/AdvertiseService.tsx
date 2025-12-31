@@ -38,7 +38,9 @@ import {
   List,
   Wand2,
   BarChart3,
+  CalendarClock,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useGenerateDescription } from "@/hooks/useGenerateDescription";
 import { useContentModeration } from "@/hooks/useContentModeration";
@@ -358,6 +360,29 @@ const AdvertiseService = () => {
           </TabsList>
 
           <TabsContent value="my-services">
+            {/* Atalho para Configurar Agenda */}
+            <Card className="mb-6 border-primary/20 bg-primary/5">
+              <CardContent className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CalendarClock className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Configure sua Agenda</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Defina seus horários disponíveis para agendamentos
+                    </p>
+                  </div>
+                </div>
+                <Button asChild size="sm">
+                  <Link to="/agenda">
+                    <CalendarClock className="w-4 h-4 mr-2" />
+                    Configurar
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
             <MyServices />
           </TabsContent>
 
