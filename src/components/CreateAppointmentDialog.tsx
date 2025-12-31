@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Clock, MapPin } from "lucide-react";
@@ -37,6 +37,8 @@ interface CreateAppointmentDialogProps {
   serviceId?: string;
   conversationId?: string;
   serviceName?: string;
+  initialDate?: Date;
+  initialTime?: string;
 }
 
 const timeSlots = [
@@ -64,15 +66,24 @@ export function CreateAppointmentDialog({
   serviceId,
   conversationId,
   serviceName,
+  initialDate,
+  initialTime,
 }: CreateAppointmentDialogProps) {
-  const [date, setDate] = useState<Date>();
-  const [time, setTime] = useState<string>("");
+  const [date, setDate] = useState<Date | undefined>(initialDate);
+  const [time, setTime] = useState<string>(initialTime || "");
   const [duration, setDuration] = useState("60");
   const [title, setTitle] = useState(serviceName || "");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createAppointment } = useAppointments();
+
+  // Update state when initial values change
+  useEffect(() => {
+    if (initialDate) setDate(initialDate);
+    if (initialTime) setTime(initialTime);
+    if (serviceName) setTitle(serviceName);
+  }, [initialDate, initialTime, serviceName]);
 
   const handleSubmit = async () => {
     if (!date || !time || !title.trim()) return;
@@ -99,8 +110,8 @@ export function CreateAppointmentDialog({
   };
 
   const resetForm = () => {
-    setDate(undefined);
-    setTime("");
+    setDate(initialDate);
+    setTime(initialTime || "");
     setDuration("60");
     setTitle(serviceName || "");
     setDescription("");

@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarOff } from 'lucide-react';
+import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarOff, CalendarCheck } from 'lucide-react';
 import { format, addDays, isSameDay, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface TimeSlot {
   id: string;
@@ -30,17 +31,39 @@ interface ScheduleBlock {
 
 interface ProfessionalAvailabilityProps {
   professionalId: string;
+  serviceId?: string;
+  serviceName?: string;
+  onSlotSelect?: (date: Date, slot: TimeSlot) => void;
+  selectable?: boolean;
 }
 
-export function ProfessionalAvailability({ professionalId }: ProfessionalAvailabilityProps) {
+export function ProfessionalAvailability({ 
+  professionalId, 
+  serviceId,
+  serviceName,
+  onSlotSelect,
+  selectable = true 
+}: ProfessionalAvailabilityProps) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [schedules, setSchedules] = useState<DaySchedule[]>([]);
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [startIndex, setStartIndex] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const DAYS_TO_SHOW = 7;
   const TOTAL_DAYS = 14;
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
     const fetchAvailability = async () => {
@@ -134,6 +157,47 @@ export function ProfessionalAvailability({ professionalId }: ProfessionalAvailab
     return dates;
   };
 
+  const handleSlotClick = (slot: TimeSlot) => {
+    if (!selectable) return;
+    
+    if (selectedSlot?.id === slot.id) {
+      setSelectedSlot(null);
+    } else {
+      setSelectedSlot(slot);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    if (!selectedSlot || !selectedDate) return;
+
+    if (!currentUserId) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para agendar um horário.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    if (onSlotSelect) {
+      onSlotSelect(selectedDate, selectedSlot);
+      return;
+    }
+
+    // Navigate to chat with selected slot info
+    const params = new URLSearchParams({
+      professionalId,
+      ...(serviceId && { serviceId }),
+      selectedDate: format(selectedDate, 'yyyy-MM-dd'),
+      selectedTime: selectedSlot.start_time,
+      selectedEndTime: selectedSlot.end_time,
+      ...(serviceName && { serviceName }),
+    });
+
+    navigate(`/chat/new?${params.toString()}`);
+  };
+
   const allDates = getDates();
   const visibleDates = allDates.slice(startIndex, startIndex + DAYS_TO_SHOW);
   const selectedSlots = getAvailableSlotsForDate(selectedDate);
@@ -148,6 +212,11 @@ export function ProfessionalAvailability({ professionalId }: ProfessionalAvailab
   const scrollRight = () => {
     if (canScrollRight) setStartIndex(prev => prev + 1);
   };
+
+  // Reset selected slot when date changes
+  useEffect(() => {
+    setSelectedSlot(null);
+  }, [selectedDate]);
 
   if (isLoading) {
     return (
@@ -254,18 +323,49 @@ export function ProfessionalAvailability({ professionalId }: ProfessionalAvailab
           </p>
           
           {selectedSlots.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {selectedSlots.map((slot) => (
-                <Badge
-                  key={slot.id}
-                  variant="secondary"
-                  className="py-1.5 px-3 text-sm font-medium"
-                >
-                  <Clock className="h-3.5 w-3.5 mr-1.5" />
-                  {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                </Badge>
-              ))}
-            </div>
+            <>
+              <div className="flex flex-wrap gap-2">
+                {selectedSlots.map((slot) => {
+                  const isSlotSelected = selectedSlot?.id === slot.id;
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => handleSlotClick(slot)}
+                      disabled={!selectable}
+                      className={cn(
+                        "inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium transition-all",
+                        isSlotSelected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80",
+                        selectable && "cursor-pointer",
+                        !selectable && "cursor-default"
+                      )}
+                    >
+                      <Clock className="h-3.5 w-3.5 mr-1.5" />
+                      {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Book Button */}
+              {selectable && selectedSlot && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Horário selecionado: </span>
+                      <span className="font-medium">
+                        {format(selectedDate, "dd/MM", { locale: ptBR })} às {formatTime(selectedSlot.start_time)}
+                      </span>
+                    </div>
+                    <Button onClick={handleBookAppointment} size="sm">
+                      <CalendarCheck className="h-4 w-4 mr-2" />
+                      Agendar
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex items-center gap-2 text-muted-foreground text-sm py-3">
               <CalendarOff className="h-4 w-4" />
