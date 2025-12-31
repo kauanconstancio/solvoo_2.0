@@ -33,6 +33,7 @@ import ReviewDialog from "@/components/ReviewDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateConversation } from "@/hooks/useChat";
 import { isUUID } from "@/lib/slugUtils";
+import { ProfessionalAvailability } from "@/components/ProfessionalAvailability";
 
 interface ProviderProfile {
   user_id: string;
@@ -707,6 +708,11 @@ const ServiceDetails = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Availability Card */}
+                {currentUserId !== service.user_id && (
+                  <ProfessionalAvailability professionalId={service.user_id} />
+                )}
               </div>
             </div>
           </div>
