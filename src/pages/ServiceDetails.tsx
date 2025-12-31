@@ -711,7 +711,11 @@ const ServiceDetails = () => {
 
                 {/* Availability Card */}
                 {currentUserId !== service.user_id && (
-                  <ProfessionalAvailability professionalId={service.user_id} />
+                  <ProfessionalAvailability 
+                    professionalId={service.user_id} 
+                    serviceId={service.id}
+                    serviceName={service.title}
+                  />
                 )}
               </div>
             </div>

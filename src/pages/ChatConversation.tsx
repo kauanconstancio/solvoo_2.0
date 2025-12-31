@@ -115,6 +115,9 @@ const ChatConversation = () => {
   const isNewConversation = conversationId === "new";
   const professionalId = searchParams.get("professionalId");
   const serviceId = searchParams.get("serviceId");
+  const selectedDateParam = searchParams.get("selectedDate");
+  const selectedTimeParam = searchParams.get("selectedTime");
+  const serviceNameParam = searchParams.get("serviceName");
 
   const {
     items,
@@ -181,6 +184,11 @@ const ChatConversation = () => {
     useState(isNewConversation);
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
   const [appointmentsSheetOpen, setAppointmentsSheetOpen] = useState(false);
+  const [scheduledAppointmentData, setScheduledAppointmentData] = useState<{
+    date: Date;
+    time: string;
+    serviceName?: string;
+  } | null>(null);
   // Image cropper state
   const [cropperOpen, setCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string>("");
@@ -325,6 +333,42 @@ const ChatConversation = () => {
 
     sendPendingMessage();
   }, [conversationId, isNewConversation, sendMessage]);
+
+  // Handle scheduled appointment from availability selection
+  useEffect(() => {
+    const handleScheduledAppointment = async () => {
+      const pendingAppointmentStr = sessionStorage.getItem("pendingAppointment");
+      if (pendingAppointmentStr && conversationId && !isNewConversation && currentUserId) {
+        try {
+          const pendingAppointment = JSON.parse(pendingAppointmentStr);
+          sessionStorage.removeItem("pendingAppointment");
+          
+          setScheduledAppointmentData({
+            date: new Date(pendingAppointment.date),
+            time: pendingAppointment.time,
+            serviceName: pendingAppointment.serviceName,
+          });
+          setAppointmentDialogOpen(true);
+        } catch (error) {
+          console.error("Error processing pending appointment:", error);
+        }
+      }
+    };
+
+    handleScheduledAppointment();
+  }, [conversationId, isNewConversation, currentUserId]);
+
+  // Check for appointment params in URL on new conversation
+  useEffect(() => {
+    if (isNewConversation && selectedDateParam && selectedTimeParam) {
+      // Store appointment data for after conversation creation
+      sessionStorage.setItem("pendingAppointment", JSON.stringify({
+        date: selectedDateParam,
+        time: selectedTimeParam,
+        serviceName: serviceNameParam || service?.title,
+      }));
+    }
+  }, [isNewConversation, selectedDateParam, selectedTimeParam, serviceNameParam, service?.title]);
 
   // Track if user is at bottom to control auto-scroll
   const isUserAtBottomRef = useRef(true);
@@ -1470,7 +1514,7 @@ const ChatConversation = () => {
         onPaymentConfirmed={handlePaymentConfirmed}
       />
 
-      {/* Appointment Dialog */}
+      {/* Appointment Dialog - for professionals */}
       {isProfessional && conversationId && clientId && (
         <CreateAppointmentDialog
           open={appointmentDialogOpen}
@@ -1480,6 +1524,24 @@ const ChatConversation = () => {
           serviceId={service?.id}
           conversationId={conversationId}
           serviceName={service?.title}
+        />
+      )}
+
+      {/* Appointment Dialog - for clients with pre-selected time */}
+      {!isProfessional && conversationId && currentUserId && otherUser && scheduledAppointmentData && (
+        <CreateAppointmentDialog
+          open={appointmentDialogOpen}
+          onOpenChange={(open) => {
+            setAppointmentDialogOpen(open);
+            if (!open) setScheduledAppointmentData(null);
+          }}
+          clientId={currentUserId}
+          professionalId={otherUser.user_id}
+          serviceId={service?.id}
+          conversationId={conversationId}
+          serviceName={scheduledAppointmentData.serviceName || service?.title}
+          initialDate={scheduledAppointmentData.date}
+          initialTime={scheduledAppointmentData.time}
         />
       )}
     </div>
