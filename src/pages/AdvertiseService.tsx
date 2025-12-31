@@ -71,7 +71,14 @@ const AdvertiseService = () => {
   } = usePriceSuggestion();
   
   const [userId, setUserId] = useState<string | undefined>();
-  const { schedules, isLoading: isLoadingSchedule } = useProfessionalSchedule(userId);
+  const { 
+    schedules, 
+    isLoading: isLoadingSchedule,
+    toggleDayAvailability,
+    addTimeSlot,
+    removeTimeSlot,
+    initializeSchedule
+  } = useProfessionalSchedule(userId);
   
   const [images, setImages] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -381,6 +388,10 @@ const AdvertiseService = () => {
         onConfirm={handleConfirmAndPublish}
         schedules={schedules}
         isSubmitting={isSubmitting}
+        onToggleDay={toggleDayAvailability}
+        onAddTimeSlot={addTimeSlot}
+        onRemoveTimeSlot={removeTimeSlot}
+        onInitializeSchedule={initializeSchedule}
       />
 
       <main className="container mx-auto px-4 py-8 ">
