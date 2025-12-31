@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -39,7 +39,9 @@ import {
   Wand2,
   BarChart3,
   CalendarClock,
+  AlertTriangle,
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useGenerateDescription } from "@/hooks/useGenerateDescription";
@@ -52,6 +54,7 @@ import MyServices from "@/components/MyServices";
 import { PriceSuggestionPanel } from "@/components/PriceSuggestionPanel";
 import { ServicePreview } from "@/components/ServicePreview";
 import { ImageCropper } from "@/components/ImageCropper";
+import { useProfessionalSchedule } from "@/hooks/useProfessionalSchedule";
 
 const AdvertiseService = () => {
   const { toast } = useToast();
@@ -65,6 +68,10 @@ const AdvertiseService = () => {
     isLoading: isPriceSuggesting,
     clearSuggestion,
   } = usePriceSuggestion();
+  
+  const [userId, setUserId] = useState<string | undefined>();
+  const { schedules, isLoading: isLoadingSchedule } = useProfessionalSchedule(userId);
+  
   const [images, setImages] = useState<string[]>([]);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [selectedState, setSelectedState] = useState("");
@@ -72,6 +79,17 @@ const AdvertiseService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch user ID on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Image cropper state
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -360,28 +378,49 @@ const AdvertiseService = () => {
           </TabsList>
 
           <TabsContent value="my-services">
-            {/* Atalho para Configurar Agenda */}
-            <Card className="mb-6 border-primary/20 bg-primary/5">
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <CalendarClock className="w-5 h-5 text-primary" />
+            {/* Alerta para profissionais sem agenda configurada */}
+            {!isLoadingSchedule && schedules.length === 0 && (
+              <Alert variant="destructive" className="mb-6 border-destructive/50 bg-destructive/10">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Agenda não configurada</AlertTitle>
+                <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <span>
+                    Configure sua agenda para que clientes possam agendar horários com você.
+                  </span>
+                  <Button asChild size="sm" variant="destructive">
+                    <Link to="/agenda">
+                      <CalendarClock className="w-4 h-4 mr-2" />
+                      Configurar Agora
+                    </Link>
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {/* Atalho para Configurar Agenda (sempre visível) */}
+            {schedules.length > 0 && (
+              <Card className="mb-6 border-primary/20 bg-primary/5">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <CalendarClock className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">Configure sua Agenda</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Defina seus horários disponíveis para agendamentos
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-sm">Configure sua Agenda</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Defina seus horários disponíveis para agendamentos
-                    </p>
-                  </div>
-                </div>
-                <Button asChild size="sm">
-                  <Link to="/agenda">
-                    <CalendarClock className="w-4 h-4 mr-2" />
-                    Configurar
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button asChild size="sm">
+                    <Link to="/agenda">
+                      <CalendarClock className="w-4 h-4 mr-2" />
+                      Configurar
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             
             <MyServices />
           </TabsContent>
