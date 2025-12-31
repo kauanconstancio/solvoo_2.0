@@ -36,6 +36,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import PageTransition from "./components/PageTransition";
 
 const AnimatedRoutes = () => {
@@ -270,6 +271,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <PageTransition>
                 <MyServicesPage />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agenda"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <ScheduleConfigPage />
               </PageTransition>
             </ProtectedRoute>
           }
