@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   CalendarClock,
   CheckCircle2,
   ExternalLink,
@@ -27,6 +33,7 @@ import {
   Plus,
   X,
   Loader2,
+  Copy,
 } from "lucide-react";
 
 interface TimeSlot {
@@ -109,6 +116,9 @@ export function ScheduleConfirmationDialog({
   const [newEndTime, setNewEndTime] = useState("");
   const [isAddingSlot, setIsAddingSlot] = useState(false);
   const [isTogglingDay, setIsTogglingDay] = useState(false);
+  const [copyFromDay, setCopyFromDay] = useState<number | null>(null);
+  const [copyToDays, setCopyToDays] = useState<number[]>([]);
+  const [isCopying, setIsCopying] = useState(false);
 
   const availableDays = schedules.filter((s) => s.is_available && s.time_slots.length > 0);
   const totalSlots = availableDays.reduce((acc, day) => acc + day.time_slots.length, 0);
@@ -155,6 +165,43 @@ export function ScheduleConfirmationDialog({
     if (!onInitializeSchedule) return;
     await onInitializeSchedule();
     setIsEditing(true);
+  };
+
+  const handleCopySlots = async () => {
+    if (!onAddTimeSlot || !onToggleDay || copyFromDay === null || copyToDays.length === 0) return;
+    
+    const sourceDay = allDays.find((d) => d.day_of_week === copyFromDay);
+    if (!sourceDay || sourceDay.time_slots.length === 0) return;
+
+    setIsCopying(true);
+    try {
+      for (const targetDayOfWeek of copyToDays) {
+        // Ativar o dia se não estiver ativo
+        const targetDay = allDays.find((d) => d.day_of_week === targetDayOfWeek);
+        if (!targetDay?.is_available) {
+          await onToggleDay(targetDayOfWeek, true);
+        }
+        
+        // Adicionar cada slot do dia origem
+        for (const slot of sourceDay.time_slots) {
+          await onAddTimeSlot(targetDayOfWeek, slot.start_time, slot.end_time);
+        }
+      }
+      
+      // Limpar seleção
+      setCopyFromDay(null);
+      setCopyToDays([]);
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const toggleCopyToDay = (dayOfWeek: number) => {
+    setCopyToDays((prev) =>
+      prev.includes(dayOfWeek)
+        ? prev.filter((d) => d !== dayOfWeek)
+        : [...prev, dayOfWeek]
+    );
   };
 
   const canEdit = onToggleDay && onAddTimeSlot && onRemoveTimeSlot;
@@ -303,15 +350,91 @@ export function ScheduleConfirmationDialog({
                             </Button>
                           </div>
                         ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => setSelectedDay(day.day_of_week)}
-                          >
-                            <Plus className="w-3 h-3 mr-1" />
-                            Adicionar horário
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => setSelectedDay(day.day_of_week)}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Adicionar
+                            </Button>
+                            
+                            {/* Botão de copiar para outros dias */}
+                            {day.time_slots.length > 0 && (
+                              <Popover 
+                                open={copyFromDay === day.day_of_week}
+                                onOpenChange={(open) => {
+                                  if (open) {
+                                    setCopyFromDay(day.day_of_week);
+                                    setCopyToDays([]);
+                                  } else {
+                                    setCopyFromDay(null);
+                                    setCopyToDays([]);
+                                  }
+                                }}
+                              >
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                  >
+                                    <Copy className="w-3 h-3 mr-1" />
+                                    Copiar
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56 p-3" align="start">
+                                  <div className="space-y-3">
+                                    <p className="text-sm font-medium">Copiar para:</p>
+                                    <div className="space-y-2">
+                                      {allDays
+                                        .filter((d) => d.day_of_week !== day.day_of_week)
+                                        .map((targetDay) => (
+                                          <div
+                                            key={targetDay.day_of_week}
+                                            className="flex items-center space-x-2"
+                                          >
+                                            <Checkbox
+                                              id={`copy-to-${targetDay.day_of_week}`}
+                                              checked={copyToDays.includes(targetDay.day_of_week)}
+                                              onCheckedChange={() =>
+                                                toggleCopyToDay(targetDay.day_of_week)
+                                              }
+                                            />
+                                            <Label
+                                              htmlFor={`copy-to-${targetDay.day_of_week}`}
+                                              className="text-sm cursor-pointer"
+                                            >
+                                              {dayNames[targetDay.day_of_week]}
+                                            </Label>
+                                          </div>
+                                        ))}
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      className="w-full"
+                                      onClick={handleCopySlots}
+                                      disabled={copyToDays.length === 0 || isCopying}
+                                    >
+                                      {isCopying ? (
+                                        <>
+                                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                                          Copiando...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy className="w-3 h-3 mr-2" />
+                                          Copiar para {copyToDays.length} dia(s)
+                                        </>
+                                      )}
+                                    </Button>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
