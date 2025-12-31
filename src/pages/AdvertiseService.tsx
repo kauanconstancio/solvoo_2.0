@@ -55,6 +55,7 @@ import { PriceSuggestionPanel } from "@/components/PriceSuggestionPanel";
 import { ServicePreview } from "@/components/ServicePreview";
 import { ImageCropper } from "@/components/ImageCropper";
 import { useProfessionalSchedule } from "@/hooks/useProfessionalSchedule";
+import { ScheduleConfirmationDialog } from "@/components/ScheduleConfirmationDialog";
 
 const AdvertiseService = () => {
   const { toast } = useToast();
@@ -78,6 +79,7 @@ const AdvertiseService = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showScheduleConfirmation, setShowScheduleConfirmation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch user ID on mount
@@ -233,6 +235,7 @@ const AdvertiseService = () => {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  // Validação do formulário antes de mostrar o dialog de confirmação
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -286,6 +289,12 @@ const AdvertiseService = () => {
       return;
     }
 
+    // Mostrar dialog de confirmação de agenda
+    setShowScheduleConfirmation(true);
+  };
+
+  // Submissão real após confirmação da agenda
+  const handleConfirmAndPublish = async () => {
     setIsSubmitting(true);
 
     try {
@@ -293,6 +302,7 @@ const AdvertiseService = () => {
       const moderationResult = await moderateServiceContent(title, description);
       if (!moderationResult.approved) {
         setIsSubmitting(false);
+        setShowScheduleConfirmation(false);
         return;
       }
 
@@ -345,6 +355,7 @@ const AdvertiseService = () => {
       });
     } finally {
       setIsSubmitting(false);
+      setShowScheduleConfirmation(false);
     }
   };
 
@@ -361,6 +372,15 @@ const AdvertiseService = () => {
         aspectRatio={4 / 3}
         outputWidth={800}
         title="Ajustar Foto do Serviço"
+      />
+
+      {/* Schedule Confirmation Dialog */}
+      <ScheduleConfirmationDialog
+        open={showScheduleConfirmation}
+        onClose={() => setShowScheduleConfirmation(false)}
+        onConfirm={handleConfirmAndPublish}
+        schedules={schedules}
+        isSubmitting={isSubmitting}
       />
 
       <main className="container mx-auto px-4 py-8 ">
