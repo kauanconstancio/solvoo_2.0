@@ -236,6 +236,21 @@ const AdvertiseService = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Verificar se a agenda está configurada
+    if (!isLoadingSchedule && schedules.length === 0) {
+      toast({
+        title: "Agenda não configurada",
+        description: "Configure sua agenda de horários antes de publicar seu anúncio. Isso permite que clientes agendem serviços com você.",
+        variant: "destructive",
+        action: (
+          <Button asChild size="sm" variant="outline" className="ml-2">
+            <Link to="/agenda">Configurar</Link>
+          </Button>
+        ),
+      });
+      return;
+    }
+
     if (!acceptTerms) {
       toast({
         title: "Termos não aceitos",
