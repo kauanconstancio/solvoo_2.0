@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarOff, CalendarCheck } from 'lucide-react';
+import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarCheck, Sparkles } from 'lucide-react';
 import { format, addDays, isSameDay, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TimeSlot {
   id: string;
@@ -70,14 +70,12 @@ export function ProfessionalAvailability({
       try {
         setIsLoading(true);
 
-        // Fetch schedules
         const { data: schedulesData } = await supabase
           .from('professional_schedules')
           .select('*')
           .eq('user_id', professionalId)
           .eq('is_available', true);
 
-        // Fetch time slots for each schedule
         const schedulesWithSlots: DaySchedule[] = [];
         
         for (const schedule of schedulesData || []) {
@@ -96,7 +94,6 @@ export function ProfessionalAvailability({
 
         setSchedules(schedulesWithSlots);
 
-        // Fetch blocks for next 14 days
         const today = new Date().toISOString().split('T')[0];
         const futureDate = addDays(new Date(), TOTAL_DAYS).toISOString().split('T')[0];
         
@@ -124,17 +121,14 @@ export function ProfessionalAvailability({
     const dayOfWeek = date.getDay();
     const dateStr = format(date, 'yyyy-MM-dd');
 
-    // Check if day is blocked entirely
     const dayBlock = blocks.find(b => 
       b.block_date === dateStr && !b.start_time && !b.end_time
     );
     if (dayBlock) return [];
 
-    // Get schedule for this day
     const schedule = schedules.find(s => s.day_of_week === dayOfWeek);
     if (!schedule || !schedule.is_available) return [];
 
-    // Filter out blocked time slots
     const blockedSlots = blocks.filter(b => 
       b.block_date === dateStr && b.start_time && b.end_time
     );
@@ -185,7 +179,6 @@ export function ProfessionalAvailability({
       return;
     }
 
-    // Navigate to chat with selected slot info
     const params = new URLSearchParams({
       professionalId,
       ...(serviceId && { serviceId }),
@@ -213,26 +206,26 @@ export function ProfessionalAvailability({
     if (canScrollRight) setStartIndex(prev => prev + 1);
   };
 
-  // Reset selected slot when date changes
   useEffect(() => {
     setSelectedSlot(null);
   }, [selectedDate]);
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-40" />
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card to-muted/30">
+        <CardContent className="p-6 space-y-5">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-xl" />
+            <Skeleton className="h-6 w-40" />
+          </div>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5, 6, 7].map(i => (
-              <Skeleton key={i} className="h-16 w-12 flex-shrink-0" />
+              <Skeleton key={i} className="h-20 w-14 rounded-xl flex-shrink-0" />
             ))}
           </div>
           <div className="flex flex-wrap gap-2">
             {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-8 w-20" />
+              <Skeleton key={i} className="h-10 w-24 rounded-xl" />
             ))}
           </div>
         </CardContent>
@@ -240,138 +233,211 @@ export function ProfessionalAvailability({
     );
   }
 
-  // If no schedules configured, don't show the component
   if (schedules.length === 0) {
     return null;
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          Disponibilidade
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Date Selector */}
-        <div className="relative">
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={scrollLeft}
-              disabled={!canScrollLeft}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <div className="flex gap-1.5 overflow-hidden">
-              {visibleDates.map((date) => {
-                const hasSlots = getAvailableSlotsForDate(date).length > 0;
-                const isSelected = isSameDay(date, selectedDate);
-                const isToday = isSameDay(date, startOfToday());
-
-                return (
-                  <button
-                    key={date.toISOString()}
-                    onClick={() => setSelectedDate(date)}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-2 rounded-lg min-w-[48px] transition-all",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : hasSlots
-                        ? "bg-muted hover:bg-muted/80"
-                        : "bg-muted/50 text-muted-foreground",
-                      !hasSlots && !isSelected && "opacity-50"
-                    )}
-                  >
-                    <span className="text-[10px] uppercase font-medium">
-                      {format(date, 'EEE', { locale: ptBR })}
-                    </span>
-                    <span className={cn(
-                      "text-lg font-bold",
-                      isToday && !isSelected && "text-primary"
-                    )}>
-                      {format(date, 'd')}
-                    </span>
-                    <span className="text-[10px]">
-                      {format(date, 'MMM', { locale: ptBR })}
-                    </span>
-                  </button>
-                );
-              })}
+    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card via-card to-primary/5">
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="p-5 pb-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+              <Calendar className="h-5 w-5" />
             </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={scrollRight}
-              disabled={!canScrollRight}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div>
+              <h3 className="font-semibold text-foreground">Agende um Horário</h3>
+              <p className="text-xs text-muted-foreground">Escolha a data e horário disponível</p>
+            </div>
           </div>
         </div>
 
-        {/* Time Slots */}
-        <div>
-          <p className="text-sm text-muted-foreground mb-2">
-            {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-          </p>
-          
-          {selectedSlots.length > 0 ? (
-            <>
-              <div className="flex flex-wrap gap-2">
-                {selectedSlots.map((slot) => {
-                  const isSlotSelected = selectedSlot?.id === slot.id;
+        <div className="p-5 pt-4 space-y-5">
+          {/* Date Selector */}
+          <div className="relative">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary disabled:opacity-30"
+                onClick={scrollLeft}
+                disabled={!canScrollLeft}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex gap-2 overflow-hidden flex-1 justify-center">
+                {visibleDates.map((date, index) => {
+                  const hasSlots = getAvailableSlotsForDate(date).length > 0;
+                  const isSelected = isSameDay(date, selectedDate);
+                  const isToday = isSameDay(date, startOfToday());
+
                   return (
-                    <button
-                      key={slot.id}
-                      onClick={() => handleSlotClick(slot)}
-                      disabled={!selectable}
+                    <motion.button
+                      key={date.toISOString()}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.03 }}
+                      onClick={() => setSelectedDate(date)}
                       className={cn(
-                        "inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium transition-all",
-                        isSlotSelected
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80",
-                        selectable && "cursor-pointer",
-                        !selectable && "cursor-default"
+                        "relative flex flex-col items-center justify-center py-2.5 px-2 rounded-xl min-w-[52px] transition-all duration-200",
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
+                          : hasSlots
+                          ? "bg-muted/60 hover:bg-muted hover:scale-102"
+                          : "bg-muted/30 text-muted-foreground/60",
+                        !hasSlots && !isSelected && "cursor-not-allowed"
                       )}
+                      disabled={!hasSlots && !isSelected}
                     >
-                      <Clock className="h-3.5 w-3.5 mr-1.5" />
-                      {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
-                    </button>
+                      {isToday && !isSelected && (
+                        <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full" />
+                      )}
+                      <span className={cn(
+                        "text-[10px] uppercase font-medium tracking-wide",
+                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {format(date, 'EEE', { locale: ptBR })}
+                      </span>
+                      <span className={cn(
+                        "text-xl font-bold leading-tight",
+                        isToday && !isSelected && "text-primary"
+                      )}>
+                        {format(date, 'd')}
+                      </span>
+                      <span className={cn(
+                        "text-[10px]",
+                        isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                      )}>
+                        {format(date, 'MMM', { locale: ptBR })}
+                      </span>
+                      {hasSlots && !isSelected && (
+                        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full" />
+                      )}
+                    </motion.button>
                   );
                 })}
               </div>
-              
-              {/* Book Button */}
-              {selectable && selectedSlot && (
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Horário selecionado: </span>
-                      <span className="font-medium">
-                        {format(selectedDate, "dd/MM", { locale: ptBR })} às {formatTime(selectedSlot.start_time)}
-                      </span>
-                    </div>
-                    <Button onClick={handleBookAppointment} size="sm">
-                      <CalendarCheck className="h-4 w-4 mr-2" />
-                      Agendar
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center gap-2 text-muted-foreground text-sm py-3">
-              <CalendarOff className="h-4 w-4" />
-              <span>Sem horários disponíveis nesta data</span>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary disabled:opacity-30"
+                onClick={scrollRight}
+                disabled={!canScrollRight}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-          )}
+          </div>
+
+          {/* Selected Date Label */}
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-border/50" />
+            <p className="text-xs font-medium text-muted-foreground px-2 capitalize">
+              {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+            </p>
+            <div className="h-px flex-1 bg-border/50" />
+          </div>
+
+          {/* Time Slots */}
+          <AnimatePresence mode="wait">
+            {selectedSlots.length > 0 ? (
+              <motion.div
+                key={selectedDate.toISOString()}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {selectedSlots.map((slot, index) => {
+                    const isSlotSelected = selectedSlot?.id === slot.id;
+                    return (
+                      <motion.button
+                        key={slot.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.03 }}
+                        onClick={() => handleSlotClick(slot)}
+                        disabled={!selectable}
+                        className={cn(
+                          "relative flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                          isSlotSelected
+                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
+                            : "bg-muted/60 text-foreground hover:bg-muted hover:scale-102",
+                          selectable && "cursor-pointer",
+                          !selectable && "cursor-default"
+                        )}
+                      >
+                        <Clock className={cn(
+                          "h-3.5 w-3.5",
+                          isSlotSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                        )} />
+                        <span>{formatTime(slot.start_time)}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                
+                {/* Booking Confirmation */}
+                <AnimatePresence>
+                  {selectable && selectedSlot && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-primary/10">
+                              <Sparkles className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Horário selecionado</p>
+                              <p className="font-semibold text-foreground">
+                                {format(selectedDate, "dd/MM", { locale: ptBR })} às {formatTime(selectedSlot.start_time)}
+                              </p>
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={handleBookAppointment} 
+                            className="rounded-xl shadow-lg shadow-primary/20"
+                          >
+                            <CalendarCheck className="h-4 w-4 mr-2" />
+                            Agendar
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-8 text-center"
+              >
+                <div className="p-3 rounded-full bg-muted/50 mb-3">
+                  <Calendar className="h-6 w-6 text-muted-foreground/50" />
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Sem horários disponíveis
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Selecione outra data para ver a disponibilidade
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </CardContent>
     </Card>
