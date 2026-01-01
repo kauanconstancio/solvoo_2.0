@@ -380,7 +380,7 @@ const ServiceDetails = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-24 lg:pb-0">
         {/* Breadcrumb */}
         <section className="py-4 bg-muted/30">
           <div className="container px-4 md:px-6">
@@ -637,60 +637,57 @@ const ServiceDetails = () => {
                   </CardContent>
                 </Card>
 
-                {/* Mobile Price Card */}
-                <Card className="md:hidden fixed bottom-0 left-0 right-0 z-50 mx-auto w-full rounded-t-2xl rounded-b-none shadow-2xl bg-background border-t-2 border-b-0">
-                  <CardContent className="p-4 pb-6">
-                    {/* Mobile booking type indicator with explanation */}
-                    <div className="space-y-1 mb-3">
-                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium w-fit ${
-                        isFixedPrice 
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                      }`}>
-                        {isFixedPrice ? (
-                          <>
-                            <Zap className="h-3 w-3" />
-                            <span>Agendamento rápido</span>
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="h-3 w-3" />
-                            <span>Orçamento sob consulta</span>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-tight">
-                        {isFixedPrice 
-                          ? 'Agende diretamente pelo calendário.'
-                          : 'Negocie valores antes de agendar.'}
-                      </p>
+                {/* Mobile Price Card - Fixed Bottom */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom">
+                  <div className="px-4 py-3">
+                    {/* Booking type indicator */}
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-2 ${
+                      isFixedPrice 
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    }`}>
+                      {isFixedPrice ? (
+                        <>
+                          <Zap className="h-3 w-3" />
+                          <span>Agendamento rápido</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-3 w-3" />
+                          <span>Orçamento sob consulta</span>
+                        </>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between gap-5">
-                      <div className="flex flex-col w-full">
-                        <p className="text-xs text-muted-foreground mb-1">
+                    
+                    {/* Price and action row */}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-shrink-0">
+                        <p className="text-xs text-muted-foreground">
                           {isFixedPrice ? 'Valor' : 'A partir de'}
                         </p>
-                        <p className="text-2xl font-bold text-primary">
+                        <p className="text-xl font-bold text-primary leading-tight">
                           {service.price}
                         </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {getPriceTypeLabel(service.price_type)}
+                        </p>
                       </div>
+                      
                       <Button
-                        className="w-full h-12 text-sm hover:brightness-110"
+                        className="flex-1 max-w-[200px] h-11 text-sm font-medium shadow-md hover:shadow-lg transition-all"
                         onClick={handleRequestQuote}
-                        disabled={
-                          isRequestingQuote || currentUserId === service.user_id
-                        }
+                        disabled={isRequestingQuote || currentUserId === service.user_id}
                       >
                         {isRequestingQuote ? (
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         ) : (
-                          <MessageSquare className="h-5 w-5 mr-2" />
+                          <MessageSquare className="h-4 w-4 mr-2" />
                         )}
-                        {isFixedPrice ? 'Conversar' : 'Orçamento'}
+                        {isFixedPrice ? 'Iniciar Conversa' : 'Solicitar Orçamento'}
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 {/* Provider Card */}
                 <Card className="overflow-hidden">
