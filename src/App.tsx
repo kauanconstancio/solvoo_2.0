@@ -18,13 +18,19 @@ const AppContent = () => {
   // Check if we're on a chat conversation page (not the chat list)
   const isConversationPage = location.pathname.match(/^\/chat\/[^/]+$/);
   
+  // Check if we're on a service details page
+  const isServiceDetailsPage = location.pathname.match(/^\/servico\/.+$/);
+  
+  // Hide bottom navigation on conversation and service details pages
+  const hideBottomNav = isConversationPage || isServiceDetailsPage;
+  
   return (
     <>
       <ChatNotificationProvider />
-      <div className={isConversationPage ? "" : "pb-16 lg:pb-0"}>
+      <div className={hideBottomNav ? "" : "pb-16 lg:pb-0"}>
         <AnimatedRoutes />
       </div>
-      <BottomNavigation />
+      {!hideBottomNav && <BottomNavigation />}
       <SupportChatbot />
     </>
   );
