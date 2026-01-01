@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarCheck, Sparkles, Timer } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarCheck, Sparkles, Timer, Ban } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfToday, isBefore, addDays, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOccupiedSlots } from '@/hooks/useOccupiedSlots';
 
 interface TimeSlot {
   id: string;
@@ -56,6 +58,9 @@ export function ProfessionalAvailability({
 
   const today = startOfToday();
   const maxDate = addDays(today, 60); // Allow booking up to 60 days ahead
+
+  // Fetch occupied slots
+  const { isSlotOccupied, getOccupiedSlotsForDate } = useOccupiedSlots(professionalId, today, maxDate);
 
   useEffect(() => {
     const getUser = async () => {
@@ -369,7 +374,7 @@ export function ProfessionalAvailability({
           </div>
 
           {/* Legend */}
-          <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground pt-2 border-t">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-primary rounded-full" />
               <span>Disponível</span>
@@ -377,6 +382,10 @@ export function ProfessionalAvailability({
             <div className="flex items-center gap-1.5">
               <span className="w-5 h-5 bg-foreground text-background rounded-full flex items-center justify-center text-[10px]">1</span>
               <span>Selecionado</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Ban className="h-3 w-3 text-destructive" />
+              <span>Ocupado</span>
             </div>
           </div>
 
@@ -404,27 +413,40 @@ export function ProfessionalAvailability({
                       {selectedSlots.map((slot, index) => {
                         const isSlotSelected = selectedSlot?.id === slot.id;
                         const duration = calculateDuration(slot.start_time, slot.end_time);
+                        const isOccupied = selectedDate ? isSlotOccupied(selectedDate, slot.start_time, slot.end_time) : false;
+                        
                         return (
                           <motion.button
                             key={slot.id}
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.03 }}
-                            onClick={() => handleSlotClick(slot)}
-                            disabled={!selectable}
+                            onClick={() => !isOccupied && handleSlotClick(slot)}
+                            disabled={!selectable || isOccupied}
                             className={cn(
                               "relative flex flex-col items-center justify-center gap-0.5 rounded-lg border px-3 py-2.5 transition-all duration-150",
-                              isSlotSelected
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-card text-foreground border-border hover:border-foreground/30",
-                              selectable && "cursor-pointer",
+                              isOccupied && "bg-muted/50 text-muted-foreground border-muted cursor-not-allowed opacity-60",
+                              !isOccupied && isSlotSelected && "bg-foreground text-background border-foreground",
+                              !isOccupied && !isSlotSelected && "bg-card text-foreground border-border hover:border-foreground/30",
+                              !isOccupied && selectable && "cursor-pointer",
                               !selectable && "cursor-default"
                             )}
                           >
-                            <span className="font-medium text-sm">{formatTime(slot.start_time)}</span>
+                            {isOccupied && (
+                              <div className="absolute -top-1 -right-1">
+                                <Badge variant="secondary" className="h-4 px-1 text-[9px] bg-destructive/10 text-destructive border-destructive/20">
+                                  <Ban className="h-2.5 w-2.5 mr-0.5" />
+                                  Ocupado
+                                </Badge>
+                              </div>
+                            )}
+                            <span className={cn(
+                              "font-medium text-sm",
+                              isOccupied && "line-through"
+                            )}>{formatTime(slot.start_time)}</span>
                             <div className={cn(
                               "flex items-center gap-1 text-[11px]",
-                              isSlotSelected ? "text-background/70" : "text-muted-foreground"
+                              isSlotSelected && !isOccupied ? "text-background/70" : "text-muted-foreground"
                             )}>
                               <Timer className="h-3 w-3" />
                               <span>{formatDuration(duration)}</span>

@@ -86,6 +86,43 @@ serve(async (req) => {
       throw new Error("CPF não cadastrado");
     }
 
+    // Check if slot is already occupied
+    const { data: existingAppointments, error: appointmentCheckError } = await supabaseAdmin
+      .from("appointments")
+      .select("id, scheduled_time, duration_minutes")
+      .eq("professional_id", professionalId)
+      .eq("scheduled_date", scheduledDate)
+      .neq("status", "cancelled");
+
+    if (appointmentCheckError) {
+      logStep("Error checking existing appointments", { error: appointmentCheckError.message });
+      throw appointmentCheckError;
+    }
+
+    // Calculate requested slot end time
+    const [reqHours, reqMinutes] = scheduledTime.split(':').map(Number);
+    const reqStartMinutes = reqHours * 60 + reqMinutes;
+    const reqEndMinutes = reqStartMinutes + (durationMinutes || 60);
+
+    // Check for conflicts
+    for (const existing of existingAppointments || []) {
+      const [exHours, exMinutes] = existing.scheduled_time.split(':').map(Number);
+      const exStartMinutes = exHours * 60 + exMinutes;
+      const exEndMinutes = exStartMinutes + existing.duration_minutes;
+
+      // Check for overlap
+      const hasConflict = (reqStartMinutes >= exStartMinutes && reqStartMinutes < exEndMinutes) ||
+                          (reqEndMinutes > exStartMinutes && reqEndMinutes <= exEndMinutes) ||
+                          (reqStartMinutes <= exStartMinutes && reqEndMinutes >= exEndMinutes);
+
+      if (hasConflict) {
+        logStep("Time slot conflict detected", { existingAppointment: existing.id });
+        throw new Error("Este horário já está ocupado. Por favor, escolha outro horário.");
+      }
+    }
+
+    logStep("No scheduling conflicts found");
+
     // Create or get conversation
     const { data: existingConv } = await supabaseAdmin
       .from("conversations")
