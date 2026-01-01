@@ -164,96 +164,32 @@ export function DirectBookingDialog({
     if (!selectedDate || !selectedSlot) return;
 
     try {
-      // 1. Create or get conversation
-      const { data: existingConv } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('client_id', userId)
-        .eq('professional_id', service.user_id)
-        .eq('service_id', service.id)
-        .maybeSingle();
-
-      let convId = existingConv?.id;
-
-      if (!convId) {
-        const { data: newConv, error: convError } = await supabase
-          .from('conversations')
-          .insert({
-            client_id: userId,
-            professional_id: service.user_id,
-            service_id: service.id,
-          })
-          .select('id')
-          .single();
-
-        if (convError) throw convError;
-        convId = newConv.id;
-      }
-
-      setConversationId(convId);
-
-      // 2. Calculate expiration date
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
-
-      // 3. Create quote with status 'accepted' (auto-accepted for fixed price)
-      const { data: quote, error: quoteError } = await supabase
-        .from('quotes')
-        .insert({
-          conversation_id: convId,
-          service_id: service.id,
-          professional_id: service.user_id,
-          client_id: userId,
-          title: service.title,
-          description: `Agendamento direto para ${format(selectedDate, "dd/MM/yyyy", { locale: ptBR })} às ${formatTime(selectedSlot.start_time)}`,
-          price: priceValue,
-          validity_days: 7,
-          expires_at: expiresAt.toISOString(),
-          status: 'accepted',
-          responded_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
-
-      if (quoteError) throw quoteError;
-
-      // 4. Create appointment linked to quote
       const duration = calculateDuration(selectedSlot.start_time, selectedSlot.end_time);
-      const { data: appointment, error: appointmentError } = await supabase
-        .from('appointments')
-        .insert({
-          client_id: userId,
-          professional_id: service.user_id,
-          service_id: service.id,
-          conversation_id: convId,
-          quote_id: quote.id,
-          title: service.title,
-          description: `Serviço agendado diretamente pelo cliente`,
-          scheduled_date: format(selectedDate, 'yyyy-MM-dd'),
-          scheduled_time: selectedSlot.start_time,
-          duration_minutes: duration,
-          status: 'pending',
-          client_confirmed: false,
-          professional_confirmed: true,
-        })
-        .select('id')
-        .single();
 
-      if (appointmentError) throw appointmentError;
-
-      setCreatedAppointmentId(appointment.id);
-
-      // 5. Send automatic message in chat
-      await supabase.from('messages').insert({
-        conversation_id: convId,
-        sender_id: userId,
-        content: `📅 Novo agendamento solicitado!\n\n🗓 Data: ${format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}\n⏰ Horário: ${formatTime(selectedSlot.start_time)}\n💰 Valor: ${formatPrice(priceValue)}\n\n⏳ Aguardando pagamento...`,
-        message_type: 'text',
+      // 1. Create booking via edge function (handles quote, appointment, conversation)
+      const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-direct-booking', {
+        body: { 
+          serviceId: service.id,
+          scheduledDate: format(selectedDate, 'yyyy-MM-dd'),
+          scheduledTime: selectedSlot.start_time,
+          durationMinutes: duration,
+          serviceTitle: service.title,
+          price: priceValue
+        }
       });
 
-      // 6. Initiate PIX payment
+      if (bookingError) throw bookingError;
+
+      if (bookingResponse.error) {
+        throw new Error(bookingResponse.error);
+      }
+
+      setCreatedAppointmentId(bookingResponse.appointmentId);
+      setConversationId(bookingResponse.conversationId);
+
+      // 2. Initiate PIX payment
       const { data: pixResponse, error: pixError } = await supabase.functions.invoke('create-booking-checkout', {
-        body: { appointmentId: appointment.id }
+        body: { appointmentId: bookingResponse.appointmentId }
       });
 
       if (pixError) throw pixError;
@@ -270,7 +206,7 @@ export function DirectBookingDialog({
         expiresAt: pixResponse.expiresAt,
         title: pixResponse.title,
         price: pixResponse.price,
-        appointmentId: appointment.id,
+        appointmentId: bookingResponse.appointmentId,
       });
 
       onOpenChange(false);

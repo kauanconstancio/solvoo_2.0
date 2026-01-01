@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.expire-quotes]
 verify_jwt = false
+
+[functions.create-direct-booking]
+verify_jwt = true
