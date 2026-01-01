@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { format, isToday, parse, isBefore, startOfDay } from "date-fns";
+import { format, isToday, isBefore, startOfDay, addDays, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   FileText,
@@ -8,6 +8,7 @@ import {
   Calendar as CalendarIcon,
   DollarSign,
   Clock,
+  Ban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,13 +45,23 @@ interface Service {
   price: string;
 }
 
-const allTimeSlots = [
-  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
-  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
-  "17:00", "17:30", "18:00", "18:30", "19:00", "19:30",
-  "20:00", "20:30", "21:00",
-];
+interface TimeSlotFromSchedule {
+  id: string;
+  start_time: string;
+  end_time: string;
+}
+
+interface DaySchedule {
+  day_of_week: number;
+  is_available: boolean;
+  time_slots: TimeSlotFromSchedule[];
+}
+
+interface ScheduleBlock {
+  block_date: string;
+  start_time: string | null;
+  end_time: string | null;
+}
 
 interface CreateQuoteDialogProps {
   conversationId: string;
@@ -88,10 +99,122 @@ export const CreateQuoteDialog = ({
   const [scheduledTime, setScheduledTime] = useState<string>("");
   const [occupiedSlots, setOccupiedSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  
+  // Professional schedule state
+  const [schedules, setSchedules] = useState<DaySchedule[]>([]);
+  const [scheduleBlocks, setScheduleBlocks] = useState<ScheduleBlock[]>([]);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const today = startOfDay(new Date());
+  const maxDate = addDays(today, 60);
+
+  // Fetch professional schedule
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      if (!open) return;
+      
+      setIsLoadingSchedule(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        setUserId(user.id);
+
+        // Fetch schedules
+        const { data: schedulesData } = await supabase
+          .from('professional_schedules')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_available', true);
+
+        const schedulesWithSlots: DaySchedule[] = [];
+        
+        for (const schedule of schedulesData || []) {
+          const { data: slotsData } = await supabase
+            .from('schedule_time_slots')
+            .select('*')
+            .eq('schedule_id', schedule.id)
+            .order('start_time');
+
+          schedulesWithSlots.push({
+            day_of_week: schedule.day_of_week,
+            is_available: schedule.is_available,
+            time_slots: slotsData || []
+          });
+        }
+
+        setSchedules(schedulesWithSlots);
+
+        // Fetch blocks
+        const todayStr = format(today, 'yyyy-MM-dd');
+        const maxDateStr = format(maxDate, 'yyyy-MM-dd');
+        
+        const { data: blocksData } = await supabase
+          .from('schedule_blocks')
+          .select('block_date, start_time, end_time')
+          .eq('user_id', user.id)
+          .gte('block_date', todayStr)
+          .lte('block_date', maxDateStr);
+
+        setScheduleBlocks(blocksData || []);
+      } catch (error) {
+        console.error('Error fetching schedule:', error);
+      } finally {
+        setIsLoadingSchedule(false);
+      }
+    };
+
+    fetchSchedule();
+  }, [open]);
+
+  // Get available slots for a specific date based on professional schedule
+  const getScheduleSlotsForDate = (date: Date): string[] => {
+    const dayOfWeek = getDay(date);
+    const dateStr = format(date, 'yyyy-MM-dd');
+
+    // Check if entire day is blocked
+    const dayBlock = scheduleBlocks.find(b => 
+      b.block_date === dateStr && !b.start_time && !b.end_time
+    );
+    if (dayBlock) return [];
+
+    // Get schedule for this day
+    const schedule = schedules.find(s => s.day_of_week === dayOfWeek);
+    if (!schedule || !schedule.is_available) return [];
+
+    // Get blocked time slots for this date
+    const blockedSlots = scheduleBlocks.filter(b => 
+      b.block_date === dateStr && b.start_time && b.end_time
+    );
+
+    // Filter out blocked slots
+    const availableSlots = schedule.time_slots.filter(slot => {
+      return !blockedSlots.some(block => 
+        (slot.start_time >= block.start_time! && slot.start_time < block.end_time!) ||
+        (slot.end_time > block.start_time! && slot.end_time <= block.end_time!)
+      );
+    });
+
+    return availableSlots.map(slot => slot.start_time.substring(0, 5));
+  };
+
+  // Check if date has any available slots
+  const dateHasSlots = (date: Date): boolean => {
+    if (isBefore(date, today)) return false;
+    if (isBefore(maxDate, date)) return false;
+    return getScheduleSlotsForDate(date).length > 0;
+  };
+
+  // Get slots from schedule for selected date
+  const scheduledTimeSlots = useMemo(() => {
+    if (!scheduledDate) return [];
+    return getScheduleSlotsForDate(scheduledDate);
+  }, [scheduledDate, schedules, scheduleBlocks]);
 
   // Filter time slots based on selected date and current time
   const availableTimeSlots = useMemo(() => {
-    if (!scheduledDate) return allTimeSlots;
+    if (!scheduledDate || scheduledTimeSlots.length === 0) return [];
 
     const now = new Date();
     
@@ -100,7 +223,7 @@ export const CreateQuoteDialog = ({
       const currentHour = now.getHours();
       const currentMinute = now.getMinutes();
       
-      return allTimeSlots.filter((slot) => {
+      return scheduledTimeSlots.filter((slot) => {
         const [hours, minutes] = slot.split(":").map(Number);
         // Add 30 min buffer - can't book within next 30 minutes
         if (hours > currentHour) return true;
@@ -109,8 +232,8 @@ export const CreateQuoteDialog = ({
       });
     }
 
-    return allTimeSlots;
-  }, [scheduledDate]);
+    return scheduledTimeSlots;
+  }, [scheduledDate, scheduledTimeSlots]);
 
   // Filter out occupied slots
   const finalAvailableSlots = useMemo(() => {
@@ -127,31 +250,46 @@ export const CreateQuoteDialog = ({
   // Fetch occupied slots when date changes
   useEffect(() => {
     const fetchOccupiedSlots = async () => {
-      if (!scheduledDate || !open) {
+      if (!scheduledDate || !open || !userId) {
         setOccupiedSlots([]);
         return;
       }
 
       setIsLoadingSlots(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
         const formattedDate = format(scheduledDate, "yyyy-MM-dd");
         
         // Fetch appointments for this professional on the selected date
         const { data: appointments } = await supabase
           .from("appointments")
-          .select("scheduled_time")
-          .eq("professional_id", user.id)
+          .select("scheduled_time, duration_minutes")
+          .eq("professional_id", userId)
           .eq("scheduled_date", formattedDate)
-          .in("status", ["pending", "confirmed"]);
+          .neq("status", "cancelled");
 
         if (appointments) {
-          // Extract just the time portion (HH:mm)
-          const occupied = appointments.map((apt) => 
-            apt.scheduled_time.substring(0, 5)
-          );
+          // Extract occupied time slots considering duration
+          const occupied: string[] = [];
+          appointments.forEach((apt) => {
+            const startTime = apt.scheduled_time.substring(0, 5);
+            occupied.push(startTime);
+            
+            // Also mark overlapping slots based on duration
+            const [startH, startM] = startTime.split(':').map(Number);
+            const startMinutes = startH * 60 + startM;
+            const endMinutes = startMinutes + apt.duration_minutes;
+            
+            // Check each scheduled slot for overlap
+            scheduledTimeSlots.forEach(slot => {
+              const [slotH, slotM] = slot.split(':').map(Number);
+              const slotMinutes = slotH * 60 + slotM;
+              if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
+                if (!occupied.includes(slot)) {
+                  occupied.push(slot);
+                }
+              }
+            });
+          });
           setOccupiedSlots(occupied);
         }
       } catch (error) {
@@ -162,7 +300,7 @@ export const CreateQuoteDialog = ({
     };
 
     fetchOccupiedSlots();
-  }, [scheduledDate, open]);
+  }, [scheduledDate, open, userId, scheduledTimeSlots]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -397,11 +535,22 @@ export const CreateQuoteDialog = ({
                       setScheduledDate(date);
                       setScheduledTime(""); // Reset time when date changes
                     }}
-                    disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                    disabled={(date) => isBefore(date, startOfDay(new Date())) || isBefore(maxDate, date) || !dateHasSlots(date)}
+                    modifiers={{
+                      available: (date) => dateHasSlots(date) && !isBefore(date, today) && !isBefore(maxDate, date),
+                    }}
+                    modifiersClassNames={{
+                      available: "font-bold text-primary",
+                    }}
                     initialFocus
                     locale={ptBR}
                     className={cn("p-3 pointer-events-auto")}
                   />
+                  {!isLoadingSchedule && schedules.length === 0 && (
+                    <div className="px-3 pb-3 text-xs text-muted-foreground text-center">
+                      Configure sua agenda para disponibilizar datas
+                    </div>
+                  )}
                 </PopoverContent>
               </Popover>
             </div>
@@ -427,14 +576,20 @@ export const CreateQuoteDialog = ({
                   </div>
                 </div>
 
-                {isLoadingSlots ? (
+                {isLoadingSlots || isLoadingSchedule ? (
                   <div className="flex items-center justify-center py-6">
                     <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     <span className="ml-2 text-sm text-muted-foreground">Carregando horários...</span>
                   </div>
+                ) : scheduledTimeSlots.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <Ban className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhum horário disponível nesta data</p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">Configure sua agenda para disponibilizar horários</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-6 gap-1.5">
-                    {allTimeSlots.map((time) => {
+                    {scheduledTimeSlots.map((time) => {
                       const isOccupied = occupiedSlots.includes(time);
                       const isPast = !availableTimeSlots.includes(time);
                       const isUnavailable = isOccupied || isPast;
@@ -471,17 +626,19 @@ export const CreateQuoteDialog = ({
                 )}
 
                 {/* Summary */}
-                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                  <div className="text-xs text-muted-foreground">
-                    {finalAvailableSlots.length} de {allTimeSlots.length} horários disponíveis
-                  </div>
-                  {scheduledTime && (
-                    <div className="flex items-center gap-1 text-sm font-medium text-primary">
-                      <Clock className="h-3.5 w-3.5" />
-                      {scheduledTime}
+                {scheduledTimeSlots.length > 0 && (
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <div className="text-xs text-muted-foreground">
+                      {finalAvailableSlots.length} de {scheduledTimeSlots.length} horários disponíveis
                     </div>
-                  )}
-                </div>
+                    {scheduledTime && (
+                      <div className="flex items-center gap-1 text-sm font-medium text-primary">
+                        <Clock className="h-3.5 w-3.5" />
+                        {scheduledTime}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
