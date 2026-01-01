@@ -26,3 +26,12 @@ verify_jwt = false
 
 [functions.send-appointment-reminders]
 verify_jwt = false
+
+[functions.create-booking-checkout]
+verify_jwt = true
+
+[functions.check-booking-payment]
+verify_jwt = true
+
+[functions.expire-quotes]
+verify_jwt = false
