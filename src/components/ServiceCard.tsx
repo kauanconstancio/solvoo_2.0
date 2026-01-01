@@ -79,12 +79,6 @@ const ServiceCard = ({
             className="object-cover w-full h-full group-hover:scale-105 transition-smooth duration-500"
             loading="lazy"
           />
-          {isFixedPrice && (
-            <Badge className="absolute top-3 left-3 bg-emerald-500 text-white hover:bg-emerald-600 shadow-md">
-              <Zap className="h-3 w-3 mr-1" />
-              Agendamento Rápido
-            </Badge>
-          )}
           <Button
             size="icon"
             variant="ghost"
