@@ -42,8 +42,6 @@ interface DirectBookingDialogProps {
   } | null;
 }
 
-const PLATFORM_FEE_RATE = 0.10; // 10% fee
-
 export function DirectBookingDialog({
   open,
   onOpenChange,
@@ -94,8 +92,6 @@ export function DirectBookingDialog({
   };
 
   const priceValue = parsePrice(service.price);
-  const platformFee = priceValue * PLATFORM_FEE_RATE;
-  const totalPrice = priceValue + platformFee;
 
   const handleConfirmBooking = async () => {
     if (!selectedDate || !selectedSlot) return;
@@ -166,7 +162,7 @@ export function DirectBookingDialog({
 
       // 4. Create appointment linked to quote
       const duration = calculateDuration(selectedSlot.start_time, selectedSlot.end_time);
-      const { error: appointmentError } = await supabase
+      const { data: appointment, error: appointmentError } = await supabase
         .from('appointments')
         .insert({
           client_id: user.id,
@@ -182,7 +178,9 @@ export function DirectBookingDialog({
           status: 'confirmed',
           client_confirmed: true,
           professional_confirmed: true,
-        });
+        })
+        .select('id')
+        .single();
 
       if (appointmentError) throw appointmentError;
 
@@ -194,13 +192,8 @@ export function DirectBookingDialog({
         message_type: 'text',
       });
 
-      toast({
-        title: "Agendamento criado!",
-        description: "Seu horário foi reservado. Finalize o pagamento no chat.",
-      });
-
       onOpenChange(false);
-      navigate(`/chat/${conversationId}`);
+      navigate(`/agendamento-confirmado/${appointment.id}`);
     } catch (error: any) {
       console.error('Error creating booking:', error);
       toast({
@@ -297,22 +290,11 @@ export function DirectBookingDialog({
           {/* Pricing */}
           <div className="space-y-3">
             <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
-              Resumo do Pagamento
+              Valor
             </h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Valor do serviço</span>
-                <span>{formatPrice(priceValue)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Taxa da plataforma (10%)</span>
-                <span>{formatPrice(platformFee)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between font-semibold text-base">
-                <span>Total</span>
-                <span className="text-primary">{formatPrice(totalPrice)}</span>
-              </div>
+            <div className="flex justify-between font-semibold text-lg">
+              <span>Total a pagar</span>
+              <span className="text-primary">{formatPrice(priceValue)}</span>
             </div>
           </div>
         </div>
