@@ -29,7 +29,7 @@ serve(async (req) => {
     if (!userId) {
       const { data: popularServices } = await supabase
         .from("services")
-        .select("id, title, category, subcategory, price, city, state, images, verified, user_id, views_count, favorites_count")
+        .select("id, title, category, subcategory, price, price_type, city, state, images, verified, user_id, views_count, favorites_count")
         .eq("status", "active")
         .order("views_count", { ascending: false })
         .limit(6);
@@ -129,7 +129,7 @@ serve(async (req) => {
     // Build recommendation query
     let query = supabase
       .from("services")
-      .select("id, title, category, subcategory, price, city, state, images, verified, user_id, views_count, favorites_count")
+      .select("id, title, category, subcategory, price, price_type, city, state, images, verified, user_id, views_count, favorites_count")
       .eq("status", "active")
       .neq("user_id", userId);
 
@@ -208,7 +208,7 @@ Exemplo: "Serviços de limpeza perto de você"`
     if (recommendations.length === 0) {
       const { data: popularServices } = await supabase
         .from("services")
-        .select("id, title, category, subcategory, price, city, state, images, verified, user_id, views_count, favorites_count")
+        .select("id, title, category, subcategory, price, price_type, city, state, images, verified, user_id, views_count, favorites_count")
         .eq("status", "active")
         .neq("user_id", userId)
         .order("views_count", { ascending: false })

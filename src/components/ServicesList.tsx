@@ -13,6 +13,7 @@ interface Service {
   category: string;
   subcategory: string | null;
   price: string;
+  price_type: string;
   city: string;
   state: string;
   images: string[];
@@ -35,7 +36,7 @@ const ServicesList = () => {
       try {
         const { data: servicesData, error } = await supabase
           .from("services")
-          .select("id, title, category, subcategory, price, city, state, images, verified, user_id, slug")
+          .select("id, title, category, subcategory, price, price_type, city, state, images, verified, user_id, slug")
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(12);
@@ -57,6 +58,7 @@ const ServicesList = () => {
               category: service.category,
               subcategory: service.subcategory || null,
               price: service.price,
+              price_type: service.price_type,
               city: service.city,
               state: service.state,
               images: service.images || [],
@@ -180,6 +182,7 @@ const ServicesList = () => {
                         id={service.id}
                         title={service.title}
                         price={service.price}
+                        priceType={service.price_type}
                         image={service.images?.[0]}
                         category={service.category}
                         subcategory={service.subcategory}

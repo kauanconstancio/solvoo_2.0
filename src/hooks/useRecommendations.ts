@@ -7,6 +7,7 @@ interface RecommendedService {
   category: string;
   subcategory: string | null;
   price: string;
+  price_type: string;
   city: string;
   state: string;
   images: string[];
