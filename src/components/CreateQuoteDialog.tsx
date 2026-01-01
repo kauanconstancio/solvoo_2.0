@@ -258,6 +258,7 @@ export const CreateQuoteDialog = ({
       setIsLoadingSlots(true);
       try {
         const formattedDate = format(scheduledDate, "yyyy-MM-dd");
+        const occupied: string[] = [];
         
         // Fetch appointments for this professional on the selected date
         const { data: appointments } = await supabase
@@ -268,30 +269,62 @@ export const CreateQuoteDialog = ({
           .neq("status", "cancelled");
 
         if (appointments) {
-          // Extract occupied time slots considering duration
-          const occupied: string[] = [];
           appointments.forEach((apt) => {
             const startTime = apt.scheduled_time.substring(0, 5);
-            occupied.push(startTime);
+            if (!occupied.includes(startTime)) occupied.push(startTime);
             
-            // Also mark overlapping slots based on duration
+            // Mark overlapping slots based on duration
             const [startH, startM] = startTime.split(':').map(Number);
             const startMinutes = startH * 60 + startM;
             const endMinutes = startMinutes + apt.duration_minutes;
             
-            // Check each scheduled slot for overlap
             scheduledTimeSlots.forEach(slot => {
               const [slotH, slotM] = slot.split(':').map(Number);
               const slotMinutes = slotH * 60 + slotM;
               if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
-                if (!occupied.includes(slot)) {
-                  occupied.push(slot);
-                }
+                if (!occupied.includes(slot)) occupied.push(slot);
               }
             });
           });
-          setOccupiedSlots(occupied);
         }
+
+        // Also fetch quotes with scheduled dates (pending/accepted) that have appointments data
+        const { data: quotes } = await supabase
+          .from("quotes")
+          .select("id")
+          .eq("professional_id", userId)
+          .in("status", ["pending", "accepted"]);
+        
+        if (quotes && quotes.length > 0) {
+          // Get appointments linked to these quotes
+          const { data: quoteAppointments } = await supabase
+            .from("appointments")
+            .select("scheduled_time, duration_minutes, scheduled_date")
+            .eq("scheduled_date", formattedDate)
+            .in("quote_id", quotes.map(q => q.id))
+            .neq("status", "cancelled");
+          
+          if (quoteAppointments) {
+            quoteAppointments.forEach((apt) => {
+              const startTime = apt.scheduled_time.substring(0, 5);
+              if (!occupied.includes(startTime)) occupied.push(startTime);
+              
+              const [startH, startM] = startTime.split(':').map(Number);
+              const startMinutes = startH * 60 + startM;
+              const endMinutes = startMinutes + apt.duration_minutes;
+              
+              scheduledTimeSlots.forEach(slot => {
+                const [slotH, slotM] = slot.split(':').map(Number);
+                const slotMinutes = slotH * 60 + slotM;
+                if (slotMinutes >= startMinutes && slotMinutes < endMinutes) {
+                  if (!occupied.includes(slot)) occupied.push(slot);
+                }
+              });
+            });
+          }
+        }
+
+        setOccupiedSlots(occupied);
       } catch (error) {
         console.error("Error fetching occupied slots:", error);
       } finally {
