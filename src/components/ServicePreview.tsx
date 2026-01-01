@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, MapPin, Star, Calendar, Clock, User } from 'lucide-react';
+import { Eye, MapPin, Star, Calendar, Clock, User, Zap, FileText } from 'lucide-react';
 import { getCategoryConfig } from '@/data/categoryIcons';
 
 interface ServicePreviewProps {
@@ -32,14 +32,17 @@ export const ServicePreview = ({
   disabled = false,
 }: ServicePreviewProps) => {
   const categoryLabel = getCategoryConfig(category)?.label || category;
+  const isFixedPrice = priceType !== 'negotiable';
   const priceTypeLabels: Record<string, string> = {
     fixed: 'Preço fixo',
-    hourly: 'Por hora',
-    daily: 'Por dia',
+    hour: 'Por hora',
+    day: 'Por dia',
+    project: 'Por projeto',
     negotiable: 'A combinar',
   };
 
   const formatPrice = (value: string) => {
+    if (priceType === 'negotiable') return 'A combinar';
     const num = parseFloat(value);
     if (isNaN(num)) return 'A combinar';
     return `R$ ${num.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
@@ -101,13 +104,22 @@ export const ServicePreview = ({
                   <MapPin className="h-3 w-3" />
                   <span>{city && state ? `${city}, ${state}` : 'Localização não definida'}</span>
                 </div>
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span>Novo</span>
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <div className="flex items-center gap-1">
+                    {isFixedPrice ? (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                        <Zap className="h-3 w-3" />
+                        Agendamento rápido
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                        <FileText className="h-3 w-3" />
+                        Orçamento
+                      </span>
+                    )}
                   </div>
                   <span className="font-bold text-primary">
-                    {price ? formatPrice(price) : 'A combinar'}
+                    {formatPrice(price)}
                   </span>
                 </div>
               </div>
@@ -158,13 +170,33 @@ export const ServicePreview = ({
                   </div>
                 </div>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-primary">
-                    {price ? formatPrice(price) : 'A combinar'}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {priceTypeLabels[priceType] || priceType}
-                  </span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    {isFixedPrice ? (
+                      <span className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <Zap className="h-3.5 w-3.5" />
+                        Agendamento rápido
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        <FileText className="h-3.5 w-3.5" />
+                        Orçamento sob consulta
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-primary">
+                      {formatPrice(price)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {priceTypeLabels[priceType] || priceType}
+                    </span>
+                  </div>
+                  {!isFixedPrice && (
+                    <p className="text-xs text-muted-foreground">
+                      Entre em contato para negociar valores e agendar
+                    </p>
+                  )}
                 </div>
 
                 <div className="pt-4 border-t">

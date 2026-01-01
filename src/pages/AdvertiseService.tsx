@@ -283,7 +283,7 @@ const AdvertiseService = () => {
       !title ||
       !category ||
       !description ||
-      !price ||
+      (priceType !== "negotiable" && !price) ||
       !priceType ||
       !selectedState ||
       !selectedCity
@@ -333,7 +333,7 @@ const AdvertiseService = () => {
         description,
         category,
         subcategory: subcategory || null,
-        price: `R$ ${price}`,
+        price: priceType === "negotiable" ? "A combinar" : `R$ ${price}`,
         price_type: priceType,
         state: selectedState,
         city: selectedCity,
@@ -715,23 +715,15 @@ const AdvertiseService = () => {
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="price">Preço Base (R$) *</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        placeholder="0,00"
-                        min="0"
-                        step="0.01"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label htmlFor="priceType">Tipo de Cobrança *</Label>
                       <Select
                         value={priceType}
-                        onValueChange={setPriceType}
+                        onValueChange={(value) => {
+                          setPriceType(value);
+                          if (value === "negotiable") {
+                            setPrice("");
+                          }
+                        }}
                         required
                       >
                         <SelectTrigger>
@@ -746,7 +738,37 @@ const AdvertiseService = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Preço Base (R$) {priceType !== "negotiable" && "*"}</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        placeholder={priceType === "negotiable" ? "Não aplicável" : "0,00"}
+                        min="0"
+                        step="0.01"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        disabled={priceType === "negotiable"}
+                        required={priceType !== "negotiable"}
+                        className={priceType === "negotiable" ? "bg-muted cursor-not-allowed" : ""}
+                      />
+                      {priceType === "negotiable" && (
+                        <p className="text-xs text-muted-foreground">
+                          O preço será definido via orçamento
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  
+                  {priceType === "negotiable" && (
+                    <Alert className="border-amber-500/50 bg-amber-500/10">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTitle className="text-amber-600">Agendamento rápido indisponível</AlertTitle>
+                      <AlertDescription className="text-amber-600/80">
+                        Serviços com preço "A Combinar" não permitem agendamento rápido. Clientes precisarão entrar em contato para negociar valores e agendar o serviço através do chat.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   {/* Price Suggestion Panel */}
                   {priceSuggestion?.suggestion && (
