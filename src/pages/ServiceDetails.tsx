@@ -86,6 +86,7 @@ const ServiceDetails = () => {
   const { providerRating } = useProviderRating(provider?.user_id || null);
   const { createOrGetConversation } = useCreateConversation();
   const [isRequestingQuote, setIsRequestingQuote] = useState(false);
+  const [showMobilePriceCard, setShowMobilePriceCard] = useState(false);
 
   // URL for Open Graph (social media crawlers)
   const ogShareUrl = `https://hgixhlcxvjvonmcxfvlc.supabase.co/functions/v1/og-service?id=${id}`;
@@ -148,6 +149,18 @@ const ServiceDetails = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  // Show mobile price card after scrolling past the image
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      // Show after scrolling 300px (past the main image)
+      setShowMobilePriceCard(scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -638,7 +651,13 @@ const ServiceDetails = () => {
                 </Card>
 
                 {/* Mobile Price Card - Fixed Bottom */}
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom">
+                <div 
+                  className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom transition-all duration-300 ease-out ${
+                    showMobilePriceCard 
+                      ? 'translate-y-0 opacity-100' 
+                      : 'translate-y-full opacity-0'
+                  }`}
+                >
                   <div className="px-4 py-3">
                     {/* Booking type indicator */}
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-2 ${
