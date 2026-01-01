@@ -13,6 +13,8 @@ import {
   ArrowLeft,
   PenLine,
   Flag,
+  Zap,
+  FileText,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import Header from "@/components/Header";
@@ -571,9 +573,28 @@ const ServiceDetails = () => {
                 {/* Price Card */}
                 <Card className="hidden md:flex">
                   <CardContent className="p-6 space-y-4 w-full">
+                    {/* Booking type indicator */}
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                      isFixedPrice 
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    }`}>
+                      {isFixedPrice ? (
+                        <>
+                          <Zap className="h-4 w-4" />
+                          <span>Agendamento rápido</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-4 w-4" />
+                          <span>Orçamento sob consulta</span>
+                        </>
+                      )}
+                    </div>
+
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
-                        A partir de
+                        {isFixedPrice ? 'Valor' : 'A partir de'}
                       </p>
                       <p className="text-3xl font-bold text-primary">
                         {service.price}
@@ -598,7 +619,7 @@ const ServiceDetails = () => {
                         ) : (
                           <MessageSquare className="h-5 w-5 mr-2" />
                         )}
-                        Solicitar Orçamento
+                        {isFixedPrice ? 'Iniciar Conversa' : 'Solicitar Orçamento'}
                       </Button>
                     </div>
 
@@ -612,10 +633,28 @@ const ServiceDetails = () => {
                 {/* Mobile Price Card */}
                 <Card className="md:hidden fixed bottom-0 left-0 right-0 z-50 mx-auto w-full rounded-t-2xl rounded-b-none shadow-2xl bg-background border-t-2 border-b-0">
                   <CardContent className="p-4 pb-6">
+                    {/* Mobile booking type indicator */}
+                    <div className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium mb-3 w-fit ${
+                      isFixedPrice 
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    }`}>
+                      {isFixedPrice ? (
+                        <>
+                          <Zap className="h-3 w-3" />
+                          <span>Agendamento rápido</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-3 w-3" />
+                          <span>Orçamento sob consulta</span>
+                        </>
+                      )}
+                    </div>
                     <div className="flex items-center justify-between gap-5">
                       <div className="flex flex-col w-full">
                         <p className="text-xs text-muted-foreground mb-1">
-                          A partir de
+                          {isFixedPrice ? 'Valor' : 'A partir de'}
                         </p>
                         <p className="text-2xl font-bold text-primary">
                           {service.price}
@@ -633,7 +672,7 @@ const ServiceDetails = () => {
                         ) : (
                           <MessageSquare className="h-5 w-5 mr-2" />
                         )}
-                        Solicitar Orçamento
+                        {isFixedPrice ? 'Conversar' : 'Orçamento'}
                       </Button>
                     </div>
                   </CardContent>
