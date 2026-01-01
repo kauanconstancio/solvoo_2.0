@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarCheck, Sparkles, Timer } from 'lucide-react';
-import { format, addDays, isSameDay, startOfToday } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, startOfToday, isBefore, addDays, getDay, startOfWeek, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -49,13 +49,13 @@ export function ProfessionalAvailability({
   const [schedules, setSchedules] = useState<DaySchedule[]>([]);
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
+  const [currentMonth, setCurrentMonth] = useState<Date>(startOfToday());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [startIndex, setStartIndex] = useState(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const DAYS_TO_SHOW = 7;
-  const TOTAL_DAYS = 14;
+  const today = startOfToday();
+  const maxDate = addDays(today, 60); // Allow booking up to 60 days ahead
 
   useEffect(() => {
     const getUser = async () => {
@@ -94,14 +94,14 @@ export function ProfessionalAvailability({
 
         setSchedules(schedulesWithSlots);
 
-        const today = new Date().toISOString().split('T')[0];
-        const futureDate = addDays(new Date(), TOTAL_DAYS).toISOString().split('T')[0];
+        const todayStr = today.toISOString().split('T')[0];
+        const futureDate = maxDate.toISOString().split('T')[0];
         
         const { data: blocksData } = await supabase
           .from('schedule_blocks')
           .select('block_date, start_time, end_time')
           .eq('user_id', professionalId)
-          .gte('block_date', today)
+          .gte('block_date', todayStr)
           .lte('block_date', futureDate);
 
         setBlocks(blocksData || []);
@@ -118,6 +118,9 @@ export function ProfessionalAvailability({
   }, [professionalId]);
 
   const getAvailableSlotsForDate = (date: Date): TimeSlot[] => {
+    if (isBefore(date, today)) return [];
+    if (isBefore(maxDate, date)) return [];
+
     const dayOfWeek = date.getDay();
     const dateStr = format(date, 'yyyy-MM-dd');
 
@@ -154,14 +157,6 @@ export function ProfessionalAvailability({
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
-  };
-
-  const getDates = () => {
-    const dates: Date[] = [];
-    for (let i = 0; i < TOTAL_DAYS; i++) {
-      dates.push(addDays(startOfToday(), i));
-    }
-    return dates;
   };
 
   const handleSlotClick = (slot: TimeSlot) => {
@@ -204,20 +199,48 @@ export function ProfessionalAvailability({
     navigate(`/chat/new?${params.toString()}`);
   };
 
-  const allDates = getDates();
-  const visibleDates = allDates.slice(startIndex, startIndex + DAYS_TO_SHOW);
-  const selectedSlots = getAvailableSlotsForDate(selectedDate);
-
-  const canScrollLeft = startIndex > 0;
-  const canScrollRight = startIndex + DAYS_TO_SHOW < allDates.length;
-
-  const scrollLeft = () => {
-    if (canScrollLeft) setStartIndex(prev => prev - 1);
+  const handleDateClick = (date: Date) => {
+    const slots = getAvailableSlotsForDate(date);
+    if (slots.length === 0) return;
+    
+    if (selectedDate && isSameDay(date, selectedDate)) {
+      setSelectedDate(null);
+      setSelectedSlot(null);
+    } else {
+      setSelectedDate(date);
+      setSelectedSlot(null);
+    }
   };
 
-  const scrollRight = () => {
-    if (canScrollRight) setStartIndex(prev => prev + 1);
+  const goToPreviousMonth = () => {
+    const prevMonth = subMonths(currentMonth, 1);
+    if (!isBefore(endOfMonth(prevMonth), today)) {
+      setCurrentMonth(prevMonth);
+    }
   };
+
+  const goToNextMonth = () => {
+    const nextMonth = addMonths(currentMonth, 1);
+    if (!isBefore(maxDate, startOfMonth(nextMonth))) {
+      setCurrentMonth(nextMonth);
+    }
+  };
+
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  }, [currentMonth]);
+
+  const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+  const selectedSlots = selectedDate ? getAvailableSlotsForDate(selectedDate) : [];
+
+  const canGoPrevious = !isBefore(endOfMonth(subMonths(currentMonth, 1)), today);
+  const canGoNext = !isBefore(maxDate, startOfMonth(addMonths(currentMonth, 1)));
 
   useEffect(() => {
     setSelectedSlot(null);
@@ -225,20 +248,18 @@ export function ProfessionalAvailability({
 
   if (isLoading) {
     return (
-      <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card to-muted/30">
+      <Card className="overflow-hidden border-0 shadow-lg bg-card">
         <CardContent className="p-6 space-y-5">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-xl" />
-            <Skeleton className="h-6 w-40" />
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-32" />
+            <div className="flex gap-2">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
           </div>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5, 6, 7].map(i => (
-              <Skeleton key={i} className="h-20 w-14 rounded-xl flex-shrink-0" />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-10 w-24 rounded-xl" />
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-10 rounded-full" />
             ))}
           </div>
         </CardContent>
@@ -251,12 +272,12 @@ export function ProfessionalAvailability({
   }
 
   return (
-    <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-br from-card via-card to-primary/5">
+    <Card className="overflow-hidden border shadow-sm bg-card">
       <CardContent className="p-0">
         {/* Header */}
-        <div className="p-5 pb-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+        <div className="px-6 py-4 border-b">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
               <Calendar className="h-5 w-5" />
             </div>
             <div>
@@ -266,201 +287,197 @@ export function ProfessionalAvailability({
           </div>
         </div>
 
-        <div className="p-5 pt-4 space-y-5">
-          {/* Date Selector */}
-          <div className="relative">
-            <div className="flex items-center gap-2">
+        <div className="p-6 space-y-6">
+          {/* Calendar Navigation */}
+          <div className="flex items-center justify-between">
+            <h4 className="text-base font-medium text-foreground capitalize">
+              {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+            </h4>
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary disabled:opacity-30"
-                onClick={scrollLeft}
-                disabled={!canScrollLeft}
+                className="h-8 w-8 rounded-full hover:bg-muted"
+                onClick={goToPreviousMonth}
+                disabled={!canGoPrevious}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
-              <div className="flex gap-2 overflow-hidden flex-1 justify-center">
-                {visibleDates.map((date, index) => {
-                  const hasSlots = getAvailableSlotsForDate(date).length > 0;
-                  const isSelected = isSameDay(date, selectedDate);
-                  const isToday = isSameDay(date, startOfToday());
-
-                  return (
-                    <motion.button
-                      key={date.toISOString()}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.03 }}
-                      onClick={() => setSelectedDate(date)}
-                      className={cn(
-                        "relative flex flex-col items-center justify-center py-2.5 px-2 rounded-xl min-w-[52px] transition-all duration-200",
-                        isSelected
-                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
-                          : hasSlots
-                          ? "bg-muted/60 hover:bg-muted hover:scale-102"
-                          : "bg-muted/30 text-muted-foreground/60",
-                        !hasSlots && !isSelected && "cursor-not-allowed"
-                      )}
-                      disabled={!hasSlots && !isSelected}
-                    >
-                      {isToday && !isSelected && (
-                        <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full" />
-                      )}
-                      <span className={cn(
-                        "text-[10px] uppercase font-medium tracking-wide",
-                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-                      )}>
-                        {format(date, 'EEE', { locale: ptBR })}
-                      </span>
-                      <span className={cn(
-                        "text-xl font-bold leading-tight",
-                        isToday && !isSelected && "text-primary"
-                      )}>
-                        {format(date, 'd')}
-                      </span>
-                      <span className={cn(
-                        "text-[10px]",
-                        isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
-                      )}>
-                        {format(date, 'MMM', { locale: ptBR })}
-                      </span>
-                      {hasSlots && !isSelected && (
-                        <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full" />
-                      )}
-                    </motion.button>
-                  );
-                })}
-              </div>
-
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary disabled:opacity-30"
-                onClick={scrollRight}
-                disabled={!canScrollRight}
+                className="h-8 w-8 rounded-full hover:bg-muted"
+                onClick={goToNextMonth}
+                disabled={!canGoNext}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          {/* Selected Date Label */}
-          <div className="flex items-center gap-2">
-            <div className="h-px flex-1 bg-border/50" />
-            <p className="text-xs font-medium text-muted-foreground px-2 capitalize">
-              {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-            </p>
-            <div className="h-px flex-1 bg-border/50" />
+          {/* Calendar Grid */}
+          <div className="space-y-2">
+            {/* Week days header */}
+            <div className="grid grid-cols-7 gap-1">
+              {weekDays.map((day, index) => (
+                <div 
+                  key={index} 
+                  className="h-10 flex items-center justify-center text-xs font-medium text-muted-foreground"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar days */}
+            <div className="grid grid-cols-7 gap-1">
+              {calendarDays.map((date, index) => {
+                const isCurrentMonth = isSameMonth(date, currentMonth);
+                const isToday = isSameDay(date, today);
+                const isPast = isBefore(date, today);
+                const isFuture = isBefore(maxDate, date);
+                const hasSlots = getAvailableSlotsForDate(date).length > 0;
+                const isSelected = selectedDate && isSameDay(date, selectedDate);
+                const isDisabled = !isCurrentMonth || isPast || isFuture || !hasSlots;
+
+                return (
+                  <motion.button
+                    key={date.toISOString()}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: index * 0.005 }}
+                    onClick={() => !isDisabled && handleDateClick(date)}
+                    disabled={isDisabled}
+                    className={cn(
+                      "relative h-10 w-full flex items-center justify-center text-sm rounded-full transition-all duration-150",
+                      !isCurrentMonth && "text-muted-foreground/30",
+                      isCurrentMonth && !isDisabled && "text-foreground hover:bg-muted",
+                      isCurrentMonth && isDisabled && "text-muted-foreground/40 cursor-not-allowed",
+                      isSelected && "bg-foreground text-background hover:bg-foreground",
+                      isToday && !isSelected && "font-bold",
+                      hasSlots && !isSelected && !isPast && isCurrentMonth && "font-medium"
+                    )}
+                  >
+                    {format(date, 'd')}
+                    {hasSlots && !isSelected && !isPast && isCurrentMonth && (
+                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+              <span>Disponível</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-5 h-5 bg-foreground text-background rounded-full flex items-center justify-center text-[10px]">1</span>
+              <span>Selecionado</span>
+            </div>
           </div>
 
           {/* Time Slots */}
           <AnimatePresence mode="wait">
-            {selectedSlots.length > 0 ? (
+            {selectedDate && (
               <motion.div
                 key={selectedDate.toISOString()}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-4"
+                className="overflow-hidden"
               >
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {selectedSlots.map((slot, index) => {
-                    const isSlotSelected = selectedSlot?.id === slot.id;
-                    const duration = calculateDuration(slot.start_time, slot.end_time);
-                    return (
-                      <motion.button
-                        key={slot.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.03 }}
-                        onClick={() => handleSlotClick(slot)}
-                        disabled={!selectable}
-                        className={cn(
-                          "relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-3 transition-all duration-200",
-                          isSlotSelected
-                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
-                            : "bg-muted/60 text-foreground hover:bg-muted hover:scale-102",
-                          selectable && "cursor-pointer",
-                          !selectable && "cursor-default"
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <Clock className={cn(
-                            "h-3.5 w-3.5",
-                            isSlotSelected ? "text-primary-foreground/70" : "text-muted-foreground"
-                          )} />
-                          <span className="font-semibold text-sm">{formatTime(slot.start_time)}</span>
-                        </div>
-                        <div className={cn(
-                          "flex items-center gap-1 text-[11px]",
-                          isSlotSelected ? "text-primary-foreground/70" : "text-muted-foreground"
-                        )}>
-                          <Timer className="h-3 w-3" />
-                          <span>{formatDuration(duration)}</span>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-                
-                {/* Booking Confirmation */}
-                <AnimatePresence>
-                  {selectable && selectedSlot && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
-                              <Sparkles className="h-4 w-4 text-primary" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Horário selecionado</p>
-                              <p className="font-semibold text-foreground">
-                                {format(selectedDate, "dd/MM", { locale: ptBR })} às {formatTime(selectedSlot.start_time)}
-                                <span className="text-muted-foreground font-normal text-sm ml-2">
-                                  ({formatDuration(calculateDuration(selectedSlot.start_time, selectedSlot.end_time))})
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                          <Button 
-                            onClick={handleBookAppointment} 
-                            className="rounded-xl shadow-lg shadow-primary/20"
+                <div className="pt-4 border-t space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-foreground capitalize">
+                      {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                    </p>
+                  </div>
+
+                  {selectedSlots.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {selectedSlots.map((slot, index) => {
+                        const isSlotSelected = selectedSlot?.id === slot.id;
+                        const duration = calculateDuration(slot.start_time, slot.end_time);
+                        return (
+                          <motion.button
+                            key={slot.id}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.03 }}
+                            onClick={() => handleSlotClick(slot)}
+                            disabled={!selectable}
+                            className={cn(
+                              "relative flex flex-col items-center justify-center gap-0.5 rounded-lg border px-3 py-2.5 transition-all duration-150",
+                              isSlotSelected
+                                ? "bg-foreground text-background border-foreground"
+                                : "bg-card text-foreground border-border hover:border-foreground/30",
+                              selectable && "cursor-pointer",
+                              !selectable && "cursor-default"
+                            )}
                           >
-                            <CalendarCheck className="h-4 w-4 mr-2" />
-                            Agendar
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
+                            <span className="font-medium text-sm">{formatTime(slot.start_time)}</span>
+                            <div className={cn(
+                              "flex items-center gap-1 text-[11px]",
+                              isSlotSelected ? "text-background/70" : "text-muted-foreground"
+                            )}>
+                              <Timer className="h-3 w-3" />
+                              <span>{formatDuration(duration)}</span>
+                            </div>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Nenhum horário disponível para esta data
+                    </p>
                   )}
-                </AnimatePresence>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-8 text-center"
-              >
-                <div className="p-3 rounded-full bg-muted/50 mb-3">
-                  <Calendar className="h-6 w-6 text-muted-foreground/50" />
+
+                  {/* Booking Confirmation */}
+                  <AnimatePresence>
+                    {selectable && selectedSlot && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="p-4 rounded-lg bg-muted/50 border">
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-lg bg-primary/10">
+                                <Sparkles className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Horário selecionado</p>
+                                <p className="font-medium text-foreground">
+                                  {format(selectedDate, "dd/MM", { locale: ptBR })} às {formatTime(selectedSlot.start_time)}
+                                  <span className="text-muted-foreground font-normal text-sm ml-1.5">
+                                    ({formatDuration(calculateDuration(selectedSlot.start_time, selectedSlot.end_time))})
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+                            <Button 
+                              onClick={handleBookAppointment} 
+                              size="sm"
+                              className="rounded-lg"
+                            >
+                              <CalendarCheck className="h-4 w-4 mr-1.5" />
+                              Agendar
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Sem horários disponíveis
-                </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Selecione outra data para ver a disponibilidade
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
