@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCreateConversation } from "@/hooks/useChat";
 import { isUUID } from "@/lib/slugUtils";
 import { ProfessionalAvailability } from "@/components/ProfessionalAvailability";
+import { DirectBookingDialog } from "@/components/DirectBookingDialog";
 
 interface ProviderProfile {
   user_id: string;
@@ -75,6 +76,9 @@ const ServiceDetails = () => {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isDirectBookingOpen, setIsDirectBookingOpen] = useState(false);
+  const [selectedBookingDate, setSelectedBookingDate] = useState<Date | null>(null);
+  const [selectedBookingSlot, setSelectedBookingSlot] = useState<{ id: string; start_time: string; end_time: string } | null>(null);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { reviews, serviceRating, addReview, refetchReviews } = useReviews(service?.id);
   const { providerRating } = useProviderRating(provider?.user_id || null);
@@ -256,6 +260,20 @@ const ServiceDetails = () => {
 
   const canWriteReview =
     currentUserId && service && currentUserId !== service.user_id;
+
+  // Check if service has fixed price (not "a combinar" / negotiable)
+  const isFixedPrice = service?.price_type !== 'negotiable';
+
+  // Handler for slot selection from calendar
+  const handleSlotSelected = (date: Date, slot: { id: string; start_time: string; end_time: string }) => {
+    if (isFixedPrice && service) {
+      // Fixed price: open direct booking dialog
+      setSelectedBookingDate(date);
+      setSelectedBookingSlot(slot);
+      setIsDirectBookingOpen(true);
+    }
+    // For negotiable price, the ProfessionalAvailability will handle navigation to chat
+  };
 
   const defaultImage =
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop";
@@ -715,6 +733,7 @@ const ServiceDetails = () => {
                     professionalId={service.user_id} 
                     serviceId={service.id}
                     serviceName={service.title}
+                    onSlotSelect={isFixedPrice ? handleSlotSelected : undefined}
                   />
                 )}
               </div>
@@ -735,6 +754,23 @@ const ServiceDetails = () => {
         onSubmit={addReview}
         serviceTitle={service.title}
       />
+
+      {/* Direct Booking Dialog for fixed price services */}
+      {service && provider && (
+        <DirectBookingDialog
+          open={isDirectBookingOpen}
+          onOpenChange={setIsDirectBookingOpen}
+          selectedDate={selectedBookingDate}
+          selectedSlot={selectedBookingSlot}
+          service={{
+            id: service.id,
+            title: service.title,
+            price: service.price,
+            user_id: service.user_id,
+          }}
+          provider={provider}
+        />
+      )}
 
       <Footer />
     </div>
