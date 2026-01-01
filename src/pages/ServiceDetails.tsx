@@ -25,6 +25,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { getServiceLabel } from "@/data/services";
 import ProviderProfileDialog from "@/components/ProviderProfileDialog";
@@ -573,24 +579,37 @@ const ServiceDetails = () => {
                 {/* Price Card */}
                 <Card className="hidden md:flex">
                   <CardContent className="p-6 space-y-4 w-full">
-                    {/* Booking type indicator */}
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
-                      isFixedPrice 
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    }`}>
-                      {isFixedPrice ? (
-                        <>
-                          <Zap className="h-4 w-4" />
-                          <span>Agendamento rápido</span>
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="h-4 w-4" />
-                          <span>Orçamento sob consulta</span>
-                        </>
-                      )}
-                    </div>
+                    {/* Booking type indicator with tooltip */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium cursor-help ${
+                            isFixedPrice 
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {isFixedPrice ? (
+                              <>
+                                <Zap className="h-4 w-4" />
+                                <span>Agendamento rápido</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="h-4 w-4" />
+                                <span>Orçamento sob consulta</span>
+                              </>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-xs">
+                          {isFixedPrice ? (
+                            <p>Escolha data e horário no calendário para agendar diretamente com o valor exibido.</p>
+                          ) : (
+                            <p>Converse com o profissional para negociar valores e detalhes do serviço antes de agendar.</p>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">
@@ -633,24 +652,37 @@ const ServiceDetails = () => {
                 {/* Mobile Price Card */}
                 <Card className="md:hidden fixed bottom-0 left-0 right-0 z-50 mx-auto w-full rounded-t-2xl rounded-b-none shadow-2xl bg-background border-t-2 border-b-0">
                   <CardContent className="p-4 pb-6">
-                    {/* Mobile booking type indicator */}
-                    <div className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium mb-3 w-fit ${
-                      isFixedPrice 
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    }`}>
-                      {isFixedPrice ? (
-                        <>
-                          <Zap className="h-3 w-3" />
-                          <span>Agendamento rápido</span>
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="h-3 w-3" />
-                          <span>Orçamento sob consulta</span>
-                        </>
-                      )}
-                    </div>
+                    {/* Mobile booking type indicator with tooltip */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium mb-3 w-fit cursor-help ${
+                            isFixedPrice 
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {isFixedPrice ? (
+                              <>
+                                <Zap className="h-3 w-3" />
+                                <span>Agendamento rápido</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="h-3 w-3" />
+                                <span>Orçamento sob consulta</span>
+                              </>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          {isFixedPrice ? (
+                            <p>Escolha data e horário no calendário para agendar diretamente.</p>
+                          ) : (
+                            <p>Converse com o profissional para negociar valores e detalhes.</p>
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <div className="flex items-center justify-between gap-5">
                       <div className="flex flex-col w-full">
                         <p className="text-xs text-muted-foreground mb-1">
