@@ -62,7 +62,7 @@ const HorizontalScrollSection = ({ children, className = "" }: HorizontalScrollS
       {/* Scroll Container */}
       <div
         ref={scrollRef}
-        className={`flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide scroll-smooth-touch ${className}`}
+        className={`flex gap-3 overflow-x-auto overflow-y-hidden pb-4 -mx-4 px-4 scrollbar-hide scroll-smooth-touch ${className}`}
       >
         {children}
       </div>
