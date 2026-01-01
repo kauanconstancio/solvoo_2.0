@@ -1,6 +1,7 @@
 import { Heart, Star, Zap, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { getServiceUrl } from "@/lib/slugUtils";
@@ -70,6 +71,12 @@ const ServiceCardCompact = ({
             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
+          {isFixedPrice && (
+            <Badge className="absolute top-2 left-2 bg-emerald-500 text-white hover:bg-emerald-600 text-[10px] px-1.5 py-0.5 shadow-md">
+              <Zap className="h-2.5 w-2.5 mr-0.5" />
+              Rápido
+            </Badge>
+          )}
           <Button
             size="icon"
             variant="ghost"
