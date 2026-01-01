@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarCheck, Sparkles } from 'lucide-react';
+import { Calendar, Clock, ChevronLeft, ChevronRight, CalendarCheck, Sparkles, Timer } from 'lucide-react';
 import { format, addDays, isSameDay, startOfToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -142,6 +142,19 @@ export function ProfessionalAvailability({
   };
 
   const formatTime = (time: string) => time.slice(0, 5);
+
+  const calculateDuration = (startTime: string, endTime: string): number => {
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    return (endH * 60 + endM) - (startH * 60 + startM);
+  };
+
+  const formatDuration = (minutes: number): string => {
+    if (minutes < 60) return `${minutes}min`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
+  };
 
   const getDates = () => {
     const dates: Date[] = [];
@@ -352,9 +365,10 @@ export function ProfessionalAvailability({
                 transition={{ duration: 0.2 }}
                 className="space-y-4"
               >
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {selectedSlots.map((slot, index) => {
                     const isSlotSelected = selectedSlot?.id === slot.id;
+                    const duration = calculateDuration(slot.start_time, slot.end_time);
                     return (
                       <motion.button
                         key={slot.id}
@@ -364,7 +378,7 @@ export function ProfessionalAvailability({
                         onClick={() => handleSlotClick(slot)}
                         disabled={!selectable}
                         className={cn(
-                          "relative flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                          "relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-3 transition-all duration-200",
                           isSlotSelected
                             ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
                             : "bg-muted/60 text-foreground hover:bg-muted hover:scale-102",
@@ -372,11 +386,20 @@ export function ProfessionalAvailability({
                           !selectable && "cursor-default"
                         )}
                       >
-                        <Clock className={cn(
-                          "h-3.5 w-3.5",
+                        <div className="flex items-center gap-1.5">
+                          <Clock className={cn(
+                            "h-3.5 w-3.5",
+                            isSlotSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                          )} />
+                          <span className="font-semibold text-sm">{formatTime(slot.start_time)}</span>
+                        </div>
+                        <div className={cn(
+                          "flex items-center gap-1 text-[11px]",
                           isSlotSelected ? "text-primary-foreground/70" : "text-muted-foreground"
-                        )} />
-                        <span>{formatTime(slot.start_time)}</span>
+                        )}>
+                          <Timer className="h-3 w-3" />
+                          <span>{formatDuration(duration)}</span>
+                        </div>
                       </motion.button>
                     );
                   })}
@@ -402,6 +425,9 @@ export function ProfessionalAvailability({
                               <p className="text-xs text-muted-foreground">Horário selecionado</p>
                               <p className="font-semibold text-foreground">
                                 {format(selectedDate, "dd/MM", { locale: ptBR })} às {formatTime(selectedSlot.start_time)}
+                                <span className="text-muted-foreground font-normal text-sm ml-2">
+                                  ({formatDuration(calculateDuration(selectedSlot.start_time, selectedSlot.end_time))})
+                                </span>
                               </p>
                             </div>
                           </div>
