@@ -6,12 +6,6 @@ import { Link } from "react-router-dom";
 import { getServiceLabel } from "@/data/services";
 import { useFavorites } from "@/hooks/useFavorites";
 import { getServiceUrl } from "@/lib/slugUtils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface ServiceCardProps {
   id: string;
@@ -140,30 +134,17 @@ const ServiceCard = ({
           <div className="flex items-center justify-between pt-2 border-t gap-3">
             <div>
               <div className="flex items-center gap-1.5 mb-0.5">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      {isFixedPrice ? (
-                        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 cursor-help">
-                          <Zap className="h-3 w-3" />
-                          Agendamento rápido
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 cursor-help">
-                          <FileText className="h-3 w-3" />
-                          Orçamento
-                        </span>
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[200px] text-center">
-                      {isFixedPrice ? (
-                        <p className="text-xs">Agende diretamente com preço fixo, sem necessidade de orçamento prévio.</p>
-                      ) : (
-                        <p className="text-xs">Solicite um orçamento personalizado antes de contratar o serviço.</p>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                {isFixedPrice ? (
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                    <Zap className="h-3 w-3" />
+                    Agendamento rápido
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                    <FileText className="h-3 w-3" />
+                    Orçamento
+                  </span>
+                )}
               </div>
               <p className="text-lg md:text-xl font-bold text-primary">
                 {price}
