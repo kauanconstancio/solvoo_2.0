@@ -212,9 +212,16 @@ const MyServicesPage = () => {
   const [mainView, setMainView] = useState<'calendar' | 'status'>('calendar');
   const [activeTab, setActiveTab] = useState('in-progress');
 
-  // Combine all quotes for calendar view
+  // Combine all quotes for calendar view - deduplicate by id
   const allQuotes = useMemo(() => {
-    return [...inProgress, ...awaitingConfirmation, ...completed, ...pending];
+    const combined = [...inProgress, ...awaitingConfirmation, ...completed, ...pending];
+    const uniqueMap = new Map<string, UserQuote>();
+    combined.forEach(quote => {
+      if (!uniqueMap.has(quote.id)) {
+        uniqueMap.set(quote.id, quote);
+      }
+    });
+    return Array.from(uniqueMap.values());
   }, [inProgress, awaitingConfirmation, completed, pending]);
 
   const tabs = [

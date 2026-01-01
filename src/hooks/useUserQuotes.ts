@@ -111,7 +111,12 @@ export const useUserQuotes = () => {
         })
       );
 
-      setQuotes(enrichedQuotes);
+      // Deduplicate quotes by id (in case of any duplicate entries)
+      const uniqueQuotes = enrichedQuotes.filter((quote, index, self) =>
+        index === self.findIndex(q => q.id === quote.id)
+      );
+
+      setQuotes(uniqueQuotes);
     } catch (error: any) {
       console.error('Error fetching user quotes:', error);
     } finally {
