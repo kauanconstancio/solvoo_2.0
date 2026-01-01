@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { getServiceUrl } from "@/lib/slugUtils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ServiceCardCompactProps {
   id: string;
@@ -94,11 +100,24 @@ const ServiceCardCompact = ({
             )}
           </div>
           <div className="flex items-center gap-1 mt-auto">
-            {isFixedPrice ? (
-              <Zap className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-            ) : (
-              <FileText className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-            )}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {isFixedPrice ? (
+                    <Zap className="h-3 w-3 text-emerald-600 dark:text-emerald-400 cursor-help" />
+                  ) : (
+                    <FileText className="h-3 w-3 text-amber-600 dark:text-amberald-400 cursor-help" />
+                  )}
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[180px] text-center">
+                  {isFixedPrice ? (
+                    <p className="text-xs">Agendamento rápido: agende diretamente com preço fixo.</p>
+                  ) : (
+                    <p className="text-xs">Orçamento: solicite um orçamento personalizado.</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <p className="text-base font-bold text-primary">
               {price}
             </p>
