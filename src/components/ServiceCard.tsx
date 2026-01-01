@@ -1,4 +1,4 @@
-import { Star, MapPin, Heart, BadgeCheck } from "lucide-react";
+import { Star, MapPin, Heart, BadgeCheck, Zap, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ interface ServiceCardProps {
   rating?: number;
   reviewCount?: number;
   price: string;
+  priceType?: string;
   image?: string;
   category: string;
   subcategory?: string | null;
@@ -31,6 +32,7 @@ const ServiceCard = ({
   rating = 0,
   reviewCount = 0,
   price,
+  priceType = "negotiable",
   image,
   category,
   subcategory,
@@ -45,6 +47,7 @@ const ServiceCard = ({
   const categoryLabel = getServiceLabel(category);
   const favorited = isFavorite(id);
   const serviceUrl = getServiceUrl({ id, slug });
+  const isFixedPrice = priceType !== "negotiable";
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -130,7 +133,19 @@ const ServiceCard = ({
 
           <div className="flex items-center justify-between pt-2 border-t gap-3">
             <div>
-              <p className="text-xs text-muted-foreground">A partir de</p>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                {isFixedPrice ? (
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                    <Zap className="h-3 w-3" />
+                    Agendamento rápido
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                    <FileText className="h-3 w-3" />
+                    Orçamento
+                  </span>
+                )}
+              </div>
               <p className="text-lg md:text-xl font-bold text-primary">
                 {price}
               </p>

@@ -108,6 +108,7 @@ const RecommendedServices = () => {
                   id={service.id}
                   title={service.title}
                   price={service.price}
+                  priceType={(service as any).price_type}
                   image={service.images?.[0]}
                   category={service.category}
                   subcategory={service.subcategory}

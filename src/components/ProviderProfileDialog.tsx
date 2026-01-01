@@ -42,6 +42,7 @@ interface ServiceItem {
   category: string;
   subcategory: string | null;
   price: string;
+  price_type: string;
   city: string;
   state: string;
   images: string[] | null;
@@ -106,7 +107,7 @@ const ProviderProfileDialog = ({
         const { data: servicesData } = await supabase
           .from("services")
           .select(
-            "id, title, category, subcategory, price, city, state, images, verified"
+            "id, title, category, subcategory, price, price_type, city, state, images, verified"
           )
           .eq("user_id", userId)
           .eq("status", "active")
@@ -352,6 +353,7 @@ const ProviderProfileDialog = ({
                             category={service.category}
                             subcategory={service.subcategory}
                             price={service.price}
+                            priceType={service.price_type}
                             location={`${
                               service.city
                             }, ${service.state.toUpperCase()}`}

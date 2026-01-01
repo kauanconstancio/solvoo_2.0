@@ -1,4 +1,4 @@
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, Zap, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -9,6 +9,7 @@ interface ServiceCardCompactProps {
   id: string;
   title: string;
   price: string;
+  priceType?: string;
   image?: string;
   category: string;
   subcategory?: string | null;
@@ -22,6 +23,7 @@ const ServiceCardCompact = ({
   id,
   title,
   price,
+  priceType = "negotiable",
   image,
   category,
   subcategory,
@@ -36,6 +38,7 @@ const ServiceCardCompact = ({
     "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop";
   const favorited = isFavorite(id);
   const serviceUrl = getServiceUrl({ id, slug });
+  const isFixedPrice = priceType !== "negotiable";
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -90,9 +93,16 @@ const ServiceCardCompact = ({
               <span className="text-muted-foreground">Sem avaliações</span>
             )}
           </div>
-          <p className="text-base font-bold text-primary mt-auto">
-            {price}
-          </p>
+          <div className="flex items-center gap-1 mt-auto">
+            {isFixedPrice ? (
+              <Zap className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+            ) : (
+              <FileText className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+            )}
+            <p className="text-base font-bold text-primary">
+              {price}
+            </p>
+          </div>
         </div>
       </Card>
     </Link>

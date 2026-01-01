@@ -55,6 +55,7 @@ interface ServiceFromDB {
   category: string;
   subcategory: string | null;
   price: string;
+  price_type: string;
   city: string;
   state: string;
   images: string[];
@@ -102,7 +103,7 @@ const SearchResults = () => {
       try {
         let query = supabase
           .from("services")
-          .select("id, title, category, subcategory, price, city, state, images, verified, user_id, slug")
+          .select("id, title, category, subcategory, price, price_type, city, state, images, verified, user_id, slug")
           .eq("status", "active")
           .order("created_at", { ascending: false });
 
@@ -147,6 +148,7 @@ const SearchResults = () => {
               category: service.category,
               subcategory: service.subcategory,
               price: service.price,
+              price_type: service.price_type,
               city: service.city,
               state: service.state,
               images: service.images || [],
@@ -609,6 +611,7 @@ const SearchResults = () => {
                     provider={service.provider_name || undefined}
                     location={getLocation(service.city, service.state)}
                     price={service.price}
+                    priceType={service.price_type}
                     image={service.images?.[0]}
                     category={service.category}
                     subcategory={service.subcategory}
