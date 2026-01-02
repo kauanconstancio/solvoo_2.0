@@ -23,7 +23,8 @@ serve(async (req) => {
       scheduledTime, 
       durationMinutes,
       serviceTitle,
-      price
+      price,
+      location
     } = await req.json();
     
     if (!serviceId || !scheduledDate || !scheduledTime) {
@@ -201,6 +202,7 @@ serve(async (req) => {
         status: "pending",
         client_confirmed: false,
         professional_confirmed: true,
+        location: location || null,
       })
       .select("id")
       .single();
@@ -213,10 +215,11 @@ serve(async (req) => {
     logStep("Appointment created", { appointmentId: appointment.id });
 
     // Send automatic message in chat
+    const locationText = location ? `\n📍 Local: ${location}` : '';
     await supabaseAdmin.from("messages").insert({
       conversation_id: conversationId,
       sender_id: userId,
-      content: `📅 Novo agendamento solicitado!\n\n🗓 Data: ${scheduledDate}\n⏰ Horário: ${scheduledTime}\n💰 Valor: R$ ${price.toFixed(2).replace(".", ",")}\n\n⏳ Aguardando pagamento...`,
+      content: `📅 Novo agendamento solicitado!\n\n🗓 Data: ${scheduledDate}\n⏰ Horário: ${scheduledTime}${locationText}\n💰 Valor: R$ ${price.toFixed(2).replace(".", ",")}\n\n⏳ Aguardando pagamento...`,
       message_type: "text",
     });
 

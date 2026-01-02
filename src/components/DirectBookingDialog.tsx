@@ -13,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PixBookingCheckoutDialog } from './PixBookingCheckoutDialog';
@@ -59,6 +61,7 @@ export function DirectBookingDialog({
   const [showPixDialog, setShowPixDialog] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showCpfDialog, setShowCpfDialog] = useState(false);
+  const [location, setLocation] = useState('');
   const [pixData, setPixData] = useState<{
     pixId: string;
     brCode: string;
@@ -174,7 +177,8 @@ export function DirectBookingDialog({
           scheduledTime: selectedSlot.start_time,
           durationMinutes: duration,
           serviceTitle: service.title,
-          price: priceValue
+          price: priceValue,
+          location: location.trim() || null
         }
       });
 
@@ -329,6 +333,29 @@ export function DirectBookingDialog({
                   <span>{formatDuration(duration)}</span>
                 </div>
               </div>
+            </div>
+
+            <Separator />
+
+            {/* Location Input */}
+            <div className="space-y-3">
+              <Label htmlFor="location" className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                Local do Serviço (opcional)
+              </Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="location"
+                  placeholder="Ex: Rua das Flores, 123 - Centro"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="pl-10"
+                  maxLength={200}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Informe o endereço onde o serviço será realizado
+              </p>
             </div>
 
             <Separator />
