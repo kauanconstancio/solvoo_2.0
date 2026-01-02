@@ -110,27 +110,27 @@ const QuoteCard = ({
             
             <div className="flex-1 p-4 sm:p-5">
               {/* Header Row */}
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-background shadow-sm flex-shrink-0">
+              <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Avatar className="w-9 h-9 sm:w-12 sm:h-12 border-2 border-background shadow-sm flex-shrink-0">
                     <AvatarImage src={otherPerson?.avatar_url || undefined} />
-                    <AvatarFallback className="text-sm sm:text-base bg-primary/10 text-primary font-semibold">
-                      {otherPerson?.full_name?.charAt(0) || <User className="w-4 h-4" />}
+                    <AvatarFallback className="text-xs sm:text-base bg-primary/10 text-primary font-semibold">
+                      {otherPerson?.full_name?.charAt(0) || <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground">{roleLabel}</p>
-                    <p className="font-semibold text-foreground truncate text-sm sm:text-base">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{roleLabel}</p>
+                    <p className="font-semibold text-foreground truncate text-xs sm:text-base">
                       {otherPerson?.full_name || 'Usuário'}
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="font-bold text-lg sm:text-xl text-primary">
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className="font-bold text-sm sm:text-xl text-primary whitespace-nowrap">
                     {formatPrice(quote.price)}
                   </span>
-                  <Badge className={`${statusConfig.className} text-[10px] sm:text-xs px-2 py-0.5 font-medium`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dotColor} mr-1.5 animate-pulse`} />
+                  <Badge className={`${statusConfig.className} text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 font-medium whitespace-nowrap`}>
+                    <span className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${statusConfig.dotColor} mr-1 sm:mr-1.5 animate-pulse`} />
                     {statusConfig.label}
                   </Badge>
                 </div>
