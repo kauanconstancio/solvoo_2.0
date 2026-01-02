@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, 
   CheckCircle2, 
@@ -24,39 +25,43 @@ import {
   Calendar,
   MapPin,
   CalendarDays,
-  ListFilter
+  ListFilter,
+  Eye,
+  MessageCircle,
+  ExternalLink
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null }) => {
+const QuoteCard = ({ quote, userId, index }: { quote: UserQuote; userId: string | null; index: number }) => {
+  const navigate = useNavigate();
   const isProfessional = quote.professional_id === userId;
   const otherPerson = isProfessional ? quote.client : quote.professional;
   const roleLabel = isProfessional ? 'Cliente' : 'Profissional';
   
   const getStatusConfig = () => {
     if (quote.client_confirmed) {
-      return { label: 'Concluído', className: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20' };
+      return { label: 'Concluído', className: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20', dotColor: 'bg-green-500' };
     }
     if (quote.completed_at && !quote.client_confirmed) {
-      return { label: 'Aguardando', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' };
+      return { label: 'Aguardando', className: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20', dotColor: 'bg-amber-500' };
     }
     if (quote.status === 'accepted') {
-      return { label: 'Em Andamento', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' };
+      return { label: 'Em Andamento', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20', dotColor: 'bg-blue-500' };
     }
     if (quote.status === 'pending') {
-      return { label: 'Pendente', className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20' };
+      return { label: 'Pendente', className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20', dotColor: 'bg-yellow-500' };
     }
     if (quote.status === 'cancelled') {
-      return { label: 'Cancelado', className: 'bg-muted text-muted-foreground' };
+      return { label: 'Cancelado', className: 'bg-muted text-muted-foreground', dotColor: 'bg-muted-foreground' };
     }
     if (quote.status === 'rejected') {
-      return { label: 'Recusado', className: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' };
+      return { label: 'Recusado', className: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20', dotColor: 'bg-red-500' };
     }
     if (quote.status === 'expired') {
-      return { label: 'Expirado', className: 'bg-muted text-muted-foreground' };
+      return { label: 'Expirado', className: 'bg-muted text-muted-foreground', dotColor: 'bg-muted-foreground' };
     }
-    return { label: '', className: '' };
+    return { label: '', className: '', dotColor: 'bg-muted-foreground' };
   };
 
   const statusConfig = getStatusConfig();
@@ -68,76 +73,128 @@ const QuoteCard = ({ quote, userId }: { quote: UserQuote; userId: string | null 
     }).format(price);
   };
 
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (quote.service_id) {
+      navigate(`/servico/${quote.service_id}`);
+    }
+  };
+
+  const handleChat = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/chat/${quote.conversation_id}`);
+  };
+
   return (
-    <Link to={`/chat/${quote.conversation_id}`} className="block">
-      <Card className="group hover:shadow-md transition-all border-l-4 border-l-primary">
-        <CardContent className="p-3 sm:p-4">
-          {/* Top Row: Time, Status & Price */}
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <div className="flex items-center gap-2">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+    >
+      <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden border-0 shadow-sm bg-card/80 backdrop-blur-sm">
+        <CardContent className="p-0">
+          <div className="flex">
+            {/* Left accent bar */}
+            <div className={`w-1 ${statusConfig.dotColor}`} />
+            
+            <div className="flex-1 p-4 sm:p-5">
+              {/* Header Row */}
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-background shadow-sm flex-shrink-0">
+                    <AvatarImage src={otherPerson?.avatar_url || undefined} />
+                    <AvatarFallback className="text-sm sm:text-base bg-primary/10 text-primary font-semibold">
+                      {otherPerson?.full_name?.charAt(0) || <User className="w-4 h-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-muted-foreground">{roleLabel}</p>
+                    <p className="font-semibold text-foreground truncate text-sm sm:text-base">
+                      {otherPerson?.full_name || 'Usuário'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="font-bold text-lg sm:text-xl text-primary">
+                    {formatPrice(quote.price)}
+                  </span>
+                  <Badge className={`${statusConfig.className} text-[10px] sm:text-xs px-2 py-0.5 font-medium`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dotColor} mr-1.5 animate-pulse`} />
+                    {statusConfig.label}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Service Title */}
+              <div className="mb-3">
+                <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-1 mb-0.5">
+                  {quote.title}
+                </h3>
+                {quote.service && (
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
+                    {quote.service.title}
+                  </p>
+                )}
+              </div>
+
+              {/* Appointment Info */}
               {quote.appointment && (
-                <div className="flex items-center gap-1.5 text-primary font-semibold text-sm">
-                  <Clock className="w-3.5 h-3.5" />
-                  {quote.appointment.scheduled_time}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex items-center gap-1.5 text-xs bg-primary/5 text-primary rounded-full px-3 py-1.5 font-medium">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>
+                      {format(new Date(quote.appointment.scheduled_date + 'T12:00:00'), "dd MMM", { locale: ptBR })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs bg-primary/5 text-primary rounded-full px-3 py-1.5 font-medium">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{quote.appointment.scheduled_time}</span>
+                  </div>
+                  {quote.appointment.location && (
+                    <div className="flex items-center gap-1.5 text-xs bg-muted text-muted-foreground rounded-full px-3 py-1.5">
+                      <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate max-w-[150px]">{quote.appointment.location}</span>
+                    </div>
+                  )}
                 </div>
               )}
-              <Badge className={`${statusConfig.className} text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5`}>
-                {statusConfig.label}
-              </Badge>
-            </div>
-            <span className="font-bold text-sm sm:text-base text-primary">
-              {formatPrice(quote.price)}
-            </span>
-          </div>
 
-          {/* Title & Service */}
-          <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-1 mb-1">
-            {quote.title}
-          </h3>
-          {quote.service && (
-            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1 mb-2">
-              {quote.service.title}
-            </p>
-          )}
-
-          {/* Appointment Date */}
-          {quote.appointment && (
-            <div className="flex items-center gap-1.5 mb-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-500/10 rounded-md px-2 py-1 w-fit">
-              <Calendar className="w-3 h-3 flex-shrink-0" />
-              <span>
-                {format(new Date(quote.appointment.scheduled_date + 'T12:00:00'), "dd 'de' MMMM", { locale: ptBR })}
-              </span>
-              {quote.appointment.location && (
-                <>
-                  <MapPin className="w-3 h-3 flex-shrink-0 ml-1" />
-                  <span className="truncate hidden sm:inline">{quote.appointment.location}</span>
-                </>
-              )}
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                <span className="text-[11px] sm:text-xs text-muted-foreground">
+                  {formatDistanceToNow(new Date(quote.updated_at), { addSuffix: true, locale: ptBR })}
+                </span>
+                <div className="flex items-center gap-2">
+                  {quote.service_id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleViewDetails}
+                      className="h-8 px-3 text-xs gap-1.5 text-muted-foreground hover:text-primary"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Ver Serviço</span>
+                    </Button>
+                  )}
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleChat}
+                    className="h-8 px-3 text-xs gap-1.5"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span>Conversa</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
-
-          {/* Person & Arrow */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Avatar className="w-5 h-5 sm:w-6 sm:h-6 border border-border">
-                <AvatarImage src={otherPerson?.avatar_url || undefined} />
-                <AvatarFallback className="text-[10px] sm:text-xs bg-muted">
-                  {otherPerson?.full_name?.charAt(0) || <User className="w-2.5 h-2.5" />}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-xs text-muted-foreground truncate">
-                <span className="hidden sm:inline">{roleLabel}: </span>
-                <span className="text-foreground font-medium">{otherPerson?.full_name || 'Usuário'}</span>
-              </span>
-              <span className="text-[10px] sm:text-xs text-muted-foreground">
-                · {formatDistanceToNow(new Date(quote.updated_at), { addSuffix: true, locale: ptBR })}
-              </span>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </motion.div>
   );
 };
 
@@ -150,13 +207,17 @@ const EmptyState = ({
   title: string; 
   description: string; 
 }) => (
-  <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4">
-    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-muted/80 flex items-center justify-center mb-4">
-      <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground/70" />
+  <motion.div 
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    className="flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4"
+  >
+    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center mb-5 shadow-inner">
+      <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/50" />
     </div>
-    <h3 className="font-semibold text-foreground mb-1.5 text-sm sm:text-base">{title}</h3>
-    <p className="text-xs sm:text-sm text-muted-foreground max-w-xs">{description}</p>
-  </div>
+    <h3 className="font-semibold text-foreground mb-2 text-base sm:text-lg">{title}</h3>
+    <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
+  </motion.div>
 );
 
 const QuotesList = ({ 
@@ -173,10 +234,12 @@ const QuotesList = ({
   }
 
   return (
-    <div className="space-y-2 sm:space-y-3">
-      {quotes.map(quote => (
-        <QuoteCard key={quote.id} quote={quote} userId={userId} />
-      ))}
+    <div className="space-y-3 sm:space-y-4">
+      <AnimatePresence>
+        {quotes.map((quote, index) => (
+          <QuoteCard key={quote.id} quote={quote} userId={userId} index={index} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
@@ -185,18 +248,27 @@ const StatCard = ({
   icon: Icon, 
   value, 
   label, 
-  colorClass 
+  colorClass,
+  isActive,
+  onClick
 }: { 
   icon: React.ElementType; 
   value: number; 
   label: string; 
-  colorClass: string; 
+  colorClass: string;
+  isActive?: boolean;
+  onClick?: () => void;
 }) => (
-  <div className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl border ${colorClass}`}>
-    <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
-    <span className="text-xl sm:text-2xl font-bold text-foreground">{value}</span>
-    <span className="text-[10px] sm:text-xs text-muted-foreground text-center">{label}</span>
-  </div>
+  <motion.div
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    onClick={onClick}
+    className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${colorClass} ${isActive ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+  >
+    <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-1.5" />
+    <span className="text-2xl sm:text-3xl font-bold text-foreground">{value}</span>
+    <span className="text-[10px] sm:text-xs text-muted-foreground text-center font-medium">{label}</span>
+  </motion.div>
 );
 
 const MyServicesPage = () => {
@@ -308,30 +380,39 @@ const MyServicesPage = () => {
 
       <Header />
 
-      <main className="min-h-screen bg-background pt-20 sm:pt-24 pb-8 sm:pb-16">
+      <main className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pt-20 sm:pt-24 pb-8 sm:pb-16">
         <div className="container mx-auto px-3 sm:px-4 max-w-4xl">
-          {/* Header - More compact on mobile */}
-          <div className="mb-4 sm:mb-8">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 sm:mb-8"
+          >
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+                <Briefcase className="w-6 h-6 sm:w-7 sm:h-7 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-3xl font-bold text-foreground">Meus Serviços</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {totalServices} {totalServices === 1 ? 'serviço' : 'serviços'} no total
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Meus Serviços</h1>
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  {totalServices} {totalServices === 1 ? 'serviço ativo' : 'serviços ativos'}
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Main View Toggle */}
-          <div className="flex gap-2 mb-4 sm:mb-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex gap-2 mb-5 sm:mb-6"
+          >
             <Button
               variant={mainView === 'calendar' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setMainView('calendar')}
-              className="flex-1 sm:flex-none gap-2"
+              className={`flex-1 sm:flex-none gap-2 h-10 sm:h-11 ${mainView === 'calendar' ? 'shadow-md' : ''}`}
             >
               <CalendarDays className="w-4 h-4" />
               <span>Agenda</span>
@@ -340,117 +421,156 @@ const MyServicesPage = () => {
               variant={mainView === 'status' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setMainView('status')}
-              className="flex-1 sm:flex-none gap-2"
+              className={`flex-1 sm:flex-none gap-2 h-10 sm:h-11 ${mainView === 'status' ? 'shadow-md' : ''}`}
             >
               <ListFilter className="w-4 h-4" />
               <span>Por Status</span>
             </Button>
-          </div>
+          </motion.div>
 
-          {/* Stats Cards - 2x2 grid on mobile */}
+          {/* Stats Cards */}
           {!isLoading && (
-            <div className="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8"
+            >
               <StatCard 
                 icon={Clock} 
                 value={inProgress.length} 
                 label="Andamento" 
-                colorClass="border-blue-500/20 bg-blue-500/5 text-blue-500"
+                colorClass="border-blue-500/30 bg-blue-500/5 text-blue-500 hover:bg-blue-500/10"
+                isActive={mainView === 'status' && activeTab === 'in-progress'}
+                onClick={() => { setMainView('status'); setActiveTab('in-progress'); }}
               />
               <StatCard 
                 icon={AlertCircle} 
                 value={awaitingConfirmation.length} 
                 label="Aguardando" 
-                colorClass="border-amber-500/20 bg-amber-500/5 text-amber-500"
+                colorClass="border-amber-500/30 bg-amber-500/5 text-amber-500 hover:bg-amber-500/10"
+                isActive={mainView === 'status' && activeTab === 'awaiting'}
+                onClick={() => { setMainView('status'); setActiveTab('awaiting'); }}
               />
               <StatCard 
                 icon={CheckCircle2} 
                 value={completed.length} 
                 label="Concluídos" 
-                colorClass="border-green-500/20 bg-green-500/5 text-green-500"
+                colorClass="border-green-500/30 bg-green-500/5 text-green-500 hover:bg-green-500/10"
+                isActive={mainView === 'status' && activeTab === 'completed'}
+                onClick={() => { setMainView('status'); setActiveTab('completed'); }}
               />
               <StatCard 
                 icon={Loader2} 
                 value={pending.length} 
                 label="Pendentes" 
-                colorClass="border-yellow-500/20 bg-yellow-500/5 text-yellow-500"
+                colorClass="border-yellow-500/30 bg-yellow-500/5 text-yellow-500 hover:bg-yellow-500/10"
+                isActive={mainView === 'status' && activeTab === 'pending'}
+                onClick={() => { setMainView('status'); setActiveTab('pending'); }}
               />
-            </div>
+            </motion.div>
           )}
 
           {/* Calendar View */}
-          {mainView === 'calendar' && (
-            <div className="animate-fade-in">
-              {isLoading ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <Skeleton className="h-[400px]" />
-                  <Skeleton className="h-[400px]" />
-                </div>
-              ) : (
-                <AppointmentsCalendar quotes={allQuotes} userId={userId} />
-              )}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {mainView === 'calendar' && (
+              <motion.div 
+                key="calendar"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isLoading ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <Skeleton className="h-[400px] rounded-xl" />
+                    <Skeleton className="h-[400px] rounded-xl" />
+                  </div>
+                ) : (
+                  <AppointmentsCalendar quotes={allQuotes} userId={userId} />
+                )}
+              </motion.div>
+            )}
 
-          {/* Status View */}
-          {mainView === 'status' && (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in">
-              <div className="-mx-3 sm:-mx-4 px-3 sm:px-4 mb-4 sm:mb-6">
-                <ScrollArea className="w-full">
-                  <TabsList className="inline-flex w-max min-w-full sm:w-full gap-1 p-1 h-auto bg-muted/50 rounded-lg">
-                    {tabs.map(tab => (
-                      <TabsTrigger 
-                        key={tab.value} 
-                        value={tab.value}
-                        className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
-                      >
-                        <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === tab.value ? tab.color : ''}`} />
-                        <span className="sm:hidden">{tab.label}</span>
-                        <span className="hidden sm:inline">{tab.fullLabel}</span>
-                        {tab.count > 0 && (
-                          <Badge 
-                            variant="secondary" 
-                            className="ml-0.5 sm:ml-1 h-4 sm:h-5 min-w-4 sm:min-w-5 flex items-center justify-center px-1 sm:px-1.5 text-[10px] sm:text-xs"
+            {/* Status View */}
+            {mainView === 'status' && (
+              <motion.div
+                key="status"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="-mx-3 sm:-mx-4 px-3 sm:px-4 mb-5 sm:mb-6">
+                    <ScrollArea className="w-full">
+                      <TabsList className="inline-flex w-max min-w-full sm:w-full gap-1 p-1.5 h-auto bg-muted/60 backdrop-blur-sm rounded-xl">
+                        {tabs.map(tab => (
+                          <TabsTrigger 
+                            key={tab.value} 
+                            value={tab.value}
+                            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm whitespace-nowrap data-[state=active]:bg-background data-[state=active]:shadow-md rounded-lg transition-all font-medium"
                           >
-                            {tab.count}
-                          </Badge>
-                        )}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  <ScrollBar orientation="horizontal" className="invisible" />
-                </ScrollArea>
-              </div>
+                            <tab.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === tab.value ? tab.color : ''}`} />
+                            <span className="sm:hidden">{tab.label}</span>
+                            <span className="hidden sm:inline">{tab.fullLabel}</span>
+                            {tab.count > 0 && (
+                              <Badge 
+                                variant="secondary" 
+                                className={`ml-0.5 sm:ml-1 h-5 sm:h-6 min-w-5 sm:min-w-6 flex items-center justify-center px-1.5 sm:px-2 text-[10px] sm:text-xs font-semibold ${activeTab === tab.value ? 'bg-primary/10 text-primary' : ''}`}
+                              >
+                                {tab.count}
+                              </Badge>
+                            )}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                      <ScrollBar orientation="horizontal" className="invisible" />
+                    </ScrollArea>
+                  </div>
 
-              {isLoading ? (
-                <div className="space-y-2 sm:space-y-3">
-                  {[1, 2, 3].map(i => (
-                    <Card key={i}>
-                      <CardContent className="p-0">
-                        <div className="flex">
-                          <Skeleton className="w-16 sm:w-24 h-[88px] sm:h-[100px]" />
-                          <div className="flex-1 p-3 sm:p-4 space-y-2">
-                            <Skeleton className="h-4 sm:h-5 w-3/4" />
-                            <Skeleton className="h-3 sm:h-4 w-1/2" />
-                            <Skeleton className="h-3 sm:h-4 w-1/3" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                tabs.map(tab => (
-                  <TabsContent key={tab.value} value={tab.value} className="mt-0 animate-fade-in">
-                    <QuotesList 
-                      quotes={tab.quotes} 
-                      userId={userId} 
-                      emptyState={tab.emptyState}
-                    />
-                  </TabsContent>
-                ))
-              )}
-            </Tabs>
-          )}
+                  {isLoading ? (
+                    <div className="space-y-3 sm:space-y-4">
+                      {[1, 2, 3].map(i => (
+                        <Card key={i} className="overflow-hidden">
+                          <CardContent className="p-0">
+                            <div className="flex">
+                              <Skeleton className="w-1 h-[140px]" />
+                              <div className="flex-1 p-4 sm:p-5 space-y-3">
+                                <div className="flex items-center gap-3">
+                                  <Skeleton className="w-12 h-12 rounded-full" />
+                                  <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-5 w-32" />
+                                  </div>
+                                  <Skeleton className="h-6 w-20" />
+                                </div>
+                                <Skeleton className="h-4 w-3/4" />
+                                <div className="flex gap-2">
+                                  <Skeleton className="h-7 w-20 rounded-full" />
+                                  <Skeleton className="h-7 w-16 rounded-full" />
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    tabs.map(tab => (
+                      <TabsContent key={tab.value} value={tab.value} className="mt-0">
+                        <QuotesList 
+                          quotes={tab.quotes} 
+                          userId={userId} 
+                          emptyState={tab.emptyState}
+                        />
+                      </TabsContent>
+                    ))
+                  )}
+                </Tabs>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
 
