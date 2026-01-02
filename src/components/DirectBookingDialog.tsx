@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarCheck, Clock, Loader2, MapPin, Timer, CreditCard, Sparkles, CheckCircle2 } from 'lucide-react';
+import { CalendarCheck, Clock, Loader2, MapPin, Timer, CreditCard, Sparkles, CheckCircle2, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -61,7 +61,17 @@ export function DirectBookingDialog({
   const [showPixDialog, setShowPixDialog] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showCpfDialog, setShowCpfDialog] = useState(false);
-  const [location, setLocation] = useState('');
+  const [cep, setCep] = useState('');
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+  const [cepError, setCepError] = useState('');
+  const [addressData, setAddressData] = useState<{
+    logradouro: string;
+    bairro: string;
+    localidade: string;
+    uf: string;
+  } | null>(null);
+  const [addressNumber, setAddressNumber] = useState('');
+  const [addressComplement, setAddressComplement] = useState('');
   const [pixData, setPixData] = useState<{
     pixId: string;
     brCode: string;
@@ -113,6 +123,80 @@ export function DirectBookingDialog({
   };
 
   const priceValue = parsePrice(service.price);
+
+  // Build full location string from address data
+  const getFullLocation = (): string => {
+    if (!addressData) return '';
+    
+    let fullAddress = addressData.logradouro;
+    if (addressNumber) fullAddress += `, ${addressNumber}`;
+    if (addressComplement) fullAddress += ` - ${addressComplement}`;
+    fullAddress += ` - ${addressData.bairro}, ${addressData.localidade}/${addressData.uf}`;
+    
+    return fullAddress;
+  };
+
+  // Format CEP input (00000-000)
+  const formatCep = (value: string): string => {
+    const numbers = value.replace(/\D/g, '').slice(0, 8);
+    if (numbers.length > 5) {
+      return `${numbers.slice(0, 5)}-${numbers.slice(5)}`;
+    }
+    return numbers;
+  };
+
+  // Fetch address from ViaCEP API
+  const fetchAddressFromCep = async (cepValue: string) => {
+    const cleanCep = cepValue.replace(/\D/g, '');
+    
+    if (cleanCep.length !== 8) {
+      setCepError('CEP deve ter 8 dígitos');
+      setAddressData(null);
+      return;
+    }
+
+    setIsLoadingCep(true);
+    setCepError('');
+    
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+      
+      if (data.erro) {
+        setCepError('CEP não encontrado');
+        setAddressData(null);
+      } else {
+        setAddressData({
+          logradouro: data.logradouro || '',
+          bairro: data.bairro || '',
+          localidade: data.localidade || '',
+          uf: data.uf || '',
+        });
+        setCepError('');
+      }
+    } catch (error) {
+      console.error('Error fetching CEP:', error);
+      setCepError('Erro ao buscar CEP');
+      setAddressData(null);
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
+
+  // Handle CEP input change
+  const handleCepChange = (value: string) => {
+    const formatted = formatCep(value);
+    setCep(formatted);
+    
+    // Auto-fetch when CEP is complete
+    const cleanCep = formatted.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      fetchAddressFromCep(cleanCep);
+    } else {
+      setAddressData(null);
+      setCepError('');
+    }
+  };
 
   const checkUserCpf = async (): Promise<boolean> => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -170,6 +254,7 @@ export function DirectBookingDialog({
       const duration = calculateDuration(selectedSlot.start_time, selectedSlot.end_time);
 
       // 1. Create booking via edge function (handles quote, appointment, conversation)
+      const fullLocation = getFullLocation();
       const { data: bookingResponse, error: bookingError } = await supabase.functions.invoke('create-direct-booking', {
         body: { 
           serviceId: service.id,
@@ -178,7 +263,7 @@ export function DirectBookingDialog({
           durationMinutes: duration,
           serviceTitle: service.title,
           price: priceValue,
-          location: location.trim() || null
+          location: fullLocation || null
         }
       });
 
@@ -337,25 +422,79 @@ export function DirectBookingDialog({
 
             <Separator />
 
-            {/* Location Input */}
-            <div className="space-y-3">
-              <Label htmlFor="location" className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+            {/* Location Input with CEP */}
+            <div className="space-y-4">
+              <Label className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
                 Local do Serviço (opcional)
               </Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="location"
-                  placeholder="Ex: Rua das Flores, 123 - Centro"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="pl-10"
-                  maxLength={200}
-                />
+              
+              {/* CEP Input */}
+              <div className="space-y-2">
+                <Label htmlFor="cep" className="text-sm font-medium">CEP</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="cep"
+                    placeholder="00000-000"
+                    value={cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                    className="pl-10 pr-10"
+                    maxLength={9}
+                  />
+                  {isLoadingCep && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+                {cepError && (
+                  <p className="text-xs text-destructive">{cepError}</p>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Informe o endereço onde o serviço será realizado
-              </p>
+
+              {/* Address fields (shown after CEP is found) */}
+              {addressData && (
+                <div className="space-y-3 p-3 bg-muted/50 rounded-lg border">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium">{addressData.logradouro || 'Logradouro não informado'}</p>
+                      <p className="text-muted-foreground">
+                        {addressData.bairro} - {addressData.localidade}/{addressData.uf}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="number" className="text-xs">Número</Label>
+                      <Input
+                        id="number"
+                        placeholder="Nº"
+                        value={addressNumber}
+                        onChange={(e) => setAddressNumber(e.target.value)}
+                        className="h-9"
+                        maxLength={10}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="complement" className="text-xs">Complemento</Label>
+                      <Input
+                        id="complement"
+                        placeholder="Apto, Bloco..."
+                        value={addressComplement}
+                        onChange={(e) => setAddressComplement(e.target.value)}
+                        className="h-9"
+                        maxLength={50}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!addressData && !cep && (
+                <p className="text-xs text-muted-foreground">
+                  Digite o CEP para buscar o endereço automaticamente
+                </p>
+              )}
             </div>
 
             <Separator />
