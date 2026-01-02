@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, ExternalLink, MapPin, MessageCircle, Navigation, User } from "lucide-react";
+import { Calendar, Car, Clock, ExternalLink, MapPin, MessageCircle, Navigation, User } from "lucide-react";
 
 import { AddressMapPreview } from "@/components/AddressMapPreview";
 import { Badge } from "@/components/ui/badge";
@@ -196,18 +196,31 @@ export function AppointmentDetailsDialog({ open, onOpenChange, quote, userId }: 
                         <p className="text-[11px] text-muted-foreground">Local</p>
                         <p className="text-sm font-medium text-foreground break-words">{quote.appointment.location}</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 gap-1.5 text-xs flex-shrink-0"
-                        onClick={() => {
-                          const encoded = encodeURIComponent(quote.appointment!.location!);
-                          window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, "_blank");
-                        }}
-                      >
-                        <Navigation className="w-3.5 h-3.5" />
-                        Abrir no Maps
-                      </Button>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" asChild>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(quote.appointment.location)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Abrir endereço no Google Maps em nova aba"
+                          >
+                            <Navigation className="w-3.5 h-3.5" />
+                            Abrir no Maps
+                          </a>
+                        </Button>
+
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" asChild>
+                          <a
+                            href={`https://www.waze.com/ul?q=${encodeURIComponent(quote.appointment.location)}&navigate=yes`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Abrir endereço no Waze em nova aba"
+                          >
+                            <Car className="w-3.5 h-3.5" />
+                            Waze
+                          </a>
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
