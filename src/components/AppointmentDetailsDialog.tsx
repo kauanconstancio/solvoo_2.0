@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, ExternalLink, MapPin, MessageCircle, User } from "lucide-react";
+import { Calendar, Clock, ExternalLink, MapPin, MessageCircle, Navigation, User } from "lucide-react";
 
 import { AddressMapPreview } from "@/components/AddressMapPreview";
 import { Badge } from "@/components/ui/badge";
@@ -191,11 +191,23 @@ export function AppointmentDetailsDialog({ open, onOpenChange, quote, userId }: 
                 <div className="space-y-2.5">
                   <div className="rounded-xl border bg-card/50 p-3">
                     <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-primary mt-0.5" />
-                      <div className="min-w-0">
+                      <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
                         <p className="text-[11px] text-muted-foreground">Local</p>
                         <p className="text-sm font-medium text-foreground break-words">{quote.appointment.location}</p>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs flex-shrink-0"
+                        onClick={() => {
+                          const encoded = encodeURIComponent(quote.appointment!.location!);
+                          window.open(`https://www.google.com/maps/search/?api=1&query=${encoded}`, "_blank");
+                        }}
+                      >
+                        <Navigation className="w-3.5 h-3.5" />
+                        Abrir no Maps
+                      </Button>
                     </div>
                   </div>
 
