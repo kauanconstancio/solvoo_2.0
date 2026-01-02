@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PixBookingCheckoutDialog } from './PixBookingCheckoutDialog';
 import { BookingSuccessPopup } from './BookingSuccessPopup';
 import { CpfCollectionDialog } from './CpfCollectionDialog';
+import { AddressMapPreview } from './AddressMapPreview';
 
 interface TimeSlot {
   id: string;
@@ -487,6 +488,12 @@ export function DirectBookingDialog({
                       />
                     </div>
                   </div>
+
+                  {/* Map Preview */}
+                  <AddressMapPreview 
+                    address={getFullLocation()} 
+                    className="h-32 mt-2"
+                  />
                 </div>
               )}
 
