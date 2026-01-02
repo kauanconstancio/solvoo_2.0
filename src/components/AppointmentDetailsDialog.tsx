@@ -88,11 +88,11 @@ export function AppointmentDetailsDialog({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto w-[calc(100%-2rem)] sm:w-full">
         <DialogHeader className="pb-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <DialogTitle className="text-lg font-semibold">Detalhes do Serviço</DialogTitle>
-            <Badge className={`${statusConfig.className} text-xs px-2 py-0.5 font-medium`}>
+            <Badge className={`${statusConfig.className} text-xs px-2 py-0.5 font-medium w-fit flex-shrink-0`}>
               <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dotColor} mr-1.5 animate-pulse`} />
               {statusConfig.label}
             </Badge>
@@ -101,21 +101,21 @@ export function AppointmentDetailsDialog({
 
         {/* Professional/Client Info */}
         <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-          <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+          <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-background shadow-sm flex-shrink-0">
             <AvatarImage src={otherPerson?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-              {otherPerson?.full_name?.charAt(0) || <User className="w-5 h-5" />}
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm sm:text-base">
+              {otherPerson?.full_name?.charAt(0) || <User className="w-4 h-4 sm:w-5 sm:h-5" />}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-xs text-muted-foreground">{roleLabel}</p>
-            <p className="font-semibold text-foreground truncate">
+            <p className="font-semibold text-foreground truncate text-sm sm:text-base">
               {otherPerson?.full_name || 'Usuário'}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-right flex-shrink-0">
             <p className="text-xs text-muted-foreground">Valor</p>
-            <p className="font-bold text-lg text-primary">{formatPrice(quote.price)}</p>
+            <p className="font-bold text-base sm:text-lg text-primary">{formatPrice(quote.price)}</p>
           </div>
         </div>
 
@@ -148,10 +148,10 @@ export function AppointmentDetailsDialog({
               Agendamento
             </h4>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg">
-                <Calendar className="w-4 h-4 text-primary" />
-                <div>
+                <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Data</p>
                   <p className="text-sm font-medium text-foreground">
                     {format(new Date(quote.appointment.scheduled_date + 'T12:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR })}
@@ -159,8 +159,8 @@ export function AppointmentDetailsDialog({
                 </div>
               </div>
               <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg">
-                <Clock className="w-4 h-4 text-primary" />
-                <div>
+                <Clock className="w-4 h-4 text-primary flex-shrink-0" />
+                <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Horário</p>
                   <p className="text-sm font-medium text-foreground">
                     {quote.appointment.scheduled_time}
@@ -193,7 +193,7 @@ export function AppointmentDetailsDialog({
         <Separator />
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             variant="outline" 
             className="flex-1 gap-2"
