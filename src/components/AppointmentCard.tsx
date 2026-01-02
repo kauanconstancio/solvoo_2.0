@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Appointment, useAppointments } from "@/hooks/useAppointments";
 import { useState } from "react";
 import { RescheduleDialog } from "./RescheduleDialog";
+import { AddressMapPreview } from "./AddressMapPreview";
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -144,9 +145,15 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
               </span>
             </div>
             {appointment.location && (
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{appointment.location}</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{appointment.location}</span>
+                </div>
+                <AddressMapPreview 
+                  address={appointment.location} 
+                  className="h-32 rounded-lg"
+                />
               </div>
             )}
           </div>
