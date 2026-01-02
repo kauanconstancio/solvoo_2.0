@@ -100,22 +100,21 @@ export function AppointmentDetailsDialog({
         </DialogHeader>
 
         {/* Professional/Client Info */}
-        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-          <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-background shadow-sm flex-shrink-0">
-            <AvatarImage src={otherPerson?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm sm:text-base">
-              {otherPerson?.full_name?.charAt(0) || <User className="w-4 h-4 sm:w-5 sm:h-5" />}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground">{roleLabel}</p>
-            <p className="font-semibold text-foreground truncate text-sm sm:text-base">
-              {otherPerson?.full_name || 'Usuário'}
-            </p>
-          </div>
-          <div className="text-right flex-shrink-0">
-            <p className="text-xs text-muted-foreground">Valor</p>
-            <p className="font-bold text-base sm:text-lg text-primary">{formatPrice(quote.price)}</p>
+        <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10 border-2 border-background shadow-sm flex-shrink-0">
+              <AvatarImage src={otherPerson?.avatar_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                {otherPerson?.full_name?.charAt(0) || <User className="w-4 h-4" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground">{roleLabel}</p>
+              <p className="font-semibold text-foreground text-sm">
+                {otherPerson?.full_name || 'Usuário'}
+              </p>
+            </div>
+            <p className="font-bold text-lg text-primary whitespace-nowrap">{formatPrice(quote.price)}</p>
           </div>
         </div>
 
