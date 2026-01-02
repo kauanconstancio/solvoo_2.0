@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AppointmentDetailsDialog } from '@/components/AppointmentDetailsDialog';
 import { 
   Clock, 
   CheckCircle2, 
@@ -33,7 +34,17 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-const QuoteCard = ({ quote, userId, index }: { quote: UserQuote; userId: string | null; index: number }) => {
+const QuoteCard = ({ 
+  quote, 
+  userId, 
+  index, 
+  onViewDetails 
+}: { 
+  quote: UserQuote; 
+  userId: string | null; 
+  index: number;
+  onViewDetails: (quote: UserQuote) => void;
+}) => {
   const navigate = useNavigate();
   const isProfessional = quote.professional_id === userId;
   const otherPerson = isProfessional ? quote.client : quote.professional;
@@ -76,9 +87,7 @@ const QuoteCard = ({ quote, userId, index }: { quote: UserQuote; userId: string 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (quote.service_id) {
-      navigate(`/servico/${quote.service_id}`);
-    }
+    onViewDetails(quote);
   };
 
   const handleChat = (e: React.MouseEvent) => {
@@ -223,11 +232,13 @@ const EmptyState = ({
 const QuotesList = ({ 
   quotes, 
   userId, 
-  emptyState 
+  emptyState,
+  onViewDetails
 }: { 
   quotes: UserQuote[]; 
   userId: string | null;
   emptyState: { icon: React.ElementType; title: string; description: string };
+  onViewDetails: (quote: UserQuote) => void;
 }) => {
   if (quotes.length === 0) {
     return <EmptyState {...emptyState} />;
@@ -237,7 +248,7 @@ const QuotesList = ({
     <div className="space-y-3 sm:space-y-4">
       <AnimatePresence>
         {quotes.map((quote, index) => (
-          <QuoteCard key={quote.id} quote={quote} userId={userId} index={index} />
+          <QuoteCard key={quote.id} quote={quote} userId={userId} index={index} onViewDetails={onViewDetails} />
         ))}
       </AnimatePresence>
     </div>
@@ -283,6 +294,13 @@ const MyServicesPage = () => {
   } = useUserQuotes();
   const [mainView, setMainView] = useState<'calendar' | 'status'>('calendar');
   const [activeTab, setActiveTab] = useState('in-progress');
+  const [selectedQuote, setSelectedQuote] = useState<UserQuote | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
+  const handleViewDetails = (quote: UserQuote) => {
+    setSelectedQuote(quote);
+    setIsDetailsDialogOpen(true);
+  };
 
   // Combine all quotes for calendar view - deduplicate by id
   const allQuotes = useMemo(() => {
@@ -563,6 +581,7 @@ const MyServicesPage = () => {
                           quotes={tab.quotes} 
                           userId={userId} 
                           emptyState={tab.emptyState}
+                          onViewDetails={handleViewDetails}
                         />
                       </TabsContent>
                     ))
@@ -575,6 +594,13 @@ const MyServicesPage = () => {
       </main>
 
       <Footer />
+
+      <AppointmentDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        quote={selectedQuote}
+        userId={userId}
+      />
     </>
   );
 };
