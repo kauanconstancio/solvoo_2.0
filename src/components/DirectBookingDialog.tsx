@@ -348,7 +348,7 @@ export function DirectBookingDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -359,7 +359,7 @@ export function DirectBookingDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 overflow-y-auto flex-1 pr-2 -mr-2 scrollbar-hide">
             {/* Service Info */}
             <div className="space-y-3">
               <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
@@ -492,7 +492,7 @@ export function DirectBookingDialog({
                   {/* Map Preview */}
                   <AddressMapPreview 
                     address={getFullLocation()} 
-                    className="h-32 mt-2"
+                    className="h-48 mt-2"
                   />
                 </div>
               )}
