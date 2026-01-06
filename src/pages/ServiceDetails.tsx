@@ -37,6 +37,7 @@ import { useCreateConversation } from "@/hooks/useChat";
 import { isUUID } from "@/lib/slugUtils";
 import { ProfessionalAvailability } from "@/components/ProfessionalAvailability";
 import { DirectBookingDialog } from "@/components/DirectBookingDialog";
+import { ImageGallery } from "@/components/ImageGallery";
 
 interface ProviderProfile {
   user_id: string;
@@ -70,7 +71,6 @@ const ServiceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedImage, setSelectedImage] = useState(0);
   const [service, setService] = useState<ServiceData | null>(null);
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -412,15 +412,14 @@ const ServiceDetails = () => {
               <div className="lg:col-span-2 space-y-6">
                 {/* Image Gallery */}
                 <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-[4/3] bg-muted">
-                      <img
-                        src={displayImages[selectedImage]}
-                        alt={service.title}
-                        className="object-cover w-full h-full"
-                        loading="lazy"
+                  <CardContent className="p-4">
+                    <div className="relative">
+                      <ImageGallery 
+                        images={displayImages} 
+                        title={service.title}
+                        aspectRatio="video"
                       />
-                      <div className="absolute top-4 right-4 flex gap-2">
+                      <div className="absolute top-4 right-4 flex gap-2 z-10">
                         <Button
                           size="icon"
                           variant="secondary"
@@ -457,28 +456,6 @@ const ServiceDetails = () => {
                         </Button>
                       </div>
                     </div>
-                    {displayImages.length > 1 && (
-                      <div className="grid grid-cols-4 gap-2 p-4">
-                        {displayImages.map((image, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setSelectedImage(index)}
-                            className={`relative aspect-[4/3] rounded-lg overflow-hidden border-2 transition-all ${
-                              selectedImage === index
-                                ? "border-primary"
-                                : "border-transparent hover:border-muted-foreground"
-                            }`}
-                          >
-                            <img
-                              src={image}
-                              alt={`${service.title} ${index + 1}`}
-                              className="object-cover w-full h-full"
-                              loading="lazy"
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
 
