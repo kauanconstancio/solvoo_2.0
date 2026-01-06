@@ -376,8 +376,8 @@ const AdvertiseService = () => {
         onClose={handleCropperClose}
         imageSrc={imageToCrop}
         onCropComplete={handleCropComplete}
-        aspectRatio={4 / 3}
-        outputWidth={800}
+        aspectRatio={16 / 9}
+        outputWidth={1280}
         title="Ajustar Foto do Serviço"
       />
 

@@ -366,8 +366,8 @@ const EditService = () => {
         onClose={handleCropperClose}
         imageSrc={imageToCrop}
         onCropComplete={handleCropComplete}
-        aspectRatio={4 / 3}
-        outputWidth={800}
+        aspectRatio={16 / 9}
+        outputWidth={1280}
         title="Ajustar Foto do Serviço"
       />
         <main className="container mx-auto px-4 py-8">
