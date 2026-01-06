@@ -395,6 +395,17 @@ const EditService = () => {
     <div className="min-h-screen">
       <Header />
 
+      {/* Image Cropper Dialog */}
+      <ImageCropper
+        open={cropperOpen}
+        onClose={handleCropperClose}
+        imageSrc={imageToCrop}
+        onCropComplete={handleCropComplete}
+        aspectRatio={16 / 9}
+        outputWidth={1280}
+        title="Ajustar Foto do Serviço"
+      />
+
       <main className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="max-w-4xl mx-auto mb-8">
