@@ -56,8 +56,8 @@ const ServiceCardCompact = ({
 
   return (
     <Link to={serviceUrl}>
-      <Card className="overflow-hidden cursor-pointer group hover:shadow-md transition-all duration-200 border w-[180px] min-w-[180px] max-w-[180px]">
-        <div className="relative aspect-square overflow-hidden bg-muted">
+      <Card className="overflow-hidden cursor-pointer group hover:shadow-md transition-all duration-200 border w-[220px] min-w-[220px] max-w-[220px]">
+        <div className="relative aspect-video overflow-hidden bg-muted">
           <img
             src={displayImage}
             alt={title}
@@ -78,7 +78,7 @@ const ServiceCardCompact = ({
           </Button>
         </div>
 
-        <div className="p-2.5 flex flex-col h-[88px]">
+        <div className="p-2.5 flex flex-col h-[80px]">
           <h3 className="font-medium text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {title}
           </h3>
