@@ -54,6 +54,7 @@ import MyServices from "@/components/MyServices";
 import { PriceSuggestionPanel } from "@/components/PriceSuggestionPanel";
 import { ServicePreview } from "@/components/ServicePreview";
 import { ImageCropper } from "@/components/ImageCropper";
+import { DraggableImageGrid } from "@/components/DraggableImageGrid";
 import { useProfessionalSchedule } from "@/hooks/useProfessionalSchedule";
 import { ScheduleConfirmationDialog } from "@/components/ScheduleConfirmationDialog";
 
@@ -623,60 +624,18 @@ const AdvertiseService = () => {
                     Adicione fotos do seu trabalho para atrair mais clientes
                   </CardDescription>
                 </CardHeader>
-              <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {images.map((image, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-[4/3] rounded-lg border border-border overflow-hidden group"
-                      >
-                        <img
-                          src={image}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        {index === 0 && (
-                          <Badge className="absolute bottom-2 left-2 text-xs">
-                            Principal
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
-                    {images.length < 5 && (
-                      <>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleImageSelect}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleImageClick}
-                          disabled={uploadingImage}
-                          className="aspect-[4/3] rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {uploadingImage ? (
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                          ) : (
-                            <Upload className="w-6 h-6" />
-                          )}
-                          <span className="text-xs">
-                            {uploadingImage ? "Enviando..." : "Adicionar"}
-                          </span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <CardContent>
+                  <DraggableImageGrid
+                    images={images}
+                    onReorder={setImages}
+                    onRemove={removeImage}
+                    onAddClick={handleImageClick}
+                    isUploading={uploadingImage}
+                    maxImages={5}
+                    fileInputRef={fileInputRef}
+                    onFileSelect={handleImageSelect}
+                  />
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-4">
                     <Info className="w-3 h-3" />
                     Adicione pelo menos 1 foto (máx. 5). A primeira será a foto
                     principal do anúncio.
