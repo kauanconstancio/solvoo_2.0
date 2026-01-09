@@ -4,7 +4,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useFinancialMetrics } from '@/hooks/useFinancialMetrics';
 import { 
   TrendingUp, 
-  TrendingDown, 
   Clock, 
   DollarSign,
   CheckCircle2,
@@ -13,8 +12,6 @@ import {
   PiggyBank
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -23,17 +20,9 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
   BarChart,
   Bar,
 } from 'recharts';
-
-const COLORS = {
-  profit: 'hsl(142, 76%, 36%)', // green-600
-  paid: 'hsl(221, 83%, 53%)', // blue-600
-  approved: 'hsl(142, 76%, 36%)', // green
-  rejected: 'hsl(0, 84%, 60%)', // red
-};
 
 export default function AdminFinancial() {
   const { withdrawalsByDate, revenueBreakdown, stats, isLoading } = useFinancialMetrics();
@@ -45,18 +34,71 @@ export default function AdminFinancial() {
     }).format(value);
   };
 
+  const formatCompactCurrency = (value: number) => {
+    if (value >= 1000000) return `R$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `R$${(value / 1000).toFixed(0)}k`;
+    return `R$${value}`;
+  };
+
   const pieData = [
     { 
       name: 'Lucro da Plataforma', 
       value: revenueBreakdown.platformProfit,
-      color: COLORS.profit,
+      percentage: revenueBreakdown.totalRevenue > 0 
+        ? ((revenueBreakdown.platformProfit / revenueBreakdown.totalRevenue) * 100).toFixed(1)
+        : 0,
     },
     { 
       name: 'Pago aos Profissionais', 
       value: revenueBreakdown.paidToProfessionals,
-      color: COLORS.paid,
+      percentage: revenueBreakdown.totalRevenue > 0 
+        ? ((revenueBreakdown.paidToProfessionals / revenueBreakdown.totalRevenue) * 100).toFixed(1)
+        : 0,
     },
   ];
+
+  const COLORS_PIE = ['#22c55e', '#3b82f6'];
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-xl">
+          <p className="font-semibold text-foreground mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 text-sm">
+              <span 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-muted-foreground">{entry.name}:</span>
+              <span className="font-medium text-foreground">{formatCurrency(entry.value)}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0];
+      return (
+        <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-xl">
+          <div className="flex items-center gap-2">
+            <span 
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: data.payload.fill }}
+            />
+            <span className="font-semibold text-foreground">{data.name}</span>
+          </div>
+          <p className="text-lg font-bold text-foreground mt-1">{formatCurrency(data.value)}</p>
+          <p className="text-sm text-muted-foreground">{data.payload.percentage}% do total</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   if (isLoading) {
     return (
@@ -207,130 +249,168 @@ export default function AdminFinancial() {
 
       {/* Charts */}
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        {/* Withdrawals Over Time */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Saques ao Longo do Tempo (30 dias)</CardTitle>
+        {/* Withdrawals Over Time - Bar Chart */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="h-8 w-1 bg-gradient-to-b from-green-500 to-red-500 rounded-full" />
+              Saques ao Longo do Tempo
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Últimos 30 dias</p>
           </CardHeader>
-          <CardContent>
-            <div className="h-[350px]">
+          <CardContent className="pt-0">
+            <div className="h-[320px] mt-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={withdrawalsByDate}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <BarChart data={withdrawalsByDate} barCategoryGap="20%">
+                  <defs>
+                    <linearGradient id="approvedGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#16a34a" stopOpacity={0.7} />
+                    </linearGradient>
+                    <linearGradient id="rejectedGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.9} />
+                      <stop offset="100%" stopColor="#dc2626" stopOpacity={0.7} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid 
+                    strokeDasharray="3 3" 
+                    vertical={false}
+                    stroke="hsl(var(--border))"
+                    strokeOpacity={0.5}
+                  />
                   <XAxis 
                     dataKey="date" 
-                    className="text-muted-foreground"
-                    tick={{ fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                     interval={4}
+                    dy={10}
                   />
                   <YAxis 
-                    className="text-muted-foreground"
-                    tickFormatter={(value) => 
-                      value >= 1000 ? `R$${(value / 1000).toFixed(0)}k` : `R$${value}`
-                    }
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={formatCompactCurrency}
+                    width={60}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px',
-                    }}
-                    formatter={(value: number) => [formatCurrency(value), '']}
-                  />
-                  <Legend />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }} />
                   <Bar 
                     dataKey="approved" 
                     name="Aprovados"
-                    fill={COLORS.approved} 
-                    radius={[4, 4, 0, 0]}
+                    fill="url(#approvedGradient)" 
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={40}
                   />
                   <Bar 
                     dataKey="rejected" 
                     name="Recusados"
-                    fill={COLORS.rejected} 
-                    radius={[4, 4, 0, 0]}
+                    fill="url(#rejectedGradient)" 
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={40}
                   />
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {/* Legend */}
+            <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-border">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-b from-green-500 to-green-600" />
+                <span className="text-sm text-muted-foreground">Aprovados</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-b from-red-500 to-red-600" />
+                <span className="text-sm text-muted-foreground">Recusados</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Revenue Breakdown Pie Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribuição do Faturamento</CardTitle>
+        {/* Revenue Breakdown - Donut Chart */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-green-500 rounded-full" />
+              Distribuição do Faturamento
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Divisão entre plataforma e profissionais</p>
           </CardHeader>
-          <CardContent>
-            <div className="h-[350px]">
-              {revenueBreakdown.totalRevenue > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={80}
-                      outerRadius={120}
-                      paddingAngle={5}
-                      dataKey="value"
-                      label={({ name, percent }) => 
-                        `${name}: ${(percent * 100).toFixed(1)}%`
-                      }
-                      labelLine={false}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                      }}
-                      formatter={(value: number) => [formatCurrency(value), '']}
-                    />
-                    <Legend 
-                      verticalAlign="bottom"
-                      formatter={(value, entry: any) => (
-                        <span style={{ color: entry.color }}>
-                          {value}: {formatCurrency(entry.payload.value)}
-                        </span>
-                      )}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <p>Nenhum dado de faturamento disponível</p>
+          <CardContent className="pt-0">
+            {revenueBreakdown.totalRevenue > 0 ? (
+              <>
+                <div className="h-[280px] relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <linearGradient id="profitGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#22c55e" />
+                          <stop offset="100%" stopColor="#16a34a" />
+                        </linearGradient>
+                        <linearGradient id="paidGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#2563eb" />
+                        </linearGradient>
+                        <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                          <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
+                        </filter>
+                      </defs>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={110}
+                        paddingAngle={4}
+                        dataKey="value"
+                        stroke="none"
+                        filter="url(#shadow)"
+                      >
+                        <Cell fill="url(#profitGradient)" />
+                        <Cell fill="url(#paidGradient)" />
+                      </Pie>
+                      <Tooltip content={<CustomPieTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Center Label */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Total</p>
+                      <p className="text-xl font-bold text-foreground">
+                        {formatCompactCurrency(revenueBreakdown.totalRevenue)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-            
-            {/* Summary below pie chart */}
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Faturamento Total</p>
-                <p className="text-3xl font-bold text-primary">
-                  {formatCurrency(revenueBreakdown.totalRevenue)}
-                </p>
+                
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-green-500 to-green-600" />
+                      <span className="text-xs text-muted-foreground font-medium">Lucro</span>
+                    </div>
+                    <p className="text-xl font-bold text-green-600">
+                      {formatCurrency(revenueBreakdown.platformProfit)}
+                    </p>
+                    <p className="text-xs text-green-600/80 mt-0.5">{pieData[0].percentage}%</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600" />
+                      <span className="text-xs text-muted-foreground font-medium">Profissionais</span>
+                    </div>
+                    <p className="text-xl font-bold text-blue-600">
+                      {formatCurrency(revenueBreakdown.paidToProfessionals)}
+                    </p>
+                    <p className="text-xs text-blue-600/80 mt-0.5">{pieData[1].percentage}%</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[350px] text-muted-foreground">
+                <DollarSign className="h-12 w-12 mb-3 opacity-30" />
+                <p className="text-sm">Nenhum dado de faturamento disponível</p>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <p className="text-xs text-muted-foreground">Lucro (10%)</p>
-                  <p className="text-lg font-semibold text-green-600">
-                    {formatCurrency(revenueBreakdown.platformProfit)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Profissionais (90%)</p>
-                  <p className="text-lg font-semibold text-blue-600">
-                    {formatCurrency(revenueBreakdown.paidToProfessionals)}
-                  </p>
-                </div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
