@@ -195,16 +195,57 @@ export default function AdminFinancial() {
             <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent border border-green-500/20 p-5 transition-all hover:shadow-lg hover:shadow-green-500/10 hover:border-green-500/30">
               <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:scale-150 transition-transform" />
               <div className="relative">
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="p-2 bg-green-500/10 rounded-xl">
                     <PiggyBank className="h-4 w-4 text-green-500" />
                   </div>
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Lucro Total</span>
                 </div>
-                <p className="text-3xl font-bold text-foreground mb-1">{formatCurrency(revenueBreakdown.platformProfit)}</p>
-                <div className="flex items-center gap-1 text-green-500">
-                  <ArrowUpRight className="h-3 w-3" />
-                  <span className="text-xs font-medium">Taxas + Assinaturas</span>
+                <p className="text-2xl font-bold text-foreground mb-3">{formatCurrency(revenueBreakdown.platformProfit)}</p>
+                
+                {/* Breakdown visual */}
+                <div className="space-y-2">
+                  {/* Taxas */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-xs text-muted-foreground">Taxas</span>
+                    </div>
+                    <span className="text-xs font-semibold text-emerald-600">
+                      {formatCurrency(revenueBreakdown.platformProfit - revenueBreakdown.subscriptionRevenue)}
+                    </span>
+                  </div>
+                  {/* Assinaturas */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                      <span className="text-xs text-muted-foreground">Assinaturas</span>
+                    </div>
+                    <span className="text-xs font-semibold text-purple-600">
+                      {formatCurrency(revenueBreakdown.subscriptionRevenue)}
+                    </span>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mt-1">
+                    <div className="h-full flex">
+                      <div 
+                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
+                        style={{ 
+                          width: revenueBreakdown.platformProfit > 0 
+                            ? `${((revenueBreakdown.platformProfit - revenueBreakdown.subscriptionRevenue) / revenueBreakdown.platformProfit) * 100}%` 
+                            : '0%' 
+                        }}
+                      />
+                      <div 
+                        className="h-full bg-gradient-to-r from-purple-500 to-purple-400 transition-all duration-500"
+                        style={{ 
+                          width: revenueBreakdown.platformProfit > 0 
+                            ? `${(revenueBreakdown.subscriptionRevenue / revenueBreakdown.platformProfit) * 100}%` 
+                            : '0%' 
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
