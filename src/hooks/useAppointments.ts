@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { createNotification } from "@/hooks/useNotifications";
 
 export interface Appointment {
   id: string;
@@ -145,12 +146,21 @@ export function useAppointments(conversationId?: string) {
 
   const createAppointment = async (data: CreateAppointmentData) => {
     try {
-      const { error } = await supabase.from("appointments").insert({
+      const { data: appointmentData, error } = await supabase.from("appointments").insert({
         ...data,
         professional_confirmed: true, // Professional creates, so they confirm
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Notify client about new appointment
+      await createNotification(
+        data.client_id,
+        'appointment_created',
+        'Novo agendamento',
+        `Você tem um novo agendamento: "${data.title}"`,
+        { appointment_id: appointmentData.id, conversation_id: data.conversation_id }
+      );
 
       toast({
         title: "Agendamento criado",
@@ -171,6 +181,13 @@ export function useAppointments(conversationId?: string) {
 
   const confirmAppointment = async (appointmentId: string, isClient: boolean) => {
     try {
+      // Get appointment data first
+      const { data: appointmentData } = await supabase
+        .from("appointments")
+        .select("client_id, professional_id, title, conversation_id")
+        .eq("id", appointmentId)
+        .single();
+
       const updateData = isClient
         ? { client_confirmed: true }
         : { professional_confirmed: true };
@@ -184,6 +201,18 @@ export function useAppointments(conversationId?: string) {
         .eq("id", appointmentId);
 
       if (error) throw error;
+
+      // Notify the other party
+      if (appointmentData) {
+        const recipientId = isClient ? appointmentData.professional_id : appointmentData.client_id;
+        await createNotification(
+          recipientId,
+          'appointment_confirmed',
+          'Agendamento confirmado',
+          `O agendamento "${appointmentData.title}" foi confirmado.`,
+          { appointment_id: appointmentId, conversation_id: appointmentData.conversation_id }
+        );
+      }
 
       toast({
         title: "Agendamento confirmado",
@@ -204,12 +233,34 @@ export function useAppointments(conversationId?: string) {
 
   const cancelAppointment = async (appointmentId: string) => {
     try {
+      // Get current user and appointment data
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: appointmentData } = await supabase
+        .from("appointments")
+        .select("client_id, professional_id, title, conversation_id")
+        .eq("id", appointmentId)
+        .single();
+
       const { error } = await supabase
         .from("appointments")
         .update({ status: "cancelled" })
         .eq("id", appointmentId);
 
       if (error) throw error;
+
+      // Notify the other party
+      if (appointmentData && user) {
+        const recipientId = user.id === appointmentData.client_id 
+          ? appointmentData.professional_id 
+          : appointmentData.client_id;
+        await createNotification(
+          recipientId,
+          'appointment_cancelled',
+          'Agendamento cancelado',
+          `O agendamento "${appointmentData.title}" foi cancelado.`,
+          { appointment_id: appointmentId, conversation_id: appointmentData.conversation_id }
+        );
+      }
 
       toast({
         title: "Agendamento cancelado",

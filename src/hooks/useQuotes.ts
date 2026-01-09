@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { createNotification } from '@/hooks/useNotifications';
 
 const PLATFORM_FEE_RATE = 0.10; // 10% platform fee
 
@@ -205,6 +206,15 @@ export const useQuotes = (conversationId: string | undefined) => {
         console.log('Not creating appointment - missing data:', { quoteData, scheduledDate, scheduledTime });
       }
 
+      // Create notification for client
+      await createNotification(
+        clientId,
+        'quote_created',
+        'Novo orçamento recebido',
+        `Você recebeu um orçamento para "${title}" no valor de R$ ${price.toFixed(2)}`,
+        { quote_id: quoteData.id, conversation_id: conversationId }
+      );
+
       toast({
         title: 'Orçamento enviado',
         description: 'Seu orçamento foi enviado com sucesso.',
@@ -228,6 +238,13 @@ export const useQuotes = (conversationId: string | undefined) => {
     response?: string
   ): Promise<boolean> => {
     try {
+      // Get quote info first
+      const { data: quoteData } = await supabase
+        .from('quotes')
+        .select('professional_id, title, price, conversation_id')
+        .eq('id', quoteId)
+        .single();
+
       const { error } = await supabase
         .from('quotes')
         .update({
@@ -252,6 +269,17 @@ export const useQuotes = (conversationId: string | undefined) => {
         if (appointmentError) {
           console.error('Error confirming appointment:', appointmentError);
         }
+
+        // Notify professional
+        if (quoteData) {
+          await createNotification(
+            quoteData.professional_id,
+            'quote_accepted',
+            'Orçamento aceito!',
+            `Seu orçamento para "${quoteData.title}" foi aceito.`,
+            { quote_id: quoteId, conversation_id: quoteData.conversation_id }
+          );
+        }
       } else {
         // If rejected, cancel the appointment
         const { error: appointmentError } = await supabase
@@ -263,6 +291,17 @@ export const useQuotes = (conversationId: string | undefined) => {
 
         if (appointmentError) {
           console.error('Error cancelling appointment:', appointmentError);
+        }
+
+        // Notify professional
+        if (quoteData) {
+          await createNotification(
+            quoteData.professional_id,
+            'quote_rejected',
+            'Orçamento recusado',
+            `Seu orçamento para "${quoteData.title}" foi recusado.`,
+            { quote_id: quoteId, conversation_id: quoteData.conversation_id }
+          );
         }
       }
 
