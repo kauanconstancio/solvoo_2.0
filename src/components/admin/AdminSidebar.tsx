@@ -9,7 +9,8 @@ import {
   FileText,
   ChevronLeft,
   Wallet,
-  TrendingUp
+  TrendingUp,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -73,6 +74,12 @@ export const AdminSidebar = () => {
       href: '/admin/financeiro',
       icon: <TrendingUp className="h-5 w-5" />,
       permission: canManageRoles, // Only admins can view financial dashboard
+    },
+    {
+      label: 'Planos',
+      href: '/admin/planos',
+      icon: <CreditCard className="h-5 w-5" />,
+      permission: canManageRoles, // Only admins can manage plans
     },
     {
       label: 'Logs',
