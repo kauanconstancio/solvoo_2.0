@@ -149,6 +149,18 @@ export default function AdminWithdrawals() {
 
       if (error) throw error;
 
+      // Create notification for user
+      await supabase.from('notifications').insert({
+        user_id: selectedWithdrawal.user_id,
+        type: 'withdrawal_approved',
+        title: 'Saque aprovado!',
+        message: `Seu saque de R$ ${selectedWithdrawal.amount.toFixed(2)} foi aprovado e será transferido para sua conta em até 2 dias úteis.`,
+        data: { 
+          withdrawal_id: selectedWithdrawal.id,
+          amount: selectedWithdrawal.amount 
+        },
+      });
+
       // Log admin action
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
@@ -196,6 +208,19 @@ export default function AdminWithdrawals() {
         .eq('id', selectedWithdrawal.id);
 
       if (error) throw error;
+
+      // Create notification for user
+      await supabase.from('notifications').insert({
+        user_id: selectedWithdrawal.user_id,
+        type: 'withdrawal_rejected',
+        title: 'Saque recusado',
+        message: `Seu saque de R$ ${selectedWithdrawal.amount.toFixed(2)} foi recusado. Motivo: ${rejectionReason}. O valor foi devolvido ao seu saldo disponível.`,
+        data: { 
+          withdrawal_id: selectedWithdrawal.id,
+          amount: selectedWithdrawal.amount,
+          reason: rejectionReason 
+        },
+      });
 
       // Log admin action
       await supabase.from('admin_logs').insert({
