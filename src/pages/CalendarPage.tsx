@@ -572,7 +572,7 @@ const CalendarPage = () => {
             </div>
 
             {/* Sidebar - Selected Date Appointments */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-4">
               <Card className="sticky top-20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
@@ -588,7 +588,7 @@ const CalendarPage = () => {
                   )}
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[400px]">
+                  <ScrollArea className="h-[350px]">
                     {selectedDateAppointments.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
@@ -672,21 +672,19 @@ const CalendarPage = () => {
                     )}
                   </ScrollArea>
                 </CardContent>
-              </Card>
 
-              {/* Legend */}
-              <Card className="mt-4 relative z-0 bg-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Legenda</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-2">
-                  {Object.entries(statusConfig).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-2">
-                      <div className={cn("w-3 h-3 rounded-full", value.color)} />
-                      <span className="text-xs">{value.label}</span>
-                    </div>
-                  ))}
-                </CardContent>
+                {/* Legend - Inside the sticky card */}
+                <div className="border-t px-4 py-3 bg-card">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Legenda</p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    {Object.entries(statusConfig).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <div className={cn("w-2.5 h-2.5 rounded-full", value.color)} />
+                        <span className="text-xs">{value.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </Card>
             </div>
           </div>
