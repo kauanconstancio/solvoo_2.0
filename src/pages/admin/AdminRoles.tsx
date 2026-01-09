@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Plus, Trash2, Shield } from 'lucide-react';
+import { Search, Plus, Trash2, Shield, UserCog, Users } from 'lucide-react';
 
 interface UserWithRole {
   user_id: string;
@@ -62,7 +63,6 @@ export const AdminRoles = () => {
     try {
       setIsLoading(true);
       
-      // Fetch user roles
       const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
@@ -70,7 +70,6 @@ export const AdminRoles = () => {
 
       if (rolesError) throw rolesError;
 
-      // Fetch all profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('user_id, full_name, avatar_url');
@@ -79,7 +78,6 @@ export const AdminRoles = () => {
 
       setProfiles(profilesData || []);
 
-      // Map roles with profile info
       const rolesWithProfiles = (rolesData || []).map(role => ({
         ...role,
         profiles: profilesData?.find(p => p.user_id === role.user_id) || null,
@@ -125,7 +123,6 @@ export const AdminRoles = () => {
         throw error;
       }
 
-      // Log the action
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('admin_logs').insert({
@@ -168,7 +165,6 @@ export const AdminRoles = () => {
 
       if (error) throw error;
 
-      // Log the action
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('admin_logs').insert({
@@ -199,11 +195,11 @@ export const AdminRoles = () => {
   const getRoleBadge = (role: AppRole) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-destructive">Administrador</Badge>;
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Administrador</Badge>;
       case 'moderator':
-        return <Badge variant="default">Moderador</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">Moderador</Badge>;
       case 'support':
-        return <Badge variant="secondary">Suporte</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Suporte</Badge>;
       default:
         return <Badge variant="outline">{role}</Badge>;
     }
@@ -214,7 +210,6 @@ export const AdminRoles = () => {
     ur.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get users without any roles for adding new roles
   const usersWithoutRoles = profiles.filter(
     p => !userRoles.some(ur => ur.user_id === p.user_id)
   );
@@ -222,66 +217,137 @@ export const AdminRoles = () => {
   if (isLoading) {
     return (
       <AdminLayout title="Gestão de Funções" description="Gerencie as funções administrativas">
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full max-w-sm" />
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-border/50">
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
           <Skeleton className="h-96" />
         </div>
       </AdminLayout>
     );
   }
 
+  const adminCount = userRoles.filter(r => r.role === 'admin').length;
+  const moderatorCount = userRoles.filter(r => r.role === 'moderator').length;
+  const supportCount = userRoles.filter(r => r.role === 'support').length;
+
   return (
     <AdminLayout title="Gestão de Funções" description="Gerencie as funções administrativas">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Função
-          </Button>
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white">
+                  <Shield className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Administradores</p>
+                  <p className="text-2xl font-bold">{adminCount}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  <UserCog className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Moderadores</p>
+                  <p className="text-2xl font-bold">{moderatorCount}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Suporte</p>
+                  <p className="text-2xl font-bold">{supportCount}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Header Actions */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative max-w-sm">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background/50"
+                />
+              </div>
+              <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar Função
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Roles explanation */}
-        <div className="rounded-lg border border-border bg-muted/30 p-4">
-          <h3 className="font-medium flex items-center gap-2 mb-2">
-            <Shield className="h-4 w-4" />
-            Níveis de Permissão
-          </h3>
-          <div className="grid gap-2 text-sm text-muted-foreground">
-            <p><span className="font-medium text-destructive">Administrador:</span> Acesso total a todas as funcionalidades do painel.</p>
-            <p><span className="font-medium text-primary">Moderador:</span> Gerencia serviços, avaliações e resolve denúncias.</p>
-            <p><span className="font-medium">Suporte:</span> Visualiza denúncias e auxilia usuários.</p>
-          </div>
-        </div>
+        <Card className="border-border/50 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="p-4">
+            <h3 className="font-semibold flex items-center gap-2 mb-3">
+              <Shield className="h-4 w-4 text-primary" />
+              Níveis de Permissão
+            </h3>
+            <div className="grid gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-xs">Admin</Badge>
+                <span>Acesso total a todas as funcionalidades do painel.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs">Moderador</Badge>
+                <span>Gerencia serviços, avaliações e resolve denúncias.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">Suporte</Badge>
+                <span>Visualiza denúncias e auxilia usuários.</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Table */}
-        <div className="rounded-lg border border-border">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Usuário</TableHead>
-                <TableHead>Função</TableHead>
-                <TableHead>Adicionado em</TableHead>
+              <TableRow className="hover:bg-transparent border-border/50">
+                <TableHead className="font-semibold">Usuário</TableHead>
+                <TableHead className="font-semibold">Função</TableHead>
+                <TableHead className="font-semibold">Adicionado em</TableHead>
                 <TableHead className="w-[70px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRoles.map((ur) => (
-                <TableRow key={`${ur.user_id}-${ur.role}`}>
+                <TableRow key={`${ur.user_id}-${ur.role}`} className="border-border/50 hover:bg-muted/50">
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-9 w-9 border-2 border-border">
                         <AvatarImage src={ur.profiles?.avatar_url || undefined} />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
                           {ur.profiles?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -289,7 +355,7 @@ export const AdminRoles = () => {
                     </div>
                   </TableCell>
                   <TableCell>{getRoleBadge(ur.role)}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-muted-foreground">
                     {new Date(ur.created_at).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell>
@@ -297,7 +363,7 @@ export const AdminRoles = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => removeRole(ur.user_id, ur.role)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -306,21 +372,25 @@ export const AdminRoles = () => {
               ))}
               {filteredRoles.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Nenhuma função encontrada.
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+                    <Shield className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                    <p>Nenhuma função encontrada.</p>
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       </div>
 
       {/* Add Role Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar Função</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Adicionar Função
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>

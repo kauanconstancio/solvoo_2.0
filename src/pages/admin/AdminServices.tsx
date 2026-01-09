@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, MoreHorizontal, Eye, Trash2, Pause, Play } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, Trash2, Pause, Play, Briefcase, CheckCircle, PauseCircle, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface Service {
@@ -86,7 +87,6 @@ export const AdminServices = () => {
 
       if (error) throw error;
 
-      // Log the action
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('admin_logs').insert({
@@ -125,7 +125,6 @@ export const AdminServices = () => {
 
       if (error) throw error;
 
-      // Log the action
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('admin_logs').insert({
@@ -158,14 +157,17 @@ export const AdminServices = () => {
     service.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const activeServices = services.filter(s => s.status === 'active').length;
+  const pausedServices = services.filter(s => s.status === 'paused').length;
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge variant="default" className="bg-accent">Ativo</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Ativo</Badge>;
       case 'paused':
-        return <Badge variant="secondary">Pausado</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pausado</Badge>;
       case 'removed':
-        return <Badge variant="destructive">Removido</Badge>;
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Removido</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -174,8 +176,17 @@ export const AdminServices = () => {
   if (isLoading) {
     return (
       <AdminLayout title="Gestão de Serviços" description="Gerencie todos os serviços da plataforma">
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full max-w-sm" />
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-border/50">
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
           <Skeleton className="h-96" />
         </div>
       </AdminLayout>
@@ -184,100 +195,146 @@ export const AdminServices = () => {
 
   return (
     <AdminLayout title="Gestão de Serviços" description="Gerencie todos os serviços da plataforma">
-      <div className="space-y-4">
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar serviços..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  <Briefcase className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total de Serviços</p>
+                  <p className="text-2xl font-bold">{services.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Serviços Ativos</p>
+                  <p className="text-2xl font-bold">{activeServices}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                  <PauseCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Serviços Pausados</p>
+                  <p className="text-2xl font-bold">{pausedServices}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
+        {/* Search */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar serviços..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background/50"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Table */}
-        <div className="rounded-lg border border-border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Profissional</TableHead>
-                <TableHead>Preço</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="w-[70px]">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredServices.map((service) => (
-                <TableRow key={service.id}>
-                  <TableCell className="font-medium max-w-[200px] truncate">
-                    {service.title}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{service.category}</Badge>
-                  </TableCell>
-                  <TableCell>{service.profiles?.full_name || '-'}</TableCell>
-                  <TableCell>R$ {service.price}</TableCell>
-                  <TableCell>{getStatusBadge(service.status)}</TableCell>
-                  <TableCell>{service.views_count}</TableCell>
-                  <TableCell>
-                    {new Date(service.created_at).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to={`/servico/${service.id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver serviço
-                          </Link>
-                        </DropdownMenuItem>
-                        {service.status === 'active' ? (
-                          <DropdownMenuItem
-                            onClick={() => updateServiceStatus(service.id, 'paused')}
-                          >
-                            <Pause className="mr-2 h-4 w-4" />
-                            Pausar
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onClick={() => updateServiceStatus(service.id, 'active')}
-                          >
-                            <Play className="mr-2 h-4 w-4" />
-                            Ativar
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => deleteService(service.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-border/50">
+                  <TableHead className="font-semibold">Título</TableHead>
+                  <TableHead className="font-semibold">Categoria</TableHead>
+                  <TableHead className="font-semibold">Profissional</TableHead>
+                  <TableHead className="font-semibold">Preço</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="font-semibold">Views</TableHead>
+                  <TableHead className="font-semibold">Criado em</TableHead>
+                  <TableHead className="w-[70px]">Ações</TableHead>
                 </TableRow>
-              ))}
-              {filteredServices.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
-                    Nenhum serviço encontrado.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredServices.map((service) => (
+                  <TableRow key={service.id} className="border-border/50 hover:bg-muted/50">
+                    <TableCell className="font-medium max-w-[200px] truncate">
+                      {service.title}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-normal">{service.category}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{service.profiles?.full_name || '-'}</TableCell>
+                    <TableCell className="font-semibold text-primary">R$ {service.price}</TableCell>
+                    <TableCell>{getStatusBadge(service.status)}</TableCell>
+                    <TableCell className="text-muted-foreground">{service.views_count}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(service.created_at).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="hover:bg-muted">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/servico/${service.id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver serviço
+                            </Link>
+                          </DropdownMenuItem>
+                          {service.status === 'active' ? (
+                            <DropdownMenuItem onClick={() => updateServiceStatus(service.id, 'paused')}>
+                              <Pause className="mr-2 h-4 w-4" />
+                              Pausar
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => updateServiceStatus(service.id, 'active')}>
+                              <Play className="mr-2 h-4 w-4" />
+                              Ativar
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => deleteService(service.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredServices.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
+                      <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                      <p>Nenhum serviço encontrado.</p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
       </div>
     </AdminLayout>
   );
