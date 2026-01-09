@@ -62,7 +62,7 @@ export default function AdminFinancial() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-xl">
+        <div className="bg-popover border border-border rounded-xl p-4 shadow-xl">
           <p className="font-semibold text-foreground mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
@@ -84,11 +84,11 @@ export default function AdminFinancial() {
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <div className="bg-popover/95 backdrop-blur-sm border border-border rounded-xl p-4 shadow-xl">
+        <div className="bg-popover border border-border rounded-xl p-4 shadow-xl">
           <div className="flex items-center gap-2">
             <span 
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: data.payload.fill }}
+              style={{ backgroundColor: data.color ?? data.fill ?? 'hsl(var(--muted-foreground))' }}
             />
             <span className="font-semibold text-foreground">{data.name}</span>
           </div>
@@ -250,7 +250,7 @@ export default function AdminFinancial() {
       {/* Charts */}
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         {/* Withdrawals Over Time - Bar Chart */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-visible">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg">
               <div className="h-8 w-1 bg-gradient-to-b from-green-500 to-red-500 rounded-full" />
@@ -293,7 +293,7 @@ export default function AdminFinancial() {
                     tickFormatter={formatCompactCurrency}
                     width={60}
                   />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }} />
+                  <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 50 }} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }} />
                   <Bar 
                     dataKey="approved" 
                     name="Aprovados"
@@ -326,7 +326,7 @@ export default function AdminFinancial() {
         </Card>
 
         {/* Revenue Breakdown - Donut Chart */}
-        <Card className="overflow-hidden">
+        <Card className="overflow-visible">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg">
               <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-green-500 rounded-full" />
@@ -367,7 +367,7 @@ export default function AdminFinancial() {
                         <Cell fill="url(#profitGradient)" />
                         <Cell fill="url(#paidGradient)" />
                       </Pie>
-                      <Tooltip content={<CustomPieTooltip />} />
+                      <Tooltip content={<CustomPieTooltip />} wrapperStyle={{ zIndex: 50 }} />
                     </PieChart>
                   </ResponsiveContainer>
                   {/* Center Label */}
@@ -375,7 +375,7 @@ export default function AdminFinancial() {
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Total</p>
                       <p className="text-xl font-bold text-foreground">
-                        {formatCompactCurrency(revenueBreakdown.totalRevenue)}
+                        {formatCurrency(revenueBreakdown.totalRevenue)}
                       </p>
                     </div>
                   </div>
