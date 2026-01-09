@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 interface WithdrawalsByDate {
   date: string;
@@ -8,10 +8,20 @@ interface WithdrawalsByDate {
   rejected: number;
 }
 
+interface RevenueByDate {
+  date: string;
+  services: number;
+  subscriptions: number;
+  total: number;
+}
+
 interface RevenueBreakdown {
   totalRevenue: number;
   paidToProfessionals: number;
   platformProfit: number;
+  subscriptionRevenue: number;
+  serviceRevenue: number;
+  combinedTotal: number;
 }
 
 interface FinancialStats {
@@ -25,10 +35,14 @@ interface FinancialStats {
 
 export function useFinancialMetrics() {
   const [withdrawalsByDate, setWithdrawalsByDate] = useState<WithdrawalsByDate[]>([]);
+  const [revenueByDate, setRevenueByDate] = useState<RevenueByDate[]>([]);
   const [revenueBreakdown, setRevenueBreakdown] = useState<RevenueBreakdown>({
     totalRevenue: 0,
     paidToProfessionals: 0,
     platformProfit: 0,
+    subscriptionRevenue: 0,
+    serviceRevenue: 0,
+    combinedTotal: 0,
   });
   const [stats, setStats] = useState<FinancialStats>({
     totalWithdrawalsApproved: 0,
@@ -50,19 +64,40 @@ export function useFinancialMetrics() {
 
       if (error) throw error;
 
+      // Fetch active subscriptions
+      const { data: subscriptions, error: subError } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('status', 'active');
+
+      if (subError) throw subError;
+
+      // Calculate subscription revenue
+      const subscriptionRevenue = (subscriptions || []).reduce(
+        (sum, sub) => sum + Number(sub.amount_paid),
+        0
+      );
+
       // Calculate revenue breakdown from credit transactions
       const credits = (transactions || []).filter(
         (tx) => tx.type === 'credit' && tx.status === 'completed'
       );
       
-      const totalRevenue = credits.reduce((sum, tx) => sum + Number(tx.amount), 0);
+      const serviceRevenue = credits.reduce((sum, tx) => sum + Number(tx.amount), 0);
       const platformProfit = credits.reduce((sum, tx) => sum + Number(tx.fee), 0);
       const paidToProfessionals = credits.reduce((sum, tx) => sum + Number(tx.net_amount), 0);
 
+      // Combined total includes subscription revenue (100% profit for platform)
+      const combinedTotal = serviceRevenue + subscriptionRevenue;
+      const totalPlatformProfit = platformProfit + subscriptionRevenue;
+
       setRevenueBreakdown({
-        totalRevenue,
+        totalRevenue: serviceRevenue,
         paidToProfessionals,
-        platformProfit,
+        platformProfit: totalPlatformProfit,
+        subscriptionRevenue,
+        serviceRevenue,
+        combinedTotal,
       });
 
       // Filter withdrawal transactions
@@ -84,11 +119,11 @@ export function useFinancialMetrics() {
 
       // Generate withdrawals by date for the last 30 days
       const last30Days: WithdrawalsByDate[] = [];
+      const revenueData: RevenueByDate[] = [];
       const now = new Date();
 
       for (let i = 29; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
+        const date = subDays(now, i);
         const dateStr = format(date, 'yyyy-MM-dd');
         const displayDate = format(date, 'dd/MM');
 
@@ -109,9 +144,28 @@ export function useFinancialMetrics() {
           approved: dayApproved.reduce((sum, w) => sum + Number(w.amount), 0),
           rejected: dayRejected.reduce((sum, w) => sum + Number(w.amount), 0),
         });
+
+        // Calculate daily revenue from credits
+        const dayCredits = credits.filter((tx) => {
+          const txDate = format(new Date(tx.created_at), 'yyyy-MM-dd');
+          return txDate === dateStr;
+        });
+
+        // Calculate daily subscription revenue (distributed evenly across the month)
+        const dailySubRevenue = subscriptionRevenue / 30;
+
+        const dayServiceRevenue = dayCredits.reduce((sum, tx) => sum + Number(tx.amount), 0);
+
+        revenueData.push({
+          date: displayDate,
+          services: dayServiceRevenue,
+          subscriptions: dailySubRevenue,
+          total: dayServiceRevenue + dailySubRevenue,
+        });
       }
 
       setWithdrawalsByDate(last30Days);
+      setRevenueByDate(revenueData);
     } catch (error) {
       console.error('Error fetching financial metrics:', error);
     } finally {
@@ -125,6 +179,7 @@ export function useFinancialMetrics() {
 
   return {
     withdrawalsByDate,
+    revenueByDate,
     revenueBreakdown,
     stats,
     isLoading,
