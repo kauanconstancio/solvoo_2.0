@@ -25,10 +25,13 @@ import {
   Cell,
   BarChart,
   Bar,
+  AreaChart,
+  Area,
+  Legend,
 } from 'recharts';
 
 export default function AdminFinancial() {
-  const { withdrawalsByDate, revenueBreakdown, stats, isLoading } = useFinancialMetrics();
+  const { withdrawalsByDate, revenueByDate, revenueBreakdown, stats, isLoading } = useFinancialMetrics();
   const { plans } = useSubscriptionPlans();
   const { metrics: subscriptionMetrics, isLoading: isLoadingSubscriptions } = useSubscriptionMetrics();
 
@@ -47,22 +50,29 @@ export default function AdminFinancial() {
 
   const pieData = [
     { 
-      name: 'Lucro da Plataforma', 
-      value: revenueBreakdown.platformProfit,
-      percentage: revenueBreakdown.totalRevenue > 0 
-        ? ((revenueBreakdown.platformProfit / revenueBreakdown.totalRevenue) * 100).toFixed(1)
+      name: 'Lucro (Taxas de Serviço)', 
+      value: revenueBreakdown.platformProfit - revenueBreakdown.subscriptionRevenue,
+      percentage: revenueBreakdown.combinedTotal > 0 
+        ? (((revenueBreakdown.platformProfit - revenueBreakdown.subscriptionRevenue) / revenueBreakdown.combinedTotal) * 100).toFixed(1)
+        : 0,
+    },
+    { 
+      name: 'Receita de Assinaturas', 
+      value: revenueBreakdown.subscriptionRevenue,
+      percentage: revenueBreakdown.combinedTotal > 0 
+        ? ((revenueBreakdown.subscriptionRevenue / revenueBreakdown.combinedTotal) * 100).toFixed(1)
         : 0,
     },
     { 
       name: 'Pago aos Profissionais', 
       value: revenueBreakdown.paidToProfessionals,
-      percentage: revenueBreakdown.totalRevenue > 0 
-        ? ((revenueBreakdown.paidToProfessionals / revenueBreakdown.totalRevenue) * 100).toFixed(1)
+      percentage: revenueBreakdown.combinedTotal > 0 
+        ? ((revenueBreakdown.paidToProfessionals / revenueBreakdown.combinedTotal) * 100).toFixed(1)
         : 0,
     },
   ];
 
-  const COLORS_PIE = ['#22c55e', '#3b82f6'];
+  const COLORS_PIE = ['#22c55e', '#8b5cf6', '#3b82f6'];
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -124,7 +134,7 @@ export default function AdminFinancial() {
   return (
     <AdminLayout title="Dashboard Financeiro" description="Análise financeira da plataforma">
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -133,7 +143,24 @@ export default function AdminFinancial() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Faturamento Total</p>
-                <p className="text-2xl font-bold">{formatCurrency(revenueBreakdown.totalRevenue)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(revenueBreakdown.combinedTotal)}</p>
+                <p className="text-xs text-muted-foreground">Serviços + Assinaturas</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <CreditCard className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Receita Assinaturas</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {formatCurrency(revenueBreakdown.subscriptionRevenue)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -334,13 +361,13 @@ export default function AdminFinancial() {
         <Card className="overflow-visible">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-green-500 rounded-full" />
+              <div className="h-8 w-1 bg-gradient-to-b from-purple-500 to-green-500 rounded-full" />
               Distribuição do Faturamento
             </CardTitle>
-            <p className="text-sm text-muted-foreground">Divisão entre plataforma e profissionais</p>
+            <p className="text-sm text-muted-foreground">Serviços, Assinaturas e Profissionais</p>
           </CardHeader>
           <CardContent className="pt-0">
-            {revenueBreakdown.totalRevenue > 0 ? (
+            {revenueBreakdown.combinedTotal > 0 ? (
               <>
                 <div className="h-[280px] relative">
                   <ResponsiveContainer width="100%" height="100%">
@@ -349,6 +376,10 @@ export default function AdminFinancial() {
                         <linearGradient id="profitGradient" x1="0" y1="0" x2="1" y2="1">
                           <stop offset="0%" stopColor="#22c55e" />
                           <stop offset="100%" stopColor="#16a34a" />
+                        </linearGradient>
+                        <linearGradient id="subscriptionGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#8b5cf6" />
+                          <stop offset="100%" stopColor="#7c3aed" />
                         </linearGradient>
                         <linearGradient id="paidGradient" x1="0" y1="0" x2="1" y2="1">
                           <stop offset="0%" stopColor="#3b82f6" />
@@ -370,6 +401,7 @@ export default function AdminFinancial() {
                         filter="url(#shadow)"
                       >
                         <Cell fill="url(#profitGradient)" />
+                        <Cell fill="url(#subscriptionGradient)" />
                         <Cell fill="url(#paidGradient)" />
                       </Pie>
                       <Tooltip content={<CustomPieTooltip />} wrapperStyle={{ zIndex: 50 }} />
@@ -380,33 +412,43 @@ export default function AdminFinancial() {
                     <div className="text-center">
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">Total</p>
                       <p className="text-xl font-bold text-foreground">
-                        {formatCurrency(revenueBreakdown.totalRevenue)}
+                        {formatCurrency(revenueBreakdown.combinedTotal)}
                       </p>
                     </div>
                   </div>
                 </div>
                 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-green-500 to-green-600" />
-                      <span className="text-xs text-muted-foreground font-medium">Lucro</span>
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/20 rounded-xl p-3 text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-br from-green-500 to-green-600" />
+                      <span className="text-xs text-muted-foreground font-medium">Taxas</span>
                     </div>
-                    <p className="text-xl font-bold text-green-600">
-                      {formatCurrency(revenueBreakdown.platformProfit)}
+                    <p className="text-lg font-bold text-green-600">
+                      {formatCurrency(revenueBreakdown.platformProfit - revenueBreakdown.subscriptionRevenue)}
                     </p>
-                    <p className="text-xs text-green-600/80 mt-0.5">{pieData[0].percentage}%</p>
+                    <p className="text-xs text-green-600/80">{pieData[0].percentage}%</p>
                   </div>
-                  <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600" />
+                  <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 rounded-xl p-3 text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-br from-purple-500 to-purple-600" />
+                      <span className="text-xs text-muted-foreground font-medium">Assinaturas</span>
+                    </div>
+                    <p className="text-lg font-bold text-purple-600">
+                      {formatCurrency(revenueBreakdown.subscriptionRevenue)}
+                    </p>
+                    <p className="text-xs text-purple-600/80">{pieData[1].percentage}%</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-xl p-3 text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-500 to-blue-600" />
                       <span className="text-xs text-muted-foreground font-medium">Profissionais</span>
                     </div>
-                    <p className="text-xl font-bold text-blue-600">
+                    <p className="text-lg font-bold text-blue-600">
                       {formatCurrency(revenueBreakdown.paidToProfessionals)}
                     </p>
-                    <p className="text-xs text-blue-600/80 mt-0.5">{pieData[1].percentage}%</p>
+                    <p className="text-xs text-blue-600/80">{pieData[2].percentage}%</p>
                   </div>
                 </div>
               </>
@@ -416,6 +458,86 @@ export default function AdminFinancial() {
                 <p className="text-sm">Nenhum dado de faturamento disponível</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Over Time Chart */}
+      <div className="mt-6">
+        <Card className="overflow-visible">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="h-8 w-1 bg-gradient-to-b from-primary to-purple-500 rounded-full" />
+              Receita ao Longo do Tempo
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Serviços vs Assinaturas - Últimos 30 dias</p>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="h-[320px] mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueByDate}>
+                  <defs>
+                    <linearGradient id="serviceAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="subscriptionAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid 
+                    strokeDasharray="3 3" 
+                    vertical={false}
+                    stroke="hsl(var(--border))"
+                    strokeOpacity={0.5}
+                  />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    interval={4}
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                    tickFormatter={formatCompactCurrency}
+                    width={60}
+                  />
+                  <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 50 }} />
+                  <Area
+                    type="monotone"
+                    dataKey="services"
+                    name="Serviços"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    fill="url(#serviceAreaGradient)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="subscriptions"
+                    name="Assinaturas"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    fill="url(#subscriptionAreaGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-border">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-sm text-muted-foreground">Serviços</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-500" />
+                <span className="text-sm text-muted-foreground">Assinaturas</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
