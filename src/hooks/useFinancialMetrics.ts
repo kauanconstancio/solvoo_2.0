@@ -64,15 +64,14 @@ export function useFinancialMetrics() {
 
       if (error) throw error;
 
-      // Fetch active subscriptions
+      // Fetch all subscriptions (not just active) to get historical revenue
       const { data: subscriptions, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('*')
-        .eq('status', 'active');
+        .select('*');
 
       if (subError) throw subError;
 
-      // Calculate subscription revenue
+      // Calculate subscription revenue from all paid subscriptions
       const subscriptionRevenue = (subscriptions || []).reduce(
         (sum, sub) => sum + Number(sub.amount_paid),
         0
@@ -151,16 +150,20 @@ export function useFinancialMetrics() {
           return txDate === dateStr;
         });
 
-        // Calculate daily subscription revenue (distributed evenly across the month)
-        const dailySubRevenue = subscriptionRevenue / 30;
+        // Calculate daily subscription revenue from actual subscription payments
+        const daySubscriptions = (subscriptions || []).filter((sub) => {
+          const subDate = format(new Date(sub.started_at), 'yyyy-MM-dd');
+          return subDate === dateStr;
+        });
 
         const dayServiceRevenue = dayCredits.reduce((sum, tx) => sum + Number(tx.amount), 0);
+        const daySubRevenue = daySubscriptions.reduce((sum, sub) => sum + Number(sub.amount_paid), 0);
 
         revenueData.push({
           date: displayDate,
           services: dayServiceRevenue,
-          subscriptions: dailySubRevenue,
-          total: dayServiceRevenue + dailySubRevenue,
+          subscriptions: daySubRevenue,
+          total: dayServiceRevenue + daySubRevenue,
         });
       }
 
