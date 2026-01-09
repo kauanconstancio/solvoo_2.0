@@ -12,6 +12,7 @@ import {
   Laptop,
   Wallet,
   Briefcase,
+  Calendar,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -255,6 +256,15 @@ const Header = () => {
                   <Link to="/dashboard">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer transition-smooth hover:bg-muted"
+                >
+                  <Link to="/calendario">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Calendário
                   </Link>
                 </DropdownMenuItem>
                 {hasAnyRole && (
