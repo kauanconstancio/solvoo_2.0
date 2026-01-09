@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, MoreHorizontal, Eye, Trash2, Star } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, Trash2, Star, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface Review {
@@ -85,7 +86,6 @@ export const AdminReviews = () => {
 
       if (error) throw error;
 
-      // Log the action
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('admin_logs').insert({
@@ -118,6 +118,10 @@ export const AdminReviews = () => {
     review.services?.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const averageRating = reviews.length > 0 
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) 
+    : '0.0';
+
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center gap-0.5">
@@ -125,7 +129,7 @@ export const AdminReviews = () => {
           <Star
             key={i}
             className={`h-4 w-4 ${
-              i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
+              i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/30'
             }`}
           />
         ))}
@@ -136,8 +140,17 @@ export const AdminReviews = () => {
   if (isLoading) {
     return (
       <AdminLayout title="Moderação de Avaliações" description="Gerencie as avaliações da plataforma">
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full max-w-sm" />
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-border/50">
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
           <Skeleton className="h-96" />
         </div>
       </AdminLayout>
@@ -146,88 +159,138 @@ export const AdminReviews = () => {
 
   return (
     <AdminLayout title="Moderação de Avaliações" description="Gerencie as avaliações da plataforma">
-      <div className="space-y-4">
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar avaliações..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                  <Star className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total de Avaliações</p>
+                  <p className="text-2xl font-bold">{reviews.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white">
+                  <Star className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Média Geral</p>
+                  <p className="text-2xl font-bold">{averageRating}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Com Comentários</p>
+                  <p className="text-2xl font-bold">{reviews.filter(r => r.comment).length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
+        {/* Search */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar avaliações..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background/50"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Table */}
-        <div className="rounded-lg border border-border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuário</TableHead>
-                <TableHead>Serviço</TableHead>
-                <TableHead>Nota</TableHead>
-                <TableHead className="max-w-[300px]">Comentário</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="w-[70px]">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredReviews.map((review) => (
-                <TableRow key={review.id}>
-                  <TableCell className="font-medium">
-                    {review.profiles?.full_name || 'Anônimo'}
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      to={`/servico/${review.service_id}`}
-                      className="text-primary hover:underline max-w-[150px] truncate block"
-                    >
-                      {review.services?.title || 'Serviço removido'}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{renderStars(review.rating)}</TableCell>
-                  <TableCell className="max-w-[300px] truncate">
-                    {review.comment || <span className="text-muted-foreground">Sem comentário</span>}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(review.created_at).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to={`/servico/${review.service_id}`}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Ver serviço
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteReview(review.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent border-border/50">
+                  <TableHead className="font-semibold">Usuário</TableHead>
+                  <TableHead className="font-semibold">Serviço</TableHead>
+                  <TableHead className="font-semibold">Nota</TableHead>
+                  <TableHead className="font-semibold max-w-[300px]">Comentário</TableHead>
+                  <TableHead className="font-semibold">Data</TableHead>
+                  <TableHead className="w-[70px]">Ações</TableHead>
                 </TableRow>
-              ))}
-              {filteredReviews.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    Nenhuma avaliação encontrada.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredReviews.map((review) => (
+                  <TableRow key={review.id} className="border-border/50 hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      {review.profiles?.full_name || 'Anônimo'}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        to={`/servico/${review.service_id}`}
+                        className="text-primary hover:underline max-w-[150px] truncate block"
+                      >
+                        {review.services?.title || 'Serviço removido'}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{renderStars(review.rating)}</TableCell>
+                    <TableCell className="max-w-[300px] truncate text-muted-foreground">
+                      {review.comment || <span className="italic opacity-50">Sem comentário</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(review.created_at).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="hover:bg-muted">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem asChild>
+                            <Link to={`/servico/${review.service_id}`}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver serviço
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => deleteReview(review.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredReviews.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                      <Star className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                      <p>Nenhuma avaliação encontrada.</p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
       </div>
     </AdminLayout>
   );

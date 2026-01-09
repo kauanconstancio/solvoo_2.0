@@ -83,7 +83,6 @@ export default function AdminWithdrawals() {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Fetch profiles and bank accounts for each withdrawal
       const enrichedData = await Promise.all(
         (data || []).map(async (withdrawal) => {
           const { data: profile } = await supabase
@@ -101,7 +100,6 @@ export default function AdminWithdrawals() {
               .single();
             bankAccount = account;
           } else {
-            // Try to get default bank account
             const { data: defaultAccount } = await supabase
               .from('bank_accounts')
               .select('*')
@@ -149,7 +147,6 @@ export default function AdminWithdrawals() {
 
       if (error) throw error;
 
-      // Create notification for user
       await supabase.from('notifications').insert({
         user_id: selectedWithdrawal.user_id,
         type: 'withdrawal_approved',
@@ -161,7 +158,6 @@ export default function AdminWithdrawals() {
         },
       });
 
-      // Log admin action
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
         action: 'approve_withdrawal',
@@ -209,7 +205,6 @@ export default function AdminWithdrawals() {
 
       if (error) throw error;
 
-      // Create notification for user
       await supabase.from('notifications').insert({
         user_id: selectedWithdrawal.user_id,
         type: 'withdrawal_rejected',
@@ -222,7 +217,6 @@ export default function AdminWithdrawals() {
         },
       });
 
-      // Log admin action
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
         action: 'reject_withdrawal',
@@ -262,11 +256,11 @@ export default function AdminWithdrawals() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
       case 'completed':
-        return <Badge variant="outline" className="bg-green-500/10 text-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Aprovado</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Aprovado</Badge>;
       case 'cancelled':
-        return <Badge variant="outline" className="bg-red-500/10 text-red-600"><XCircle className="h-3 w-3 mr-1" />Recusado</Badge>;
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20"><XCircle className="h-3 w-3 mr-1" />Recusado</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -281,11 +275,26 @@ export default function AdminWithdrawals() {
   const totalPendingAmount = withdrawals
     .filter(w => w.status === 'pending')
     .reduce((sum, w) => sum + w.amount, 0);
+  const approvedToday = withdrawals.filter(w => 
+    w.status === 'completed' && 
+    w.processed_at && 
+    new Date(w.processed_at).toDateString() === new Date().toDateString()
+  ).length;
 
   if (isLoading) {
     return (
       <AdminLayout title="Saques" description="Gerenciar solicitações de saque">
-        <div className="space-y-4">
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-border/50">
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-32" />)}
         </div>
       </AdminLayout>
@@ -294,172 +303,174 @@ export default function AdminWithdrawals() {
 
   return (
     <AdminLayout title="Saques" description="Gerenciar solicitações de saque">
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <Clock className="h-5 w-5 text-yellow-600" />
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Saques Pendentes</p>
+                  <p className="text-2xl font-bold">{pendingCount}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Saques Pendentes</p>
-                <p className="text-2xl font-bold">{pendingCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Wallet className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Valor Total Pendente</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalPendingAmount)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Aprovados Hoje</p>
-                <p className="text-2xl font-bold">
-                  {withdrawals.filter(w => 
-                    w.status === 'completed' && 
-                    w.processed_at && 
-                    new Date(w.processed_at).toDateString() === new Date().toDateString()
-                  ).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome ou ID..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
-          {(['all', 'pending', 'completed', 'cancelled'] as const).map(status => (
-            <Button
-              key={status}
-              variant={filter === status ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter(status)}
-            >
-              {status === 'all' ? 'Todos' : status === 'pending' ? 'Pendentes' : status === 'completed' ? 'Aprovados' : 'Recusados'}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Withdrawals List */}
-      <div className="space-y-4">
-        {filteredWithdrawals.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Wallet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhuma solicitação de saque encontrada.</p>
             </CardContent>
           </Card>
-        ) : (
-          filteredWithdrawals.map(withdrawal => (
-            <Card key={withdrawal.id}>
-              <CardContent className="p-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{withdrawal.profile?.full_name || 'Usuário'}</p>
-                      {getStatusBadge(withdrawal.status)}
-                    </div>
-                    <p className="text-2xl font-bold text-primary">
-                      {formatCurrency(withdrawal.amount)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Solicitado em {format(new Date(withdrawal.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                    
-                    {/* Bank Account Info */}
-                    {withdrawal.bank_account && (
-                      <div className="mt-2 p-2 bg-muted/50 rounded-lg text-sm">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Building2 className="h-4 w-4" />
-                          {withdrawal.bank_account.account_type === 'pix' ? (
-                            <span>PIX: {withdrawal.bank_account.pix_key}</span>
-                          ) : (
-                            <span>
-                              {withdrawal.bank_account.bank_name} - Ag: {withdrawal.bank_account.agency} | 
-                              Conta: {withdrawal.bank_account.account_number}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs mt-1">
-                          Titular: {withdrawal.bank_account.account_holder_name} ({withdrawal.bank_account.account_holder_document})
-                        </p>
-                      </div>
-                    )}
-
-                    {withdrawal.rejection_reason && (
-                      <p className="text-sm text-red-600 mt-2">
-                        Motivo: {withdrawal.rejection_reason}
-                      </p>
-                    )}
-                  </div>
-
-                  {withdrawal.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => {
-                          setSelectedWithdrawal(withdrawal);
-                          setShowRejectDialog(true);
-                        }}
-                      >
-                        <X className="h-4 w-4 mr-1" />
-                        Recusar
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                          setSelectedWithdrawal(withdrawal);
-                          setShowApproveDialog(true);
-                        }}
-                      >
-                        <Check className="h-4 w-4 mr-1" />
-                        Aprovar
-                      </Button>
-                    </div>
-                  )}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white">
+                  <Wallet className="h-5 w-5" />
                 </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Valor Total Pendente</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalPendingAmount)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Aprovados Hoje</p>
+                  <p className="text-2xl font-bold">{approvedToday}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome ou ID..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-background/50"
+                />
+              </div>
+              <div className="flex gap-2">
+                {(['all', 'pending', 'completed', 'cancelled'] as const).map(status => (
+                  <Button
+                    key={status}
+                    variant={filter === status ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter(status)}
+                  >
+                    {status === 'all' ? 'Todos' : status === 'pending' ? 'Pendentes' : status === 'completed' ? 'Aprovados' : 'Recusados'}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Withdrawals List */}
+        <div className="space-y-4">
+          {filteredWithdrawals.length === 0 ? (
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-12 text-center">
+                <Wallet className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+                <p className="text-muted-foreground">Nenhuma solicitação de saque encontrada.</p>
               </CardContent>
             </Card>
-          ))
-        )}
+          ) : (
+            filteredWithdrawals.map(withdrawal => (
+              <Card key={withdrawal.id} className="border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <p className="font-semibold text-lg">{withdrawal.profile?.full_name || 'Usuário'}</p>
+                        {getStatusBadge(withdrawal.status)}
+                      </div>
+                      <p className="text-3xl font-bold text-primary">
+                        {formatCurrency(withdrawal.amount)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Solicitado em {format(new Date(withdrawal.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                      
+                      {withdrawal.bank_account && (
+                        <div className="p-3 bg-muted/30 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            {withdrawal.bank_account.account_type === 'pix' ? (
+                              <span>PIX: {withdrawal.bank_account.pix_key}</span>
+                            ) : (
+                              <span>
+                                {withdrawal.bank_account.bank_name} - Ag: {withdrawal.bank_account.agency} | 
+                                Conta: {withdrawal.bank_account.account_number}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Titular: {withdrawal.bank_account.account_holder_name} ({withdrawal.bank_account.account_holder_document})
+                          </p>
+                        </div>
+                      )}
+
+                      {withdrawal.rejection_reason && (
+                        <p className="text-sm text-red-600 p-2 bg-red-500/10 rounded-lg">
+                          Motivo: {withdrawal.rejection_reason}
+                        </p>
+                      )}
+                    </div>
+
+                    {withdrawal.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950"
+                          onClick={() => {
+                            setSelectedWithdrawal(withdrawal);
+                            setShowRejectDialog(true);
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Recusar
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700"
+                          onClick={() => {
+                            setSelectedWithdrawal(withdrawal);
+                            setShowApproveDialog(true);
+                          }}
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          Aprovar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Approve Dialog */}
       <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Aprovar Saque</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+              Aprovar Saque
+            </AlertDialogTitle>
             <AlertDialogDescription>
               Confirma a aprovação do saque de {selectedWithdrawal && formatCurrency(selectedWithdrawal.amount)} para {selectedWithdrawal?.profile?.full_name}?
             </AlertDialogDescription>
@@ -469,7 +480,7 @@ export default function AdminWithdrawals() {
             <AlertDialogAction
               onClick={handleApprove}
               disabled={isProcessing}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-emerald-600 hover:bg-emerald-700"
             >
               {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Aprovar
@@ -482,19 +493,20 @@ export default function AdminWithdrawals() {
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Recusar Saque</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-500" />
+              Recusar Saque
+            </DialogTitle>
             <DialogDescription>
               Informe o motivo da recusa do saque de {selectedWithdrawal && formatCurrency(selectedWithdrawal.amount)}.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <Textarea
-              placeholder="Motivo da recusa..."
-              value={rejectionReason}
-              onChange={e => setRejectionReason(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
+          <Textarea
+            value={rejectionReason}
+            onChange={e => setRejectionReason(e.target.value)}
+            placeholder="Descreva o motivo da recusa..."
+            className="min-h-[100px]"
+          />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)} disabled={isProcessing}>
               Cancelar
@@ -502,7 +514,7 @@ export default function AdminWithdrawals() {
             <Button
               variant="destructive"
               onClick={handleReject}
-              disabled={isProcessing || !rejectionReason.trim()}
+              disabled={!rejectionReason.trim() || isProcessing}
             >
               {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Recusar Saque

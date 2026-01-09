@@ -35,7 +35,9 @@ import {
   DollarSign,
   Package,
   X,
-  GripVertical
+  GripVertical,
+  CreditCard,
+  Users
 } from 'lucide-react';
 import { useSubscriptionPlans, SubscriptionPlan } from '@/hooks/useSubscriptionPlans';
 import { toast } from 'sonner';
@@ -47,7 +49,6 @@ const AdminPlans = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -181,9 +182,55 @@ const AdminPlans = () => {
     }).format(value);
   };
 
+  const activePlans = plans.filter(p => p.is_active).length;
+  const totalRevenue = plans.reduce((sum, p) => sum + p.price, 0);
+
   return (
     <AdminLayout title="Gerenciar Planos" description="Configure os planos de assinatura da plataforma">
       <div className="space-y-6">
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary to-primary/80 text-white">
+                  <CreditCard className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total de Planos</p>
+                  <p className="text-2xl font-bold">{plans.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Planos Ativos</p>
+                  <p className="text-2xl font-bold">{activePlans}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Valor Médio</p>
+                  <p className="text-2xl font-bold">{plans.length > 0 ? formatCurrency(totalRevenue / plans.length) : 'R$ 0'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Actions */}
         <div className="flex justify-end">
           <Button onClick={openCreateDialog} className="gap-2">
@@ -196,7 +243,7 @@ const AdminPlans = () => {
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => (
-              <Card key={i}>
+              <Card key={i} className="border-border/50">
                 <CardHeader>
                   <Skeleton className="h-6 w-24" />
                   <Skeleton className="h-4 w-32 mt-2" />
@@ -217,12 +264,12 @@ const AdminPlans = () => {
             {plans.map(plan => (
               <Card
                 key={plan.id}
-                className={`relative flex flex-col ${
-                  plan.is_popular ? 'border-primary border-2 shadow-lg' : ''
+                className={`relative flex flex-col border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:shadow-xl ${
+                  plan.is_popular ? 'border-primary border-2 shadow-lg shadow-primary/10' : ''
                 } ${!plan.is_active ? 'opacity-60' : ''}`}
               >
                 {plan.is_popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-primary text-white gap-1">
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-primary/80 text-white gap-1 px-3">
                     <Star className="h-3 w-3" />
                     Mais Popular
                   </Badge>
@@ -238,10 +285,12 @@ const AdminPlans = () => {
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-xl flex items-center gap-2">
-                        <Package className="h-5 w-5 text-primary" />
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+                          <Package className="h-4 w-4 text-primary" />
+                        </div>
                         {plan.name}
                       </CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="mt-2">
                         {plan.description}
                       </CardDescription>
                     </div>
@@ -250,7 +299,7 @@ const AdminPlans = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => openEditDialog(plan)}
-                        className="h-8 w-8"
+                        className="h-8 w-8 hover:bg-muted"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -258,7 +307,7 @@ const AdminPlans = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => openDeleteDialog(plan)}
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -286,7 +335,7 @@ const AdminPlans = () => {
                     ))}
                   </ul>
                   {plan.max_services && (
-                    <p className="mt-4 text-xs text-muted-foreground">
+                    <p className="mt-4 text-xs text-muted-foreground p-2 bg-muted/30 rounded-lg">
                       Limite: {plan.max_services} serviços
                     </p>
                   )}
@@ -300,7 +349,8 @@ const AdminPlans = () => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-primary" />
                 {selectedPlan ? 'Editar Plano' : 'Criar Novo Plano'}
               </DialogTitle>
               <DialogDescription>
@@ -434,7 +484,7 @@ const AdminPlans = () => {
               </div>
 
               {/* Toggles */}
-              <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-4 pt-4 border-t border-border/50">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Plano Ativo</Label>
@@ -494,16 +544,19 @@ const AdminPlans = () => {
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Excluir Plano</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Trash2 className="h-5 w-5 text-destructive" />
+                Excluir Plano
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir o plano "{selectedPlan?.name}"? Esta ação não pode
-                ser desfeita.
+                Tem certeza que deseja excluir o plano "{selectedPlan?.name}"? Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
+                disabled={isSubmitting}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {isSubmitting ? 'Excluindo...' : 'Excluir'}
