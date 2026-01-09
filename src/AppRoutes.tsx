@@ -38,6 +38,7 @@ import AdminReports from "./pages/admin/AdminReports";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import AdminFinancial from "./pages/admin/AdminFinancial";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import PageTransition from "./components/PageTransition";
 
@@ -383,6 +384,16 @@ const AnimatedRoutes = () => {
             <AdminProtectedRoute requiredPermission="admin">
               <PageTransition>
                 <AdminWithdrawals />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/financeiro"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminFinancial />
               </PageTransition>
             </AdminProtectedRoute>
           }

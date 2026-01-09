@@ -8,7 +8,8 @@ import {
   Shield, 
   FileText,
   ChevronLeft,
-  Wallet
+  Wallet,
+  TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -66,6 +67,12 @@ export const AdminSidebar = () => {
       href: '/admin/saques',
       icon: <Wallet className="h-5 w-5" />,
       permission: canManageRoles, // Only admins can approve withdrawals
+    },
+    {
+      label: 'Financeiro',
+      href: '/admin/financeiro',
+      icon: <TrendingUp className="h-5 w-5" />,
+      permission: canManageRoles, // Only admins can view financial dashboard
     },
     {
       label: 'Logs',
