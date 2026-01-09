@@ -40,6 +40,7 @@ import AdminLogs from "./pages/admin/AdminLogs";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminFinancial from "./pages/admin/AdminFinancial";
 import AdminPlans from "./pages/admin/AdminPlans";
+import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import PageTransition from "./components/PageTransition";
 
@@ -305,6 +306,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <PageTransition>
                 <BookingConfirmation />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assinatura"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <SubscriptionPage />
               </PageTransition>
             </ProtectedRoute>
           }
