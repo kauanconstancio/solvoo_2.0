@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Calendar,
   Wallet,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,10 +20,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
+import { useSubscriptionPlans } from "@/hooks/useSubscriptionPlans";
 import { AnimatedCounter, formatLargeNumber } from "@/components/AnimatedCounter";
 import { ParallaxHero } from "@/components/ParallaxHero";
 
@@ -84,51 +87,6 @@ const features = [
   },
 ];
 
-const plans = [
-  {
-    name: "Básico",
-    price: "Grátis",
-    description: "Ideal para começar",
-    features: [
-      "Até 5 anúncios ativos",
-      "Perfil básico",
-      "Chat com clientes",
-      "Suporte por email",
-    ],
-    popular: false,
-  },
-  {
-    name: "Profissional",
-    price: "R$ 49",
-    period: "/mês",
-    description: "Para profissionais em crescimento",
-    features: [
-      "Anúncios ilimitados",
-      "Perfil verificado",
-      "Destaque nas buscas",
-      "Análises avançadas",
-      "Suporte prioritário",
-      "Selo de profissional",
-    ],
-    popular: true,
-  },
-  {
-    name: "Premium",
-    price: "R$ 99",
-    period: "/mês",
-    description: "Máxima visibilidade",
-    features: [
-      "Tudo do Profissional",
-      "Posição premium nas buscas",
-      "Campanhas promocionais",
-      "Gerente de conta dedicado",
-      "API para integrações",
-      "Relatórios personalizados",
-    ],
-    popular: false,
-  },
-];
-
 const testimonials = [
   {
     name: "Carlos Silva",
@@ -159,9 +117,22 @@ const testimonials = [
   },
 ];
 
+const formatCurrency = (value: number) => {
+  if (value === 0) return "Grátis";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
 const ForProfessionals = () => {
   const { metrics, isLoading } = usePlatformMetrics();
+  const { plans, isLoading: isLoadingPlans } = useSubscriptionPlans();
 
+  // Filter only active plans
+  const activePlans = plans.filter(plan => plan.is_active);
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -347,54 +318,74 @@ const ForProfessionals = () => {
               Comece gratuitamente e evolua conforme seu negócio cresce.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card
-                key={index}
-                className={`relative flex flex-col ${
-                  plan.popular ? "border-primary border-2 shadow-xl" : ""
-                }`}
-              >
-                {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-primary text-white">
-                    Mais Popular
-                  </Badge>
-                )}
-                <CardHeader className="text-center pb-2">
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="font-heading text-4xl font-bold">
-                      {plan.price}
-                    </span>
-                    {plan.period && (
-                      <span className="text-muted-foreground">
-                        {plan.period}
-                      </span>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex flex-col flex-1">
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                        {feature}
-                      </li>
+          
+          {isLoadingPlans ? (
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="flex flex-col">
+                  <CardHeader className="text-center pb-2">
+                    <Skeleton className="h-6 w-24 mx-auto" />
+                    <Skeleton className="h-4 w-32 mx-auto mt-2" />
+                    <Skeleton className="h-10 w-20 mx-auto mt-4" />
+                  </CardHeader>
+                  <CardContent className="flex-1 space-y-3">
+                    {[1, 2, 3, 4].map((j) => (
+                      <Skeleton key={j} className="h-4 w-full" />
                     ))}
-                  </ul>
-                  <Button
-                    className="w-full hover:bg-primary hover:text-primary-foreground transition-smooth"
-                    variant={plan.popular ? "default" : "outline"}
-                  >
-                    {plan.price === "Grátis"
-                      ? "Começar Grátis"
-                      : "Assinar Agora"}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {activePlans.map((plan) => (
+                <Card
+                  key={plan.id}
+                  className={`relative flex flex-col ${
+                    plan.is_popular ? "border-primary border-2 shadow-xl" : ""
+                  }`}
+                >
+                  {plan.is_popular && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-primary text-white">
+                      Mais Popular
+                    </Badge>
+                  )}
+                  <CardHeader className="text-center pb-2">
+                    <CardTitle className="text-xl">{plan.name}</CardTitle>
+                    <CardDescription>{plan.description}</CardDescription>
+                    <div className="mt-4">
+                      <span className="font-heading text-4xl font-bold">
+                        {formatCurrency(plan.price)}
+                      </span>
+                      {plan.price > 0 && (
+                        <span className="text-muted-foreground">
+                          /{plan.billing_period === "monthly" ? "mês" : "ano"}
+                        </span>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex flex-col flex-1">
+                    <ul className="space-y-3 mb-6 flex-1">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm">
+                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      className="w-full hover:bg-primary hover:text-primary-foreground transition-smooth"
+                      variant={plan.is_popular ? "default" : "outline"}
+                    >
+                      {plan.price === 0
+                        ? "Começar Grátis"
+                        : "Assinar Agora"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

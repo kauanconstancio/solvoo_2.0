@@ -2,6 +2,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFinancialMetrics } from '@/hooks/useFinancialMetrics';
+import { useSubscriptionPlans, useSubscriptionMetrics } from '@/hooks/useSubscriptionPlans';
 import { 
   TrendingUp, 
   Clock, 
@@ -9,7 +10,9 @@ import {
   CheckCircle2,
   XCircle,
   Wallet,
-  PiggyBank
+  PiggyBank,
+  CreditCard,
+  Users
 } from 'lucide-react';
 import {
   XAxis,
@@ -26,6 +29,8 @@ import {
 
 export default function AdminFinancial() {
   const { withdrawalsByDate, revenueBreakdown, stats, isLoading } = useFinancialMetrics();
+  const { plans } = useSubscriptionPlans();
+  const { metrics: subscriptionMetrics, isLoading: isLoadingSubscriptions } = useSubscriptionMetrics();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -413,6 +418,135 @@ export default function AdminFinancial() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Subscriptions Section */}
+      <div className="mt-8">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <CreditCard className="h-5 w-5 text-primary" />
+          Receita por Planos
+        </h2>
+        
+        {isLoadingSubscriptions ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map(i => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Subscription Summary */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/10 rounded-lg">
+                      <Users className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Assinantes Ativos</p>
+                      <p className="text-2xl font-bold">{subscriptionMetrics.activeSubscribers}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Receita Mensal (Planos)</p>
+                      <p className="text-2xl font-bold text-indigo-600">
+                        {formatCurrency(subscriptionMetrics.monthlyRevenue)}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-cyan-500/10 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-cyan-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total de Assinaturas</p>
+                      <p className="text-2xl font-bold">{subscriptionMetrics.totalSubscribers}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/10 rounded-lg">
+                      <CreditCard className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Planos Cadastrados</p>
+                      <p className="text-2xl font-bold">{plans.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Revenue by Plan */}
+            {subscriptionMetrics.revenueByPlan.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <div className="h-8 w-1 bg-gradient-to-b from-purple-500 to-indigo-500 rounded-full" />
+                    Detalhamento por Plano
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {subscriptionMetrics.revenueByPlan.map((planData, index) => {
+                      const colors = ['bg-purple-500', 'bg-indigo-500', 'bg-blue-500', 'bg-cyan-500'];
+                      const colorClass = colors[index % colors.length];
+                      
+                      return (
+                        <div
+                          key={planData.planName}
+                          className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-3 h-3 rounded-full ${colorClass}`} />
+                            <div>
+                              <p className="font-medium">{planData.planName}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {planData.subscribers} assinante{planData.subscribers !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-lg font-bold">{formatCurrency(planData.revenue)}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {subscriptionMetrics.revenueByPlan.length === 0 && (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <CreditCard className="h-12 w-12 mb-3 opacity-30" />
+                    <p className="text-sm">Nenhuma assinatura ativa ainda</p>
+                    <p className="text-xs mt-1">As assinaturas aparecerão aqui quando houver</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
       </div>
     </AdminLayout>
   );
