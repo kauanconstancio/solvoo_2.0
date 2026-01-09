@@ -373,14 +373,16 @@ const ForProfessionals = () => {
                         </li>
                       ))}
                     </ul>
-                    <Button
-                      className="w-full hover:bg-primary hover:text-primary-foreground transition-smooth"
-                      variant={plan.is_popular ? "default" : "outline"}
-                    >
-                      {plan.price === 0
-                        ? "Começar Grátis"
-                        : "Assinar Agora"}
-                    </Button>
+                    <Link to={plan.price === 0 ? "/auth" : "/assinatura"} className="w-full">
+                      <Button
+                        className="w-full hover:bg-primary hover:text-primary-foreground transition-smooth"
+                        variant={plan.is_popular ? "default" : "outline"}
+                      >
+                        {plan.price === 0
+                          ? "Começar Grátis"
+                          : "Assinar Agora"}
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               ))}
