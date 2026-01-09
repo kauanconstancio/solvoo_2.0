@@ -1,4 +1,4 @@
-import { Home, Search, PlusCircle, MessageSquare, Menu } from "lucide-react";
+import { Home, Search, PlusCircle, MessageSquare, Menu, Calendar } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
@@ -288,6 +288,12 @@ const BottomNavigation = () => {
                       <Button variant="ghost" className="w-full justify-start">
                         <BarChart3 className="h-4 w-4 mr-3" />
                         Dashboard
+                      </Button>
+                    </Link>
+                    <Link to="/calendario" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Calendar className="h-4 w-4 mr-3" />
+                        Calendário
                       </Button>
                     </Link>
                     {hasAnyRole && (

@@ -29,6 +29,7 @@ import BankAccountsPage from "./pages/BankAccountsPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import MyServicesPage from "./pages/MyServicesPage";
 import BookingConfirmation from "./pages/BookingConfirmation";
+import CalendarPage from "./pages/CalendarPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminServices from "./pages/admin/AdminServices";
@@ -282,6 +283,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <PageTransition>
                 <ScheduleConfigPage />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendario"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <CalendarPage />
               </PageTransition>
             </ProtectedRoute>
           }
