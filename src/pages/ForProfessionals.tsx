@@ -175,11 +175,22 @@ const ForProfessionals = () => {
       </ParallaxHero>
 
       {/* Stats Section */}
-      <section className="py-12 border-y bg-muted/30">
+      <section className="py-16 md:py-20 bg-gradient-to-b from-background to-muted/30">
         <div className="container px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+          <div className="text-center mb-10">
+            <h2 className="font-heading text-2xl md:text-3xl font-bold mb-2">
+              Números que Falam por Si
+            </h2>
+            <p className="text-muted-foreground">
+              Veja o impacto da nossa plataforma
+            </p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
+            <div className="bg-card rounded-2xl p-6 border shadow-sm hover:shadow-md transition-shadow text-center group">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <p className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-1">
                 <AnimatedCounter
                   value={formatLargeNumber(metrics.totalProfessionals).displayValue}
                   suffix={formatLargeNumber(metrics.totalProfessionals).suffix}
@@ -187,48 +198,64 @@ const ForProfessionals = () => {
                   decimals={metrics.totalProfessionals >= 1000 ? 0 : 0}
                 />
               </p>
-              <p className="text-sm md:text-base text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Profissionais Ativos
               </p>
             </div>
-            <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+
+            <div className="bg-card rounded-2xl p-6 border shadow-sm hover:shadow-md transition-shadow text-center group">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <BarChart3 className="h-6 w-6 text-blue-500" />
+              </div>
+              <p className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-1">
                 <AnimatedCounter
                   value={formatLargeNumber(metrics.totalServices).displayValue}
                   suffix={formatLargeNumber(metrics.totalServices).suffix}
                   isLoading={isLoading}
                 />
               </p>
-              <p className="text-sm md:text-base text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Serviços Anunciados
               </p>
             </div>
-            <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+
+            <div className="bg-card rounded-2xl p-6 border shadow-sm hover:shadow-md transition-shadow text-center group">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-yellow-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Star className="h-6 w-6 text-yellow-500" />
+              </div>
+              <p className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-1">
                 <AnimatedCounter
                   value={metrics.averageRating}
                   decimals={1}
                   isLoading={isLoading}
                 />
               </p>
-              <p className="text-sm md:text-base text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Avaliação Média
               </p>
             </div>
-            <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+
+            <div className="bg-card rounded-2xl p-6 border shadow-sm hover:shadow-md transition-shadow text-center group">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <CheckCircle2 className="h-6 w-6 text-green-500" />
+              </div>
+              <p className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-1">
                 <AnimatedCounter
                   value={formatLargeNumber(metrics.totalCompletedServices).displayValue}
                   suffix={formatLargeNumber(metrics.totalCompletedServices).suffix}
                   isLoading={isLoading}
                 />
               </p>
-              <p className="text-sm md:text-base text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">
                 Serviços Concluídos
               </p>
             </div>
-            <div>
-              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+
+            <div className="col-span-2 lg:col-span-1 bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-center group">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <DollarSign className="h-6 w-6 text-white" />
+              </div>
+              <p className="font-heading text-2xl md:text-3xl font-bold text-white mb-1">
                 <AnimatedCounter
                   value={formatLargeNumber(metrics.totalAmountMoved).displayValue}
                   suffix={formatLargeNumber(metrics.totalAmountMoved).suffix}
@@ -236,7 +263,7 @@ const ForProfessionals = () => {
                   isLoading={isLoading}
                 />
               </p>
-              <p className="text-sm md:text-base text-muted-foreground">
+              <p className="text-xs md:text-sm text-white/80 font-medium">
                 Valor Movimentado
               </p>
             </div>
