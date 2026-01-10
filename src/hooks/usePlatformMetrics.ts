@@ -5,7 +5,7 @@ interface PlatformMetrics {
   totalProfessionals: number;
   totalServices: number;
   averageRating: number;
-  totalConversations: number;
+  totalCompletedServices: number;
   totalUsers: number;
 }
 
@@ -14,7 +14,7 @@ export const usePlatformMetrics = () => {
     totalProfessionals: 0,
     totalServices: 0,
     averageRating: 0,
-    totalConversations: 0,
+    totalCompletedServices: 0,
     totalUsers: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +23,7 @@ export const usePlatformMetrics = () => {
     let cancelled = false;
 
     const getCount = async (
-      table: 'profiles' | 'services' | 'conversations',
+      table: 'profiles' | 'services' | 'quotes',
       apply?: (q: ReturnType<typeof supabase.from>) => any
     ) => {
       // Use GET + range(0,0) (more reliable than HEAD for count parsing)
@@ -41,13 +41,13 @@ export const usePlatformMetrics = () => {
           totalProfessionals,
           totalUsers,
           totalServices,
-          totalConversations,
+          totalCompletedServices,
           ratingsRes,
         ] = await Promise.all([
           getCount('profiles', (q: any) => q.eq('account_type', 'profissional')),
           getCount('profiles'),
           getCount('services', (q: any) => q.eq('status', 'active')),
-          getCount('conversations'),
+          getCount('quotes', (q: any) => q.eq('status', 'completed')),
           supabase.from('reviews').select('rating'),
         ]);
 
@@ -65,7 +65,7 @@ export const usePlatformMetrics = () => {
             totalProfessionals,
             totalServices,
             averageRating: avgRating,
-            totalConversations,
+            totalCompletedServices,
             totalUsers,
           });
         }
@@ -76,7 +76,7 @@ export const usePlatformMetrics = () => {
             totalProfessionals: 0,
             totalServices: 0,
             averageRating: 0,
-            totalConversations: 0,
+            totalCompletedServices: 0,
             totalUsers: 0,
           });
         }

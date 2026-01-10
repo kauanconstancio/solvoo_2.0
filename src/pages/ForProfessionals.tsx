@@ -217,13 +217,13 @@ const ForProfessionals = () => {
             <div>
               <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
                 <AnimatedCounter
-                  value={formatLargeNumber(metrics.totalConversations).displayValue}
-                  suffix={formatLargeNumber(metrics.totalConversations).suffix}
+                  value={formatLargeNumber(metrics.totalCompletedServices).displayValue}
+                  suffix={formatLargeNumber(metrics.totalCompletedServices).suffix}
                   isLoading={isLoading}
                 />
               </p>
               <p className="text-sm md:text-base text-muted-foreground">
-                Contatos Realizados
+                Serviços Concluídos
               </p>
             </div>
           </div>

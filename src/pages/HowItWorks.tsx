@@ -282,13 +282,13 @@ const HowItWorks = () => {
                   <div className="bg-background rounded-xl p-4 md:p-6 text-center shadow-sm">
                     <p className="text-2xl md:text-3xl font-bold text-primary">
                       <AnimatedCounter
-                        value={formatLargeNumber(metrics.totalConversations).displayValue}
-                        suffix={formatLargeNumber(metrics.totalConversations).suffix}
+                        value={formatLargeNumber(metrics.totalCompletedServices).displayValue}
+                        suffix={formatLargeNumber(metrics.totalCompletedServices).suffix}
                         isLoading={isLoading}
                       />
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                      Contatos
+                      Serviços Concluídos
                     </p>
                   </div>
                 </div>
