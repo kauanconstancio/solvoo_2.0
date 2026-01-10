@@ -10,6 +10,7 @@ import {
   Calendar,
   Wallet,
   Loader2,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -224,6 +225,19 @@ const ForProfessionals = () => {
               </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Serviços Concluídos
+              </p>
+            </div>
+            <div>
+              <p className="font-heading text-3xl md:text-4xl font-bold text-primary">
+                <AnimatedCounter
+                  value={formatLargeNumber(metrics.totalAmountMoved).displayValue}
+                  suffix={formatLargeNumber(metrics.totalAmountMoved).suffix}
+                  prefix="R$"
+                  isLoading={isLoading}
+                />
+              </p>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Valor Movimentado
               </p>
             </div>
           </div>
