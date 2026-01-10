@@ -11,7 +11,8 @@ import {
   Wallet,
   TrendingUp,
   CreditCard,
-  Sparkles
+  Sparkles,
+  FileBarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -80,6 +81,12 @@ export const AdminSidebar = () => {
       label: 'Planos',
       href: '/admin/planos',
       icon: <CreditCard className="h-5 w-5" />,
+      permission: canManageRoles,
+    },
+    {
+      label: 'Relatório Repasses',
+      href: '/admin/relatorio-repasses',
+      icon: <FileBarChart className="h-5 w-5" />,
       permission: canManageRoles,
     },
     {

@@ -40,6 +40,7 @@ import AdminLogs from "./pages/admin/AdminLogs";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminFinancial from "./pages/admin/AdminFinancial";
 import AdminPlans from "./pages/admin/AdminPlans";
+import AdminPayoutReport from "./pages/admin/AdminPayoutReport";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import PageTransition from "./components/PageTransition";
@@ -416,6 +417,16 @@ const AnimatedRoutes = () => {
             <AdminProtectedRoute requiredPermission="admin">
               <PageTransition>
                 <AdminPlans />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/relatorio-repasses"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminPayoutReport />
               </PageTransition>
             </AdminProtectedRoute>
           }
