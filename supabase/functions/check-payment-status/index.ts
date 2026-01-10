@@ -137,32 +137,50 @@ serve(async (req) => {
         .eq("user_id", quote.client_id)
         .single();
 
-      // Create wallet transaction for professional
+      // Create wallet transaction for professional (idempotent)
       const fee = quote.price * PLATFORM_FEE_RATE;
       const netAmount = quote.price - fee;
 
-      const { error: transactionError } = await supabaseAdmin
+      const { data: existingTx, error: existingTxError } = await supabaseAdmin
         .from("wallet_transactions")
-        .insert({
-          user_id: quote.professional_id,
-          quote_id: quoteId,
-          type: "credit",
-          amount: quote.price,
-          fee: fee,
-          net_amount: netAmount,
-          description: `Pagamento: ${quote.title}`,
-          customer_name: clientProfile?.full_name || "Cliente",
-          status: "completed",
-        });
+        .select("id")
+        .eq("quote_id", quoteId)
+        .eq("type", "credit")
+        .eq("status", "completed")
+        .limit(1)
+        .maybeSingle();
 
-      if (transactionError) {
-        logStep("Error creating transaction", { error: transactionError.message });
-        // Don't throw here, payment was already confirmed
+      if (existingTxError) {
+        logStep("Error checking existing transaction", { error: existingTxError.message });
+        throw new Error("Failed to check existing wallet transaction");
+      }
+
+      if (existingTx) {
+        logStep("Wallet transaction already exists, skipping insert", { quoteId, transactionId: existingTx.id });
       } else {
-        logStep("Wallet transaction created", { 
-          professionalId: quote.professional_id,
-          netAmount 
-        });
+        const { error: transactionError } = await supabaseAdmin
+          .from("wallet_transactions")
+          .insert({
+            user_id: quote.professional_id,
+            quote_id: quoteId,
+            type: "credit",
+            amount: quote.price,
+            fee: fee,
+            net_amount: netAmount,
+            description: `Pagamento: ${quote.title}`,
+            customer_name: clientProfile?.full_name || "Cliente",
+            status: "completed",
+          });
+
+        if (transactionError) {
+          logStep("Error creating transaction", { error: transactionError.message });
+          // Don't throw here, payment was already confirmed
+        } else {
+          logStep("Wallet transaction created", { 
+            professionalId: quote.professional_id,
+            netAmount 
+          });
+        }
       }
     }
 

@@ -123,27 +123,45 @@ serve(async (req) => {
       throw quoteError;
     }
 
-    // Create wallet transaction for the professional
+    // Create wallet transaction for the professional (idempotent)
     const fee = existingQuote.price * PLATFORM_FEE_RATE;
     const netAmount = existingQuote.price - fee;
 
-    const { error: transactionError } = await supabaseAdmin
+    const { data: existingTx, error: existingTxError } = await supabaseAdmin
       .from("wallet_transactions")
-      .insert({
-        user_id: existingQuote.professional_id,
-        quote_id: quoteId,
-        type: "credit",
-        amount: existingQuote.price,
-        fee,
-        net_amount: netAmount,
-        description: `Pagamento - ${existingQuote.title}`,
-        customer_name: clientName,
-        status: "completed",
-      });
+      .select("id")
+      .eq("quote_id", quoteId)
+      .eq("type", "credit")
+      .eq("status", "completed")
+      .limit(1)
+      .maybeSingle();
 
-    if (transactionError) {
-      logStep("Error creating transaction", { error: transactionError });
-      throw transactionError;
+    if (existingTxError) {
+      logStep("Error checking existing transaction", { error: existingTxError.message });
+      throw existingTxError;
+    }
+
+    if (existingTx) {
+      logStep("Transaction already exists, skipping insert", { quoteId, transactionId: existingTx.id });
+    } else {
+      const { error: transactionError } = await supabaseAdmin
+        .from("wallet_transactions")
+        .insert({
+          user_id: existingQuote.professional_id,
+          quote_id: quoteId,
+          type: "credit",
+          amount: existingQuote.price,
+          fee,
+          net_amount: netAmount,
+          description: `Pagamento - ${existingQuote.title}`,
+          customer_name: clientName,
+          status: "completed",
+        });
+
+      if (transactionError) {
+        logStep("Error creating transaction", { error: transactionError });
+        throw transactionError;
+      }
     }
 
     logStep("Payment processed successfully", { quoteId, netAmount });
