@@ -40,6 +40,9 @@ interface WithdrawalRequest {
   processed_by: string | null;
   rejection_reason: string | null;
   bank_account_id: string | null;
+  abacatepay_withdrawal_id: string | null;
+  abacatepay_status: string | null;
+  abacatepay_receipt_url: string | null;
   profile?: {
     full_name: string | null;
     email?: string;
@@ -60,7 +63,7 @@ export default function AdminWithdrawals() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('pending');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'processing' | 'completed' | 'cancelled'>('pending');
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -131,54 +134,48 @@ export default function AdminWithdrawals() {
 
   const handleApprove = async () => {
     if (!selectedWithdrawal) return;
+    
+    // Check if withdrawal has a valid PIX key
+    if (!selectedWithdrawal.bank_account?.pix_key) {
+      toast({
+        title: 'Erro',
+        description: 'Este saque não possui uma chave PIX válida cadastrada.',
+        variant: 'destructive',
+      });
+      setShowApproveDialog(false);
+      return;
+    }
+    
     setIsProcessing(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('wallet_transactions')
-        .update({
-          status: 'completed',
-          processed_at: new Date().toISOString(),
-          processed_by: user?.id,
-        })
-        .eq('id', selectedWithdrawal.id);
-
-      if (error) throw error;
-
-      await supabase.from('notifications').insert({
-        user_id: selectedWithdrawal.user_id,
-        type: 'withdrawal_approved',
-        title: 'Saque aprovado!',
-        message: `Seu saque de R$ ${selectedWithdrawal.amount.toFixed(2)} foi aprovado e será transferido para sua conta em até 2 dias úteis.`,
-        data: { 
-          withdrawal_id: selectedWithdrawal.id,
-          amount: selectedWithdrawal.amount 
-        },
+      // Call the edge function to process withdrawal via AbacatePay
+      const { data, error } = await supabase.functions.invoke('process-withdrawal', {
+        body: { withdrawalId: selectedWithdrawal.id }
       });
 
-      await supabase.from('admin_logs').insert({
-        admin_id: user?.id,
-        action: 'approve_withdrawal',
-        target_type: 'wallet_transaction',
-        target_id: selectedWithdrawal.id,
-        details: { amount: selectedWithdrawal.amount },
-      });
+      if (error) {
+        throw new Error(error.message || 'Erro ao processar saque');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Falha ao processar saque via AbacatePay');
+      }
 
       toast({
-        title: 'Saque aprovado',
-        description: `O saque de R$ ${selectedWithdrawal.amount.toFixed(2)} foi aprovado.`,
+        title: 'Saque em processamento',
+        description: `O PIX de R$ ${selectedWithdrawal.amount.toFixed(2)} está sendo enviado automaticamente.`,
       });
 
       setShowApproveDialog(false);
       setSelectedWithdrawal(null);
       fetchWithdrawals();
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Não foi possível processar o saque.';
       console.error('Error approving withdrawal:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível aprovar o saque.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -234,7 +231,7 @@ export default function AdminWithdrawals() {
       setSelectedWithdrawal(null);
       setRejectionReason('');
       fetchWithdrawals();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error rejecting withdrawal:', error);
       toast({
         title: 'Erro',
@@ -253,12 +250,14 @@ export default function AdminWithdrawals() {
     }).format(value);
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, abacatepayStatus?: string | null) => {
     switch (status) {
       case 'pending':
         return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20"><Clock className="h-3 w-3 mr-1" />Pendente</Badge>;
+      case 'processing':
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20"><Loader2 className="h-3 w-3 mr-1 animate-spin" />Processando{abacatepayStatus ? ` (${abacatepayStatus})` : ''}</Badge>;
       case 'completed':
-        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Aprovado</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" />Concluído</Badge>;
       case 'cancelled':
         return <Badge className="bg-red-500/10 text-red-600 border-red-500/20"><XCircle className="h-3 w-3 mr-1" />Recusado</Badge>;
       default:
@@ -272,8 +271,9 @@ export default function AdminWithdrawals() {
   );
 
   const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
+  const processingCount = withdrawals.filter(w => w.status === 'processing').length;
   const totalPendingAmount = withdrawals
-    .filter(w => w.status === 'pending')
+    .filter(w => w.status === 'pending' || w.status === 'processing')
     .reduce((sum, w) => sum + w.amount, 0);
   const approvedToday = withdrawals.filter(w => 
     w.status === 'completed' && 
@@ -313,8 +313,8 @@ export default function AdminWithdrawals() {
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Saques Pendentes</p>
-                  <p className="text-2xl font-bold">{pendingCount}</p>
+                  <p className="text-sm text-muted-foreground">Pendentes / Processando</p>
+                  <p className="text-2xl font-bold">{pendingCount} / {processingCount}</p>
                 </div>
               </div>
             </CardContent>
@@ -360,15 +360,15 @@ export default function AdminWithdrawals() {
                   className="pl-10 bg-background/50"
                 />
               </div>
-              <div className="flex gap-2">
-                {(['all', 'pending', 'completed', 'cancelled'] as const).map(status => (
+              <div className="flex gap-2 flex-wrap">
+                {(['all', 'pending', 'processing', 'completed', 'cancelled'] as const).map(status => (
                   <Button
                     key={status}
                     variant={filter === status ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFilter(status)}
                   >
-                    {status === 'all' ? 'Todos' : status === 'pending' ? 'Pendentes' : status === 'completed' ? 'Aprovados' : 'Recusados'}
+                    {status === 'all' ? 'Todos' : status === 'pending' ? 'Pendentes' : status === 'processing' ? 'Processando' : status === 'completed' ? 'Concluídos' : 'Recusados'}
                   </Button>
                 ))}
               </div>
@@ -393,7 +393,7 @@ export default function AdminWithdrawals() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <p className="font-semibold text-lg">{withdrawal.profile?.full_name || 'Usuário'}</p>
-                        {getStatusBadge(withdrawal.status)}
+                        {getStatusBadge(withdrawal.status, withdrawal.abacatepay_status)}
                       </div>
                       <p className="text-3xl font-bold text-primary">
                         {formatCurrency(withdrawal.amount)}

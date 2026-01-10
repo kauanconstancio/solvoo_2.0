@@ -1021,6 +1021,9 @@ export type Database = {
       }
       wallet_transactions: {
         Row: {
+          abacatepay_receipt_url: string | null
+          abacatepay_status: string | null
+          abacatepay_withdrawal_id: string | null
           amount: number
           bank_account_id: string | null
           created_at: string
@@ -1038,6 +1041,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          abacatepay_receipt_url?: string | null
+          abacatepay_status?: string | null
+          abacatepay_withdrawal_id?: string | null
           amount: number
           bank_account_id?: string | null
           created_at?: string
@@ -1055,6 +1061,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          abacatepay_receipt_url?: string | null
+          abacatepay_status?: string | null
+          abacatepay_withdrawal_id?: string | null
           amount?: number
           bank_account_id?: string | null
           created_at?: string

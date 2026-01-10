@@ -12,12 +12,15 @@ export interface WalletTransaction {
   net_amount: number;
   description: string;
   customer_name: string | null;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
   created_at: string;
   bank_account_id: string | null;
   processed_at: string | null;
   processed_by: string | null;
   rejection_reason: string | null;
+  abacatepay_withdrawal_id?: string | null;
+  abacatepay_status?: string | null;
+  abacatepay_receipt_url?: string | null;
 }
 
 export interface WalletStats {
@@ -36,6 +39,7 @@ interface ChartDataPoint {
 }
 
 const PLATFORM_FEE_RATE = 0.10; // 10% platform fee
+const WITHDRAWAL_FEE = 0.80; // R$ 0,80 per withdrawal
 
 export function useWallet() {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
@@ -68,7 +72,7 @@ export function useWallet() {
       const typedData = (data || []).map(tx => ({
         ...tx,
         type: tx.type as 'credit' | 'debit' | 'withdrawal',
-        status: tx.status as 'pending' | 'completed' | 'cancelled',
+        status: tx.status as 'pending' | 'processing' | 'completed' | 'cancelled',
       }));
 
       setTransactions(typedData);
@@ -155,7 +159,9 @@ export function useWallet() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const fee = amount * PLATFORM_FEE_RATE;
+      // Fee is 10% + R$0.80 (withdrawal fee included upfront)
+      const percentageFee = amount * PLATFORM_FEE_RATE;
+      const fee = percentageFee + WITHDRAWAL_FEE;
       const netAmount = amount - fee;
 
       const { error } = await supabase
