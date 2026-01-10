@@ -150,26 +150,44 @@ serve(async (req) => {
         logStep("Error updating quote", { error: quoteUpdateError.message });
       }
 
-      // Create wallet transaction for the professional
+      // Create wallet transaction for the professional (idempotent)
       const fee = quote.price * PLATFORM_FEE_RATE;
       const netAmount = quote.price - fee;
 
-      const { error: transactionError } = await supabaseAdmin
+      const { data: existingTx, error: existingTxError } = await supabaseAdmin
         .from("wallet_transactions")
-        .insert({
-          user_id: quote.professional_id,
-          quote_id: quote.id,
-          type: "credit",
-          amount: quote.price,
-          fee,
-          net_amount: netAmount,
-          description: `Agendamento direto - ${quote.title}`,
-          customer_name: clientName,
-          status: "completed",
-        });
+        .select("id")
+        .eq("quote_id", quote.id)
+        .eq("type", "credit")
+        .eq("status", "completed")
+        .limit(1)
+        .maybeSingle();
 
-      if (transactionError) {
-        logStep("Error creating transaction", { error: transactionError.message });
+      if (existingTxError) {
+        logStep("Error checking existing transaction", { error: existingTxError.message });
+        throw existingTxError;
+      }
+
+      if (existingTx) {
+        logStep("Wallet transaction already exists, skipping insert", { quoteId: quote.id, transactionId: existingTx.id });
+      } else {
+        const { error: transactionError } = await supabaseAdmin
+          .from("wallet_transactions")
+          .insert({
+            user_id: quote.professional_id,
+            quote_id: quote.id,
+            type: "credit",
+            amount: quote.price,
+            fee,
+            net_amount: netAmount,
+            description: `Agendamento direto - ${quote.title}`,
+            customer_name: clientName,
+            status: "completed",
+          });
+
+        if (transactionError) {
+          logStep("Error creating transaction", { error: transactionError.message });
+        }
       }
 
       // Send confirmation message in chat
