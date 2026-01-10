@@ -118,6 +118,14 @@ const WalletPage = () => {
         </Badge>
       );
     }
+    if (tx.status === 'processing') {
+      return (
+        <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-200">
+          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+          Processando PIX
+        </Badge>
+      );
+    }
     if (tx.status === 'cancelled') {
       return (
         <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">
@@ -130,7 +138,7 @@ const WalletPage = () => {
       return (
         <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
           <CheckCircle2 className="h-3 w-3 mr-1" />
-          Aprovado
+          Concluído
         </Badge>
       );
     }
@@ -355,11 +363,16 @@ const WalletPage = () => {
                 <CardDescription>Taxas e descontos</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm font-medium">Taxa de Serviço</span>
-                  <span className="text-sm font-bold text-muted-foreground">
-                    10%
-                  </span>
+                <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Taxa de Serviço</span>
+                    <span className="text-sm font-bold text-muted-foreground">
+                      10% + R$ 0,80
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    10% do valor do serviço + R$ 0,80 por transferência PIX
+                  </p>
                 </div>
                 {isLoading ? (
                   <div className="space-y-2">
