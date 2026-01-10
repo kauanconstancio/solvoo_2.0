@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const PLATFORM_FEE_RATE = 0.10; // 10% platform fee
+const PLATFORM_FIXED_FEE = 0.80; // R$ 0,80 fixed fee per transaction
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
@@ -150,8 +151,9 @@ serve(async (req) => {
         logStep("Error updating quote", { error: quoteUpdateError.message });
       }
 
-      // Create wallet transaction for the professional (idempotent)
-      const fee = quote.price * PLATFORM_FEE_RATE;
+      // Calculate fee: 10% + R$0.80 fixed
+      const percentageFee = quote.price * PLATFORM_FEE_RATE;
+      const fee = percentageFee + PLATFORM_FIXED_FEE;
       const netAmount = quote.price - fee;
 
       const { data: existingTx, error: existingTxError } = await supabaseAdmin
