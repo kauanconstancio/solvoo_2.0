@@ -48,6 +48,7 @@ import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import ServiceHistoryPage from "./pages/ServiceHistoryPage";
 import PromotionsPage from "./pages/PromotionsPage";
+import LoyaltyPage from "./pages/LoyaltyPage";
 import PageTransition from "./components/PageTransition";
 
 const AnimatedRoutes = () => {
@@ -342,6 +343,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <PageTransition>
                 <PromotionsPage />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fidelidade"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <LoyaltyPage />
               </PageTransition>
             </ProtectedRoute>
           }

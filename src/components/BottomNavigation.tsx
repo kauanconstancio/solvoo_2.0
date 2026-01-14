@@ -29,6 +29,7 @@ import {
   Briefcase,
   History,
   Tag,
+  Award,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useTheme } from "./ThemeProvider";
@@ -308,6 +309,12 @@ const BottomNavigation = () => {
                       <Button variant="ghost" className="w-full justify-start">
                         <Tag className="h-4 w-4 mr-3" />
                         Minhas Promoções
+                      </Button>
+                    </Link>
+                    <Link to="/fidelidade" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Award className="h-4 w-4 mr-3" />
+                        Programa de Fidelidade
                       </Button>
                     </Link>
                     {hasAnyRole && (
