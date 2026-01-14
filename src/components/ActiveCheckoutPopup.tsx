@@ -1,4 +1,4 @@
-import { useActiveCheckout } from '@/hooks/useActiveCheckout';
+import { useActiveCheckout } from '@/contexts/ActiveCheckoutContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { X, CreditCard, Clock, RotateCcw } from 'lucide-react';
