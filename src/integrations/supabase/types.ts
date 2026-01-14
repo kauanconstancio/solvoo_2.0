@@ -285,6 +285,99 @@ export type Database = {
           },
         ]
       }
+      coupon_usages: {
+        Row: {
+          coupon_id: string
+          discount_amount: number
+          id: string
+          quote_id: string | null
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          discount_amount: number
+          id?: string
+          quote_id?: string | null
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          discount_amount?: number
+          id?: string
+          quote_id?: string | null
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usages_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          max_uses_per_user: number | null
+          min_order_value: number | null
+          updated_at: string
+          uses_count: number
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          discount_type?: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          max_uses_per_user?: number | null
+          min_order_value?: number | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          max_uses_per_user?: number | null
+          min_order_value?: number | null
+          updated_at?: string
+          uses_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -321,6 +414,42 @@ export type Database = {
           service_subcategory?: string | null
           service_title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      mass_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          recipients_count: number
+          sent_at: string
+          sent_by: string
+          target_segment: Json | null
+          target_type: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          recipients_count?: number
+          sent_at?: string
+          sent_by: string
+          target_segment?: Json | null
+          target_type?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          recipients_count?: number
+          sent_at?: string
+          sent_by?: string
+          target_segment?: Json | null
+          target_type?: string
+          title?: string
         }
         Relationships: []
       }
@@ -781,6 +910,123 @@ export type Database = {
             columns: ["schedule_id"]
             isOneToOne: false
             referencedRelation: "professional_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_history: {
+        Row: {
+          amount_paid: number
+          appointment_id: string | null
+          client_id: string
+          completed_at: string
+          created_at: string
+          id: string
+          professional_id: string
+          quote_id: string | null
+          service_category: string | null
+          service_id: string | null
+          service_title: string
+          status: string
+        }
+        Insert: {
+          amount_paid?: number
+          appointment_id?: string | null
+          client_id: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          professional_id: string
+          quote_id?: string | null
+          service_category?: string | null
+          service_id?: string | null
+          service_title: string
+          status?: string
+        }
+        Update: {
+          amount_paid?: number
+          appointment_id?: string | null
+          client_id?: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          professional_id?: string
+          quote_id?: string | null
+          service_category?: string | null
+          service_id?: string | null
+          service_title?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_history_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_history_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_history_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_promotions: {
+        Row: {
+          created_at: string
+          discount_percentage: number | null
+          ends_at: string
+          id: string
+          is_active: boolean
+          original_price: string
+          professional_id: string
+          promotional_price: string
+          service_id: string
+          starts_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percentage?: number | null
+          ends_at: string
+          id?: string
+          is_active?: boolean
+          original_price: string
+          professional_id: string
+          promotional_price: string
+          service_id: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_percentage?: number | null
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          original_price?: string
+          professional_id?: string
+          promotional_price?: string
+          service_id?: string
+          starts_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_promotions_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]

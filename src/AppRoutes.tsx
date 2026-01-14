@@ -41,8 +41,13 @@ import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
 import AdminFinancial from "./pages/admin/AdminFinancial";
 import AdminPlans from "./pages/admin/AdminPlans";
 import AdminPayoutReport from "./pages/admin/AdminPayoutReport";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminExports from "./pages/admin/AdminExports";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
+import ServiceHistoryPage from "./pages/ServiceHistoryPage";
+import PromotionsPage from "./pages/PromotionsPage";
 import PageTransition from "./components/PageTransition";
 
 const AnimatedRoutes = () => {
@@ -322,11 +327,61 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/historico"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <ServiceHistoryPage />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/promocoes"
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <PromotionsPage />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin"
           element={
             <AdminProtectedRoute>
               <PageTransition>
                 <AdminDashboard />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/analitico"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminAnalytics />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notificacoes"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminNotifications />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/exportar"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminExports />
               </PageTransition>
             </AdminProtectedRoute>
           }
