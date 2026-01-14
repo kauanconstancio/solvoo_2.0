@@ -173,6 +173,7 @@ serve(async (req) => {
       if (existingTx) {
         logStep("Wallet transaction already exists, skipping insert", { quoteId: quote.id, transactionId: existingTx.id });
       } else {
+        // Create transaction with "pending" status - will be released when client confirms service completion
         const { error: transactionError } = await supabaseAdmin
           .from("wallet_transactions")
           .insert({
@@ -184,11 +185,13 @@ serve(async (req) => {
             net_amount: netAmount,
             description: `Agendamento direto - ${quote.title}`,
             customer_name: clientName,
-            status: "completed",
+            status: "pending", // Changed from "completed" to "pending" - payment is held until service completion
           });
 
         if (transactionError) {
           logStep("Error creating transaction", { error: transactionError.message });
+        } else {
+          logStep("Wallet transaction created with pending status - awaiting service completion");
         }
       }
 

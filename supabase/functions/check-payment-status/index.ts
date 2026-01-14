@@ -143,12 +143,12 @@ serve(async (req) => {
       const fee = percentageFee + PLATFORM_FIXED_FEE;
       const netAmount = quote.price - fee;
 
+      // Check if a transaction already exists for this quote (either pending or completed)
       const { data: existingTx, error: existingTxError } = await supabaseAdmin
         .from("wallet_transactions")
-        .select("id")
+        .select("id, status")
         .eq("quote_id", quoteId)
         .eq("type", "credit")
-        .eq("status", "completed")
         .limit(1)
         .maybeSingle();
 
@@ -158,8 +158,9 @@ serve(async (req) => {
       }
 
       if (existingTx) {
-        logStep("Wallet transaction already exists, skipping insert", { quoteId, transactionId: existingTx.id });
+        logStep("Wallet transaction already exists, skipping insert", { quoteId, transactionId: existingTx.id, status: existingTx.status });
       } else {
+        // Create transaction with "pending" status - will be released when client confirms service completion
         const { error: transactionError } = await supabaseAdmin
           .from("wallet_transactions")
           .insert({
@@ -171,14 +172,14 @@ serve(async (req) => {
             net_amount: netAmount,
             description: `Pagamento: ${quote.title}`,
             customer_name: clientProfile?.full_name || "Cliente",
-            status: "completed",
+            status: "pending", // Changed from "completed" - payment held until service completion
           });
 
         if (transactionError) {
           logStep("Error creating transaction", { error: transactionError.message });
           // Don't throw here, payment was already confirmed
         } else {
-          logStep("Wallet transaction created", { 
+          logStep("Wallet transaction created with pending status - awaiting service completion", { 
             professionalId: quote.professional_id,
             netAmount 
           });

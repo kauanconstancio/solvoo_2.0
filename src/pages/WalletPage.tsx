@@ -110,7 +110,16 @@ const WalletPage = () => {
   };
 
   const getTransactionStatusBadge = (tx: WalletTransaction) => {
-    if (tx.status === 'pending') {
+    if (tx.status === 'pending' && tx.type === 'credit') {
+      // Pending credit = awaiting service completion
+      return (
+        <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
+          <Clock className="h-3 w-3 mr-1" />
+          Aguardando conclusão
+        </Badge>
+      );
+    }
+    if (tx.status === 'pending' && tx.type === 'withdrawal') {
       return (
         <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-200">
           <Clock className="h-3 w-3 mr-1" />
@@ -139,6 +148,14 @@ const WalletPage = () => {
         <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
           <CheckCircle2 className="h-3 w-3 mr-1" />
           Concluído
+        </Badge>
+      );
+    }
+    if (tx.type === 'credit' && tx.status === 'completed') {
+      return (
+        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200">
+          <CheckCircle2 className="h-3 w-3 mr-1" />
+          Liberado
         </Badge>
       );
     }
@@ -181,7 +198,7 @@ const WalletPage = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="bg-primary text-primary-foreground border-none shadow-lg relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">
                 <DollarSign className="h-32 w-32" />
@@ -209,18 +226,47 @@ const WalletPage = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                    <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="text-orange-600 border-orange-200 bg-orange-50 dark:bg-orange-900/10"
+                  >
+                    Retido
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground font-medium text-sm mb-1">
+                  Aguardando Conclusão
+                </p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <div className="text-2xl font-bold">
+                    {formatCurrency(stats.pendingBalance)}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  Liberado após confirmação do cliente
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
                   <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
-                    <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                    <ArrowUpRight className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                   </div>
                   <Badge
                     variant="outline"
                     className="text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10"
                   >
-                    Saques pendentes
+                    Saques
                   </Badge>
                 </div>
                 <p className="text-muted-foreground font-medium text-sm mb-1">
-                  Aguardando Aprovação
+                  Saques Pendentes
                 </p>
                 {isLoading ? (
                   <Skeleton className="h-8 w-24" />
@@ -238,8 +284,8 @@ const WalletPage = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-red-100 dark:bg-red-500/20 rounded-lg">
-                    <ArrowDownLeft className="h-5 w-5 text-red-600 dark:text-red-500" />
+                  <div className="p-2 bg-green-100 dark:bg-green-500/20 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-500" />
                   </div>
                   <Badge variant="secondary">Total</Badge>
                 </div>

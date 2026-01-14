@@ -35,7 +35,8 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
 
 export function AppointmentCard({ appointment, currentUserId, compact = false }: AppointmentCardProps) {
   const [showReschedule, setShowReschedule] = useState(false);
-  const { confirmAppointment, cancelAppointment, completeAppointment } = useAppointments();
+  const [isConfirming, setIsConfirming] = useState(false);
+  const { confirmAppointment, cancelAppointment, completeAppointment, confirmServiceCompletion } = useAppointments();
   
   const isClient = currentUserId === appointment.client_id;
   const isProfessional = currentUserId === appointment.professional_id;
@@ -52,9 +53,24 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
     ((isClient && !appointment.client_confirmed) || 
      (isProfessional && !appointment.professional_confirmed));
   
+  // Professional can mark as completed when service is confirmed and past
   const canComplete = isProfessional && 
     appointment.status === "confirmed" && 
     isPast;
+
+  // Client can confirm completion (release payment) when status is "completed" but client hasn't confirmed yet
+  const canConfirmCompletion = isClient && 
+    appointment.status === "completed" && 
+    !appointment.client_confirmed;
+
+  const handleConfirmCompletion = async () => {
+    setIsConfirming(true);
+    try {
+      await confirmServiceCompletion(appointment.id);
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   const status = statusConfig[appointment.status] || statusConfig.pending;
 
@@ -171,6 +187,13 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
             </div>
           )}
 
+          {canConfirmCompletion && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-green-700 bg-green-100 dark:bg-green-900/30 dark:text-green-400 p-2 rounded">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>O profissional concluiu o serviço. Confirme para liberar o pagamento.</span>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="mt-4 flex flex-wrap gap-2">
             {needsConfirmation && (
@@ -212,6 +235,19 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
               >
                 <CheckCircle2 className="h-4 w-4 mr-1" />
                 Marcar como Concluído
+              </Button>
+            )}
+
+            {canConfirmCompletion && (
+              <Button 
+                size="sm" 
+                variant="default"
+                className="bg-green-600 hover:bg-green-700"
+                onClick={handleConfirmCompletion}
+                disabled={isConfirming}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                {isConfirming ? "Liberando..." : "Confirmar e Liberar Pagamento"}
               </Button>
             )}
 

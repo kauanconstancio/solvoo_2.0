@@ -317,6 +317,14 @@ export function useAppointments(conversationId?: string) {
 
   const completeAppointment = async (appointmentId: string) => {
     try {
+      // Get current user and appointment data
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: appointmentData } = await supabase
+        .from("appointments")
+        .select("client_id, professional_id, title, conversation_id")
+        .eq("id", appointmentId)
+        .single();
+
       const { error } = await supabase
         .from("appointments")
         .update({ status: "completed" })
@@ -324,9 +332,20 @@ export function useAppointments(conversationId?: string) {
 
       if (error) throw error;
 
+      // Notify the client that the service is marked as completed and they can confirm
+      if (appointmentData && user) {
+        await createNotification(
+          appointmentData.client_id,
+          'service_completed',
+          'Serviço concluído',
+          `O profissional marcou o serviço "${appointmentData.title}" como concluído. Por favor, confirme para liberar o pagamento.`,
+          { appointment_id: appointmentId, conversation_id: appointmentData.conversation_id }
+        );
+      }
+
       toast({
         title: "Serviço concluído",
-        description: "O serviço foi marcado como concluído.",
+        description: "O serviço foi marcado como concluído. Aguardando confirmação do cliente para liberação do pagamento.",
       });
 
       return true;
@@ -341,6 +360,50 @@ export function useAppointments(conversationId?: string) {
     }
   };
 
+  const confirmServiceCompletion = async (appointmentId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("User not authenticated");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/release-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ appointmentId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to release payment");
+      }
+
+      toast({
+        title: "Pagamento liberado!",
+        description: data.message || "O pagamento foi liberado para o profissional.",
+      });
+
+      await fetchAppointments();
+      return true;
+    } catch (error) {
+      console.error("Error confirming service completion:", error);
+      toast({
+        title: "Erro ao liberar pagamento",
+        description: error instanceof Error ? error.message : "Não foi possível liberar o pagamento.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     appointments,
     isLoading,
@@ -349,6 +412,7 @@ export function useAppointments(conversationId?: string) {
     cancelAppointment,
     rescheduleAppointment,
     completeAppointment,
+    confirmServiceCompletion,
     refetch: fetchAppointments,
   };
 }
