@@ -15,6 +15,7 @@ import {
   Calendar,
   History,
   Tag,
+  Award,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,13 @@ import { toast } from "sonner";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { NotificationCenter } from "./NotificationCenter";
+import { useUserLoyaltyPoints } from "@/hooks/useLoyalty";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Profile {
   full_name: string | null;
@@ -51,6 +59,14 @@ const Header = () => {
   const { unreadCount } = useUnreadMessages();
   const { hasAnyRole } = useUserRole();
   const { theme, setTheme } = useTheme();
+  const { points } = useUserLoyaltyPoints();
+
+  const formatPoints = (value: number) => {
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
+    }
+    return value.toString();
+  };
 
   useEffect(() => {
     const {
@@ -192,6 +208,32 @@ const Header = () => {
               </Badge>
             )}
           </Link>
+          
+          {/* Badge de Pontos de Fidelidade */}
+          {user && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/fidelidade" className="hidden lg:block">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 px-3 gap-1.5 bg-primary/10 hover:bg-primary hover:text-primary-foreground transition-smooth"
+                    >
+                      <Award className="h-4 w-4 text-primary group-hover:text-primary-foreground" />
+                      <span className="text-sm font-semibold text-primary">
+                        {formatPoints(points?.total_points || 0)}
+                      </span>
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Seus pontos de fidelidade</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -285,6 +327,15 @@ const Header = () => {
                   <Link to="/promocoes">
                     <Tag className="mr-2 h-4 w-4" />
                     Minhas Promoções
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer transition-smooth hover:bg-muted"
+                >
+                  <Link to="/fidelidade">
+                    <Award className="mr-2 h-4 w-4" />
+                    Programa de Fidelidade
                   </Link>
                 </DropdownMenuItem>
                 {hasAnyRole && (
