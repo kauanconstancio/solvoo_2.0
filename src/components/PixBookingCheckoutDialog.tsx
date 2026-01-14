@@ -51,14 +51,22 @@ export const PixBookingCheckoutDialog = ({
   // Save checkout when pixData is available
   useEffect(() => {
     if (open && pixData && pixData.brCode) {
-      // Create a fake URL for PIX (since PIX uses QR code, not URL)
-      // We'll use a special protocol to indicate it's a PIX checkout
       saveCheckout({
         url: `pix://${pixData.pixId}`,
         description: pixData.title,
         amount: pixData.price,
         expiresAt: pixData.expiresAt,
         type: 'booking',
+        pixData: {
+          pixId: pixData.pixId,
+          brCode: pixData.brCode,
+          brCodeBase64: pixData.brCodeBase64,
+          appointmentId: pixData.appointmentId,
+          title: pixData.title,
+          price: pixData.price,
+          originalPrice: pixData.originalPrice,
+          discountApplied: pixData.discountApplied,
+        },
       });
     }
   }, [open, pixData, saveCheckout]);
