@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -40,6 +41,8 @@ import {
   BarChart3,
   CalendarClock,
   AlertTriangle,
+  Tag,
+  Percent,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
@@ -114,6 +117,11 @@ const AdvertiseService = () => {
   const [priceType, setPriceType] = useState("");
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  
+  // Discount fields
+  const [hasDiscount, setHasDiscount] = useState(false);
+  const [discountPercentage, setDiscountPercentage] = useState("");
+  const [discountEndsAt, setDiscountEndsAt] = useState("");
 
   const handleGenerateDescription = async () => {
     const generated = await generateDescription(title, category, subcategory);
@@ -328,7 +336,7 @@ const AdvertiseService = () => {
         return;
       }
 
-      const { error } = await supabase.from("services").insert({
+      const { data: serviceData, error } = await supabase.from("services").insert({
         user_id: user.id,
         title,
         description,
@@ -342,9 +350,28 @@ const AdvertiseService = () => {
         phone,
         whatsapp,
         status: "active",
-      });
+      }).select().single();
 
       if (error) throw error;
+      
+      // Create promotion if discount is enabled
+      if (hasDiscount && price && discountPercentage && discountEndsAt && serviceData) {
+        const discountPercent = parseFloat(discountPercentage);
+        const originalPrice = parseFloat(price);
+        const promotionalPrice = originalPrice * (1 - discountPercent / 100);
+        
+        await supabase
+          .from("service_promotions")
+          .insert({
+            service_id: serviceData.id,
+            professional_id: user.id,
+            discount_percentage: discountPercent,
+            original_price: `R$ ${originalPrice.toFixed(2)}`,
+            promotional_price: `R$ ${promotionalPrice.toFixed(2)}`,
+            ends_at: new Date(discountEndsAt + "T23:59:59").toISOString(),
+            is_active: true,
+          });
+      }
 
       toast({
         title: "Serviço anunciado!",
@@ -739,6 +766,78 @@ const AdvertiseService = () => {
                       onApplyPrice={handleApplyPrice}
                       onClose={clearSuggestion}
                     />
+                  )}
+                  
+                  {/* Discount Section */}
+                  {priceType !== "negotiable" && price && (
+                    <div className="border-t pt-6 mt-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-primary/10">
+                            <Tag className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <Label htmlFor="hasDiscount" className="font-medium cursor-pointer">
+                              Adicionar Desconto Promocional
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                              Atraia mais clientes com um preço promocional
+                            </p>
+                          </div>
+                        </div>
+                        <Switch
+                          id="hasDiscount"
+                          checked={hasDiscount}
+                          onCheckedChange={setHasDiscount}
+                        />
+                      </div>
+                      
+                      {hasDiscount && (
+                        <div className="grid md:grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50 border border-dashed">
+                          <div className="space-y-2">
+                            <Label htmlFor="discountPercentage" className="flex items-center gap-1">
+                              <Percent className="h-3 w-3" />
+                              Desconto (%)
+                            </Label>
+                            <Input
+                              id="discountPercentage"
+                              type="number"
+                              placeholder="Ex: 20"
+                              min="1"
+                              max="90"
+                              value={discountPercentage}
+                              onChange={(e) => setDiscountPercentage(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="discountEndsAt">Válido até</Label>
+                            <Input
+                              id="discountEndsAt"
+                              type="date"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={discountEndsAt}
+                              onChange={(e) => setDiscountEndsAt(e.target.value)}
+                            />
+                          </div>
+                          
+                          {discountPercentage && price && (
+                            <div className="md:col-span-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Preço promocional:</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm line-through text-muted-foreground">
+                                    R$ {parseFloat(price).toFixed(2)}
+                                  </span>
+                                  <Badge variant="default" className="text-base font-bold">
+                                    R$ {(parseFloat(price) * (1 - parseFloat(discountPercentage) / 100)).toFixed(2)}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>
