@@ -138,6 +138,14 @@ export const SubscriptionCheckoutDialog = ({
         amount: pixData.planPrice,
         expiresAt: pixData.expiresAt,
         type: 'subscription',
+        pixData: {
+          pixId: pixData.pixId,
+          brCode: pixData.brCode,
+          brCodeBase64: pixData.brCodeBase64,
+          subscriptionId: pixData.subscriptionId,
+          title: pixData.planName,
+          price: pixData.planPrice,
+        },
       });
     }
   }, [open, pixData, saveCheckout]);

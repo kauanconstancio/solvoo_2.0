@@ -4,12 +4,20 @@ import { Card } from '@/components/ui/card';
 import { X, CreditCard, Clock, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { PixBookingCheckoutDialog } from './PixBookingCheckoutDialog';
+import { SubscriptionCheckoutDialog } from './SubscriptionCheckoutDialog';
 
 const ActiveCheckoutPopup = () => {
-  const { activeCheckout, hasActiveCheckout, dismissCheckout, clearCheckout } = useActiveCheckout();
+  const { 
+    activeCheckout, 
+    hasActiveCheckout, 
+    dismissCheckout, 
+    clearCheckout,
+    shouldShowPixDialog,
+    openPixDialog,
+    closePixDialog,
+  } = useActiveCheckout();
   const [timeLeft, setTimeLeft] = useState<string>('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!activeCheckout) return;
@@ -34,8 +42,6 @@ const ActiveCheckoutPopup = () => {
     return () => clearInterval(interval);
   }, [activeCheckout, clearCheckout]);
 
-  if (!hasActiveCheckout || !activeCheckout) return null;
-
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -44,94 +50,146 @@ const ActiveCheckoutPopup = () => {
   };
 
   const handleReturnToCheckout = () => {
-    // For PIX checkouts, navigate to calendar page to reopen the dialog
-    // The PIX data is stored, so they can scan the QR code
-    if (activeCheckout.url.startsWith('pix://')) {
-      // Navigate to appointments/calendar where they can see the pending payment
-      navigate('/calendario');
-    } else {
-      // For regular URLs (like Stripe), open in new tab
-      window.open(activeCheckout.url, '_blank');
+    if (activeCheckout?.pixData) {
+      openPixDialog();
     }
   };
 
+  const handlePixDialogClose = (open: boolean) => {
+    if (!open) {
+      closePixDialog();
+    }
+  };
+
+  const handlePaymentConfirmed = () => {
+    clearCheckout();
+  };
+
+  // Build pixData for the dialog from activeCheckout
+  const pixDialogData = activeCheckout?.pixData ? {
+    pixId: activeCheckout.pixData.pixId,
+    brCode: activeCheckout.pixData.brCode,
+    brCodeBase64: activeCheckout.pixData.brCodeBase64,
+    amount: activeCheckout.amount,
+    expiresAt: activeCheckout.expiresAt,
+    title: activeCheckout.pixData.title,
+    price: activeCheckout.pixData.price,
+    originalPrice: activeCheckout.pixData.originalPrice,
+    discountApplied: activeCheckout.pixData.discountApplied,
+    appointmentId: activeCheckout.pixData.appointmentId || '',
+  } : null;
+
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 100, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 100, scale: 0.9 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-6 md:bottom-6 md:w-96"
-      >
-        <Card className="relative overflow-hidden border-primary/20 bg-card/95 backdrop-blur-lg shadow-2xl">
-          {/* Progress bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
-            <motion.div 
-              className="h-full bg-gradient-to-r from-primary to-primary/60"
-              initial={{ width: '100%' }}
-              animate={{ width: '0%' }}
-              transition={{ 
-                duration: (new Date(activeCheckout.expiresAt).getTime() - Date.now()) / 1000,
-                ease: 'linear'
-              }}
-            />
-          </div>
-
-          <button
-            onClick={dismissCheckout}
-            className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted transition-colors"
+    <>
+      <AnimatePresence>
+        {hasActiveCheckout && activeCheckout && (
+          <motion.div
+            initial={{ opacity: 0, y: 100, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 100, scale: 0.9 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-6 md:bottom-6 md:w-96"
           >
-            <X className="h-4 w-4 text-muted-foreground" />
-          </button>
-
-          <div className="p-4 pt-6">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10">
-                <CreditCard className="h-5 w-5 text-primary" />
+            <Card className="relative overflow-hidden border-primary/20 bg-card/95 backdrop-blur-lg shadow-2xl">
+              {/* Progress bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-primary to-primary/60"
+                  initial={{ width: '100%' }}
+                  animate={{ width: '0%' }}
+                  transition={{ 
+                    duration: (new Date(activeCheckout.expiresAt).getTime() - Date.now()) / 1000,
+                    ease: 'linear'
+                  }}
+                />
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-sm">Pagamento pendente</h4>
-                <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                  {activeCheckout.description}
-                </p>
-              </div>
-            </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div>
-                <p className="text-lg font-bold text-primary">
-                  {formatAmount(activeCheckout.amount)}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>Expira em {timeLeft}</span>
+              <button
+                onClick={dismissCheckout}
+                className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted transition-colors"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+
+              <div className="p-4 pt-6">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm">Pagamento pendente</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {activeCheckout.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-bold text-primary">
+                      {formatAmount(activeCheckout.amount)}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>Expira em {timeLeft}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearCheckout}
+                      className="text-xs"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleReturnToCheckout}
+                      className="text-xs gap-1"
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      <span>Retomar</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearCheckout}
-                  className="text-xs"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleReturnToCheckout}
-                  className="text-xs gap-1"
-                >
-                  <RotateCcw className="h-3 w-3" />
-                  <span>Retomar</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
+      {/* PIX Dialog for booking */}
+      {activeCheckout?.type === 'booking' && pixDialogData && (
+        <PixBookingCheckoutDialog
+          open={shouldShowPixDialog}
+          onOpenChange={handlePixDialogClose}
+          appointmentId={activeCheckout.pixData?.appointmentId || null}
+          pixData={pixDialogData}
+          onPaymentConfirmed={handlePaymentConfirmed}
+        />
+      )}
+
+      {/* Subscription PIX Dialog */}
+      {activeCheckout?.type === 'subscription' && shouldShowPixDialog && activeCheckout.pixData && (
+        <SubscriptionCheckoutDialog
+          open={shouldShowPixDialog}
+          onOpenChange={handlePixDialogClose}
+          pixData={{
+            pixId: activeCheckout.pixData.pixId,
+            brCode: activeCheckout.pixData.brCode,
+            brCodeBase64: activeCheckout.pixData.brCodeBase64,
+            amount: activeCheckout.amount,
+            expiresAt: activeCheckout.expiresAt,
+            subscriptionId: activeCheckout.pixData.subscriptionId || '',
+            planName: activeCheckout.pixData.title,
+            planPrice: activeCheckout.pixData.price,
+          }}
+          onPaymentConfirmed={handlePaymentConfirmed}
+        />
+      )}
+    </>
   );
 };
 

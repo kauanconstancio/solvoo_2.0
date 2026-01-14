@@ -7,6 +7,18 @@ export interface ActiveCheckout {
   expiresAt: string;
   createdAt: string;
   type: 'booking' | 'subscription' | 'quote';
+  // Store full PIX data for reopening dialogs
+  pixData?: {
+    pixId: string;
+    brCode: string;
+    brCodeBase64: string;
+    appointmentId?: string;
+    subscriptionId?: string;
+    title: string;
+    price: number;
+    originalPrice?: number;
+    discountApplied?: number;
+  };
 }
 
 const STORAGE_KEY = 'solvoo_active_checkout';
@@ -14,6 +26,7 @@ const STORAGE_KEY = 'solvoo_active_checkout';
 export const useActiveCheckout = () => {
   const [activeCheckout, setActiveCheckout] = useState<ActiveCheckout | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [shouldShowPixDialog, setShouldShowPixDialog] = useState(false);
 
   // Load active checkout from localStorage
   useEffect(() => {
@@ -50,6 +63,7 @@ export const useActiveCheckout = () => {
     localStorage.removeItem(STORAGE_KEY);
     setActiveCheckout(null);
     setIsDismissed(false);
+    setShouldShowPixDialog(false);
   }, []);
 
   const dismissCheckout = useCallback(() => {
@@ -60,20 +74,38 @@ export const useActiveCheckout = () => {
     setIsDismissed(false);
   }, []);
 
+  const openPixDialog = useCallback(() => {
+    setShouldShowPixDialog(true);
+    setIsDismissed(true); // Hide the popup when dialog opens
+  }, []);
+
+  const closePixDialog = useCallback(() => {
+    setShouldShowPixDialog(false);
+    setIsDismissed(false); // Show the popup again if checkout still exists
+  }, []);
+
   const goToCheckout = useCallback(() => {
     if (activeCheckout?.url) {
-      window.open(activeCheckout.url, '_blank');
+      if (activeCheckout.url.startsWith('pix://') && activeCheckout.pixData) {
+        // For PIX, open the dialog
+        openPixDialog();
+      } else {
+        window.open(activeCheckout.url, '_blank');
+      }
     }
-  }, [activeCheckout]);
+  }, [activeCheckout, openPixDialog]);
 
   return {
     activeCheckout,
     isDismissed,
+    shouldShowPixDialog,
     saveCheckout,
     clearCheckout,
     dismissCheckout,
     reopenCheckout,
     goToCheckout,
+    openPixDialog,
+    closePixDialog,
     hasActiveCheckout: !!activeCheckout && !isDismissed,
   };
 };
