@@ -9,6 +9,7 @@ import ChatNotificationProvider from "./components/ChatNotificationProvider";
 import { SupportChatbot } from "./components/SupportChatbot";
 import BottomNavigation from "./components/BottomNavigation";
 import AnimatedRoutes from "./AppRoutes";
+import ActiveCheckoutPopup from "./components/ActiveCheckoutPopup";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const AppContent = () => {
         <AnimatedRoutes />
       </div>
       {!hideBottomNav && <BottomNavigation />}
+      <ActiveCheckoutPopup />
       <SupportChatbot />
     </>
   );

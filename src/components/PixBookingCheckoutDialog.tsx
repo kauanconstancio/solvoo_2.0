@@ -11,6 +11,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCheckout } from "@/hooks/useActiveCheckout";
 
 interface PixBookingCheckoutDialogProps {
   open: boolean;
@@ -45,6 +46,22 @@ export const PixBookingCheckoutDialog = ({
   const [paymentStatus, setPaymentStatus] = useState<"checking" | "pending" | "paid" | "expired">("pending");
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const { toast } = useToast();
+  const { saveCheckout, clearCheckout } = useActiveCheckout();
+
+  // Save checkout when pixData is available
+  useEffect(() => {
+    if (open && pixData && pixData.brCode) {
+      // Create a fake URL for PIX (since PIX uses QR code, not URL)
+      // We'll use a special protocol to indicate it's a PIX checkout
+      saveCheckout({
+        url: `pix://${pixData.pixId}`,
+        description: pixData.title,
+        amount: pixData.price,
+        expiresAt: pixData.expiresAt,
+        type: 'booking',
+      });
+    }
+  }, [open, pixData, saveCheckout]);
 
   // Check payment status
   const checkPaymentStatus = useCallback(async () => {
@@ -63,17 +80,19 @@ export const PixBookingCheckoutDialog = ({
 
       if (isPaid) {
         setPaymentStatus("paid");
+        clearCheckout(); // Clear the active checkout
         onOpenChange(false);
         onPaymentConfirmed?.();
       } else if (status === "EXPIRED") {
         setPaymentStatus("expired");
+        clearCheckout(); // Clear expired checkout
       }
     } catch (error) {
       console.error("Error checking payment status:", error);
     } finally {
       setIsCheckingStatus(false);
     }
-  }, [appointmentId, pixData?.pixId, paymentStatus, onOpenChange, onPaymentConfirmed]);
+  }, [appointmentId, pixData?.pixId, paymentStatus, onOpenChange, onPaymentConfirmed, clearCheckout]);
 
   // Poll for payment status every 5 seconds
   useEffect(() => {
