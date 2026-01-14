@@ -15,7 +15,8 @@ import {
   FileBarChart,
   BarChart3,
   Bell,
-  Download
+  Download,
+  Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -108,6 +109,12 @@ export const AdminSidebar = () => {
       label: 'Exportar Relatórios',
       href: '/admin/exportar',
       icon: <Download className="h-5 w-5" />,
+      permission: canManageRoles,
+    },
+    {
+      label: 'Fidelidade',
+      href: '/admin/fidelidade',
+      icon: <Award className="h-5 w-5" />,
       permission: canManageRoles,
     },
     {

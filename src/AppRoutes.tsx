@@ -44,6 +44,7 @@ import AdminPayoutReport from "./pages/admin/AdminPayoutReport";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminExports from "./pages/admin/AdminExports";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminLoyalty from "./pages/admin/AdminLoyalty";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import ServiceHistoryPage from "./pages/ServiceHistoryPage";
@@ -493,6 +494,16 @@ const AnimatedRoutes = () => {
             <AdminProtectedRoute requiredPermission="admin">
               <PageTransition>
                 <AdminPayoutReport />
+              </PageTransition>
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/fidelidade"
+          element={
+            <AdminProtectedRoute requiredPermission="admin">
+              <PageTransition>
+                <AdminLoyalty />
               </PageTransition>
             </AdminProtectedRoute>
           }
