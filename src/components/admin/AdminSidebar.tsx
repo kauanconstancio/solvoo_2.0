@@ -12,7 +12,10 @@ import {
   TrendingUp,
   CreditCard,
   Sparkles,
-  FileBarChart
+  FileBarChart,
+  BarChart3,
+  Bell,
+  Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -87,6 +90,24 @@ export const AdminSidebar = () => {
       label: 'Relatório Repasses',
       href: '/admin/relatorio-repasses',
       icon: <FileBarChart className="h-5 w-5" />,
+      permission: canManageRoles,
+    },
+    {
+      label: 'Dashboard Analítico',
+      href: '/admin/analitico',
+      icon: <BarChart3 className="h-5 w-5" />,
+      permission: canManageRoles,
+    },
+    {
+      label: 'Notificações em Massa',
+      href: '/admin/notificacoes',
+      icon: <Bell className="h-5 w-5" />,
+      permission: canManageRoles,
+    },
+    {
+      label: 'Exportar Relatórios',
+      href: '/admin/exportar',
+      icon: <Download className="h-5 w-5" />,
       permission: canManageRoles,
     },
     {
