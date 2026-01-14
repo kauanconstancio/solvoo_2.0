@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Copy, Check, Clock, QrCode, Loader2, X, RefreshCw } from "lucide-react";
+import { Copy, Check, Clock, QrCode, Loader2, X, RefreshCw, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +24,8 @@ interface PixBookingCheckoutDialogProps {
     expiresAt: string;
     title: string;
     price: number;
+    originalPrice?: number;
+    discountApplied?: number;
     appointmentId: string;
   } | null;
   isLoading?: boolean;
@@ -167,9 +169,31 @@ export const PixBookingCheckoutDialog = ({
         ) : pixData ? (
           <div className="space-y-4 py-4">
             {/* Booking Info */}
-            <div className="bg-muted/50 rounded-lg p-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <p className="text-sm text-muted-foreground">Pagamento para:</p>
               <p className="font-medium">{pixData.title}</p>
+              
+              {/* Show discount if applied */}
+              {pixData.discountApplied && pixData.discountApplied > 0 && pixData.originalPrice && (
+                <div className="space-y-1 pt-2 border-t border-border/50">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-muted-foreground line-through">
+                      {formatPrice(pixData.originalPrice)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600 flex items-center gap-1">
+                      <Award className="h-3 w-3" />
+                      Desconto Fidelidade
+                    </span>
+                    <span className="text-green-600">
+                      -{formatPrice(pixData.discountApplied)}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <p className="text-2xl font-bold text-primary mt-1">
                 {formatPrice(pixData.price)}
               </p>
