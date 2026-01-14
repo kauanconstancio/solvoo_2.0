@@ -266,7 +266,7 @@ export const CreateQuoteDialog = ({
           .select("scheduled_time, duration_minutes")
           .eq("professional_id", userId)
           .eq("scheduled_date", formattedDate)
-          .neq("status", "cancelled");
+          .in("status", ["pending", "confirmed", "completed"]);
 
         if (appointments) {
           appointments.forEach((apt) => {
@@ -302,7 +302,7 @@ export const CreateQuoteDialog = ({
             .select("scheduled_time, duration_minutes, scheduled_date")
             .eq("scheduled_date", formattedDate)
             .in("quote_id", quotes.map(q => q.id))
-            .neq("status", "cancelled");
+            .in("status", ["pending", "confirmed", "completed"]);
           
           if (quoteAppointments) {
             quoteAppointments.forEach((apt) => {
