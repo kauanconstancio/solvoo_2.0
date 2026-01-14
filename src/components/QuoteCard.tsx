@@ -101,6 +101,9 @@ export const QuoteCard = ({
   const isCompleted = quote.completed_at !== null;
   const isClientConfirmed = quote.client_confirmed === true;
   
+  // Check if appointment is awaiting payment
+  const isAwaitingPayment = appointment?.status === "awaiting_payment";
+  
   const effectiveStatus = isExpired ? "expired" : quote.status;
   const statusInfo = statusConfig[effectiveStatus];
   const StatusIcon = statusInfo.icon;
@@ -108,7 +111,8 @@ export const QuoteCard = ({
   // Determine if the quote needs attention from the current user
   const needsClientAction = isClient && (
     (effectiveStatus === "pending") || // Client needs to accept/reject
-    (isCompleted && !isClientConfirmed) // Client needs to confirm and pay
+    (isCompleted && !isClientConfirmed) || // Client needs to confirm and pay
+    isAwaitingPayment // Client needs to complete payment
   );
   const needsAttention = needsClientAction;
 
@@ -266,7 +270,7 @@ export const QuoteCard = ({
             </div>
 
             {/* Appointment Info */}
-            {appointment && (
+            {appointment && !isAwaitingPayment && (
               <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 mt-2 space-y-3">
                 <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                   <Calendar className="h-4 w-4" />
@@ -288,6 +292,35 @@ export const QuoteCard = ({
                     address={appointment.location} 
                     className="h-32 rounded-lg"
                   />
+                )}
+              </div>
+            )}
+
+            {/* Awaiting Payment Alert */}
+            {isAwaitingPayment && (
+              <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20 mt-2">
+                <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400 mb-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm font-medium">Aguardando pagamento</span>
+                </div>
+                <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                  {isClient 
+                    ? "Complete o pagamento para confirmar este agendamento e reservar o horário."
+                    : "O cliente ainda não realizou o pagamento. O horário será confirmado após o pagamento."
+                  }
+                </p>
+                {appointment && (
+                  <div className="mt-2 pt-2 border-t border-yellow-500/20">
+                    <p className="text-xs text-muted-foreground">
+                      Data: {format(new Date(appointment.scheduled_date + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })} às {appointment.scheduled_time}
+                    </p>
+                    {appointment.location && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        {appointment.location}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -341,7 +374,8 @@ export const QuoteCard = ({
             )}
 
             {/* Complete Service Button for Accepted Quotes (Professional) */}
-            {effectiveStatus === "accepted" && isProfessional && !isCompleted && onComplete && (
+            {/* Only show if payment is confirmed (not awaiting_payment) */}
+            {effectiveStatus === "accepted" && isProfessional && !isCompleted && !isAwaitingPayment && onComplete && (
               <div className="pt-2">
                 <Button
                   size="sm"
