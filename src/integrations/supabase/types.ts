@@ -417,6 +417,105 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_config: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          min_points_redemption: number
+          point_value_in_reais: number
+          points_per_real: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          min_points_redemption?: number
+          point_value_in_reais?: number
+          points_per_real?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          min_points_redemption?: number
+          point_value_in_reais?: number
+          points_per_real?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loyalty_redemptions: {
+        Row: {
+          created_at: string
+          discount_value: number
+          expires_at: string
+          id: string
+          points_used: number
+          quote_id: string | null
+          status: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_value: number
+          expires_at?: string
+          id?: string
+          points_used: number
+          quote_id?: string | null
+          status?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_value?: number
+          expires_at?: string
+          id?: string
+          points_used?: number
+          quote_id?: string | null
+          status?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          points: number
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          points: number
+          reference_id?: string | null
+          reference_type?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          points?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mass_notifications: {
         Row: {
           created_at: string
@@ -1188,6 +1287,33 @@ export type Database = {
           price?: number
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_loyalty_points: {
+        Row: {
+          created_at: string
+          id: string
+          lifetime_points: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lifetime_points?: number
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lifetime_points?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
