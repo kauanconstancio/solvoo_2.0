@@ -10,6 +10,7 @@ import { SupportChatbot } from "./components/SupportChatbot";
 import BottomNavigation from "./components/BottomNavigation";
 import AnimatedRoutes from "./AppRoutes";
 import ActiveCheckoutPopup from "./components/ActiveCheckoutPopup";
+import { ActiveCheckoutProvider } from "./contexts/ActiveCheckoutContext";
 
 const queryClient = new QueryClient();
 
@@ -42,13 +43,15 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
+        <ActiveCheckoutProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </ActiveCheckoutProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </HelmetProvider>

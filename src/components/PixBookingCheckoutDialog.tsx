@@ -11,7 +11,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useActiveCheckout } from "@/hooks/useActiveCheckout";
+import { useActiveCheckout } from '@/contexts/ActiveCheckoutContext';
 
 interface PixBookingCheckoutDialogProps {
   open: boolean;
