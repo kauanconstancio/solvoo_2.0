@@ -26,11 +26,12 @@ interface AppointmentCardProps {
   compact?: boolean;
 }
 
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon?: string }> = {
+  awaiting_payment: { label: "Aguardando pagamento", variant: "secondary", icon: "💳" },
   pending: { label: "Aguardando confirmação", variant: "secondary" },
-  confirmed: { label: "Confirmado", variant: "default" },
-  cancelled: { label: "Cancelado", variant: "destructive" },
-  completed: { label: "Concluído", variant: "outline" },
+  confirmed: { label: "Confirmado", variant: "default", icon: "✅" },
+  cancelled: { label: "Cancelado", variant: "destructive", icon: "❌" },
+  completed: { label: "Concluído", variant: "outline", icon: "✓" },
 };
 
 export function AppointmentCard({ appointment, currentUserId, compact = false }: AppointmentCardProps) {
@@ -52,6 +53,8 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
   const needsConfirmation = appointment.status === "pending" && 
     ((isClient && !appointment.client_confirmed) || 
      (isProfessional && !appointment.professional_confirmed));
+  
+  const isAwaitingPayment = appointment.status === "awaiting_payment";
   
   // Professional can mark as completed when service is confirmed and past
   const canComplete = isProfessional && 
@@ -78,7 +81,8 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
     return (
       <Card className={`border-l-4 ${
         appointment.status === "confirmed" ? "border-l-primary" : 
-        appointment.status === "cancelled" ? "border-l-destructive" : 
+        appointment.status === "cancelled" ? "border-l-destructive" :
+        appointment.status === "awaiting_payment" ? "border-l-yellow-500" :
         "border-l-muted-foreground"
       }`}>
         <CardContent className="p-3">
@@ -91,11 +95,20 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
               <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-sm">{appointment.scheduled_time}</span>
             </div>
-            <Badge variant={status.variant} className="flex-shrink-0 text-xs">
-              {appointment.status === "pending" ? "Pendente" : status.label}
+            <Badge 
+              variant={status.variant} 
+              className={`flex-shrink-0 text-xs ${isAwaitingPayment ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" : ""}`}
+            >
+              {isAwaitingPayment ? "💳 Aguardando" : appointment.status === "pending" ? "Pendente" : status.label}
             </Badge>
           </div>
           <p className="text-sm font-medium mt-1 truncate">{appointment.title}</p>
+          
+          {isAwaitingPayment && isClient && (
+            <div className="mt-2 p-2 bg-yellow-500/10 rounded text-xs text-yellow-700 dark:text-yellow-400">
+              ⏳ Complete o pagamento para confirmar o agendamento
+            </div>
+          )}
           
           {needsConfirmation && (
             <div className="flex gap-2 mt-2">
@@ -144,8 +157,30 @@ export function AppointmentCard({ appointment, currentUserId, compact = false }:
                 </p>
               </div>
             </div>
-            <Badge variant={status.variant}>{status.label}</Badge>
+            <Badge 
+              variant={status.variant}
+              className={isAwaitingPayment ? "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" : ""}
+            >
+              {status.icon && <span className="mr-1">{status.icon}</span>}
+              {status.label}
+            </Badge>
           </div>
+          
+          {/* Awaiting Payment Alert */}
+          {isAwaitingPayment && (
+            <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <div className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
+                <AlertCircle className="h-4 w-4" />
+                <span className="font-medium">Aguardando pagamento</span>
+              </div>
+              <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-1">
+                {isClient 
+                  ? "Complete o pagamento para confirmar este agendamento e reservar o horário."
+                  : "O cliente ainda não realizou o pagamento. O horário será reservado após a confirmação."
+                }
+              </p>
+            </div>
+          )}
 
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-2 text-sm">
