@@ -51,7 +51,7 @@ serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    // Load appointment
+    // Load appointment with quote info
     const { data: appointment, error: appointmentError } = await supabaseAdmin
       .from("appointments")
       .select("id, client_id, status, quote_id")
@@ -75,6 +75,52 @@ serve(async (req) => {
       });
     }
 
+    // Get quote to check for PIX data
+    let pixId: string | null = null;
+    if (appointment.quote_id) {
+      const { data: quote } = await supabaseAdmin
+        .from("quotes")
+        .select("pix_id")
+        .eq("id", appointment.quote_id)
+        .single();
+      
+      pixId = quote?.pix_id || null;
+    }
+
+    // Try to cancel PIX on AbacatePay (if exists)
+    // NOTE: AbacatePay doesn't have a public "cancel" endpoint for PIX QR codes,
+    // but we can try the billing cancel endpoint if the PIX was created via billing.
+    // For pixQrCode, it will naturally expire. We just clear our local reference.
+    if (pixId) {
+      const abacatePayKey = Deno.env.get("ABACATEPAY_API_KEY");
+      if (abacatePayKey) {
+        try {
+          // Attempt to cancel via billing API (may not work for pixQrCode)
+          const cancelResponse = await fetch(`https://api.abacatepay.com/v1/billing/${pixId}/cancel`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${abacatePayKey}`,
+              "Content-Type": "application/json"
+            }
+          });
+          
+          if (cancelResponse.ok) {
+            logStep("PIX cancelled on AbacatePay", { pixId });
+          } else {
+            // Not critical - PIX will expire naturally
+            const errorText = await cancelResponse.text();
+            logStep("Could not cancel PIX on AbacatePay (will expire naturally)", { 
+              pixId, 
+              status: cancelResponse.status,
+              error: errorText 
+            });
+          }
+        } catch (err) {
+          logStep("Failed to call AbacatePay cancel (non-blocking)", { pixId, error: String(err) });
+        }
+      }
+    }
+
     // Cancel appointment
     const { error: cancelError } = await supabaseAdmin
       .from("appointments")
@@ -85,15 +131,22 @@ serve(async (req) => {
       throw cancelError;
     }
 
-    // Cancel quote too (prevents any downstream flows, and avoids accidental confirmation)
+    // Cancel quote and clear PIX data to prevent reuse
     if (appointment.quote_id) {
       await supabaseAdmin
         .from("quotes")
-        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .update({ 
+          status: "cancelled", 
+          updated_at: new Date().toISOString(),
+          pix_id: null,
+          pix_br_code: null,
+          pix_br_code_base64: null,
+          pix_expires_at: null
+        })
         .eq("id", appointment.quote_id);
     }
 
-    logStep("Cancelled", { appointmentId, quoteId: appointment.quote_id });
+    logStep("Cancelled", { appointmentId, quoteId: appointment.quote_id, pixCleared: !!pixId });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
