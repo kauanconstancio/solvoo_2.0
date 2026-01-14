@@ -1,4 +1,5 @@
 import { useActiveCheckout } from '@/contexts/ActiveCheckoutContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { X, CreditCard, Clock, RotateCcw } from 'lucide-react';
@@ -47,6 +48,21 @@ const ActiveCheckoutPopup = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(amount);
+  };
+
+  const handleCancelCheckout = async () => {
+    try {
+      // If this is a booking created by PIX, cancel the pending appointment in the backend
+      if (activeCheckout?.type === 'booking' && activeCheckout.pixData?.appointmentId) {
+        await supabase.functions.invoke('cancel-booking-checkout', {
+          body: { appointmentId: activeCheckout.pixData.appointmentId },
+        });
+      }
+    } catch (error) {
+      console.error('Error cancelling checkout:', error);
+    } finally {
+      clearCheckout();
+    }
   };
 
   const handleReturnToCheckout = () => {
@@ -139,7 +155,7 @@ const ActiveCheckoutPopup = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={clearCheckout}
+                      onClick={handleCancelCheckout}
                       className="text-xs"
                     >
                       Cancelar

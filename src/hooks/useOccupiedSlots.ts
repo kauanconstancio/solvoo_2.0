@@ -23,14 +23,15 @@ export function useOccupiedSlots(professionalId: string, startDate: Date, endDat
         const startDateStr = format(startDate, 'yyyy-MM-dd');
         const endDateStr = format(endDate, 'yyyy-MM-dd');
 
-        // Fetch appointments that are not cancelled
+        // Fetch appointments that should block the calendar.
+        // NOTE: 'awaiting_payment' should NOT block until payment is confirmed.
         const { data, error } = await supabase
           .from('appointments')
           .select('scheduled_date, scheduled_time, duration_minutes')
           .eq('professional_id', professionalId)
           .gte('scheduled_date', startDateStr)
           .lte('scheduled_date', endDateStr)
-          .neq('status', 'cancelled');
+          .in('status', ['pending', 'confirmed', 'completed']);
 
         if (error) {
           console.error('Error fetching occupied slots:', error);
