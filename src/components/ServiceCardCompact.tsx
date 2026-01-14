@@ -1,6 +1,7 @@
-import { Heart, Star, Zap, FileText } from "lucide-react";
+import { Heart, Star, Zap, FileText, Percent } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { useFavorites } from "@/hooks/useFavorites";
 import { getServiceUrl } from "@/lib/slugUtils";
@@ -17,6 +18,11 @@ interface ServiceCardCompactProps {
   slug?: string | null;
   rating?: number;
   reviewCount?: number;
+  promotion?: {
+    discount_percentage: number | null;
+    promotional_price: string;
+    original_price: string;
+  } | null;
 }
 
 const ServiceCardCompact = ({
@@ -31,6 +37,7 @@ const ServiceCardCompact = ({
   slug = null,
   rating = 0,
   reviewCount = 0,
+  promotion = null,
 }: ServiceCardCompactProps) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const displayImage =
@@ -39,6 +46,7 @@ const ServiceCardCompact = ({
   const favorited = isFavorite(id);
   const serviceUrl = getServiceUrl({ id, slug });
   const isFixedPrice = priceType !== "negotiable";
+  const hasPromotion = !!promotion;
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -64,6 +72,12 @@ const ServiceCardCompact = ({
             className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
+          {hasPromotion && promotion.discount_percentage && (
+            <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground font-bold text-[10px] px-1.5 py-0.5 flex items-center gap-0.5">
+              <Percent className="h-2.5 w-2.5" />
+              -{promotion.discount_percentage}%
+            </Badge>
+          )}
           <Button
             size="icon"
             variant="ghost"
@@ -78,7 +92,7 @@ const ServiceCardCompact = ({
           </Button>
         </div>
 
-        <div className="p-2.5 flex flex-col h-[80px]">
+        <div className="p-2.5 flex flex-col h-[90px]">
           <h3 className="font-medium text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">
             {title}
           </h3>
@@ -99,9 +113,20 @@ const ServiceCardCompact = ({
             ) : (
               <FileText className="h-3 w-3 text-amber-600 dark:text-amber-400" />
             )}
-            <p className="text-base font-bold text-primary">
-              {price}
-            </p>
+            {hasPromotion ? (
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-muted-foreground line-through">
+                  {promotion.original_price}
+                </p>
+                <p className="text-base font-bold text-destructive">
+                  {promotion.promotional_price}
+                </p>
+              </div>
+            ) : (
+              <p className="text-base font-bold text-primary">
+                {price}
+              </p>
+            )}
           </div>
         </div>
       </Card>
