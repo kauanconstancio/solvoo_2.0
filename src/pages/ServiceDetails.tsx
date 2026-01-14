@@ -15,6 +15,7 @@ import {
   Flag,
   Zap,
   FileText,
+  Percent,
 } from "lucide-react";
 import ReportUserDialog from "@/components/ReportUserDialog";
 import Header from "@/components/Header";
@@ -38,6 +39,8 @@ import { isUUID } from "@/lib/slugUtils";
 import { ProfessionalAvailability } from "@/components/ProfessionalAvailability";
 import { DirectBookingDialog } from "@/components/DirectBookingDialog";
 import { ImageGallery } from "@/components/ImageGallery";
+import { useServicePromotion } from "@/hooks/useActivePromotions";
+import PromotionCountdown from "@/components/PromotionCountdown";
 
 interface ProviderProfile {
   user_id: string;
@@ -86,6 +89,7 @@ const ServiceDetails = () => {
   const { providerRating } = useProviderRating(provider?.user_id || null);
   const { createOrGetConversation } = useCreateConversation();
   const [isRequestingQuote, setIsRequestingQuote] = useState(false);
+  const { promotion } = useServicePromotion(service?.id || "");
 
   // URL for Open Graph (social media crawlers)
   const ogShareUrl = `https://hgixhlcxvjvonmcxfvlc.supabase.co/functions/v1/og-service?id=${id}`;
@@ -551,6 +555,16 @@ const ServiceDetails = () => {
                 {/* Price Card */}
                 <Card className="hidden md:flex">
                   <CardContent className="p-6 space-y-4 w-full">
+                    {/* Promotion Countdown */}
+                    {promotion && (
+                      <PromotionCountdown
+                        endsAt={promotion.ends_at}
+                        discountPercentage={promotion.discount_percentage}
+                        originalPrice={promotion.original_price}
+                        promotionalPrice={promotion.promotional_price}
+                      />
+                    )}
+
                     {/* Booking type indicator with explanation */}
                     <div className="space-y-1.5">
                       <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
@@ -577,17 +591,20 @@ const ServiceDetails = () => {
                       </p>
                     </div>
 
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {isFixedPrice ? 'Valor' : 'A partir de'}
-                      </p>
-                      <p className="text-3xl font-bold text-primary">
-                        {service.price}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {getPriceTypeLabel(service.price_type)}
-                      </p>
-                    </div>
+                    {/* Only show regular price if no promotion */}
+                    {!promotion && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {isFixedPrice ? 'Valor' : 'A partir de'}
+                        </p>
+                        <p className="text-3xl font-bold text-primary">
+                          {service.price}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {getPriceTypeLabel(service.price_type)}
+                        </p>
+                      </div>
+                    )}
 
                     <Separator />
 
@@ -618,24 +635,39 @@ const ServiceDetails = () => {
                 {/* Mobile Price Card - Fixed Bottom */}
                 <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t shadow-[0_-4px_20px_rgba(0,0,0,0.1)] safe-area-bottom">
                   <div className="px-4 py-3">
+                    {/* Promotion badge for mobile */}
+                    {promotion && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="bg-destructive text-destructive-foreground font-bold text-xs px-2 py-0.5 flex items-center gap-1">
+                          <Percent className="h-3 w-3" />
+                          {promotion.discount_percentage ? `-${promotion.discount_percentage}%` : "PROMO"}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground line-through">
+                          {promotion.original_price}
+                        </span>
+                      </div>
+                    )}
+                    
                     {/* Booking type indicator */}
-                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-2 ${
-                      isFixedPrice 
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
-                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    }`}>
-                      {isFixedPrice ? (
-                        <>
-                          <Zap className="h-3 w-3" />
-                          <span>Agendamento rápido</span>
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="h-3 w-3" />
-                          <span>Orçamento sob consulta</span>
-                        </>
-                      )}
-                    </div>
+                    {!promotion && (
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium mb-2 ${
+                        isFixedPrice 
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                      }`}>
+                        {isFixedPrice ? (
+                          <>
+                            <Zap className="h-3 w-3" />
+                            <span>Agendamento rápido</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="h-3 w-3" />
+                            <span>Orçamento sob consulta</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                     
                     {/* Price and action row */}
                     <div className="flex items-center justify-between gap-4">
@@ -643,8 +675,8 @@ const ServiceDetails = () => {
                         <p className="text-xs text-muted-foreground">
                           {isFixedPrice ? 'Valor' : 'A partir de'}
                         </p>
-                        <p className="text-xl font-bold text-primary leading-tight">
-                          {service.price}
+                        <p className={`text-xl font-bold leading-tight ${promotion ? 'text-destructive' : 'text-primary'}`}>
+                          {promotion ? promotion.promotional_price : service.price}
                         </p>
                         <p className="text-[10px] text-muted-foreground">
                           {getPriceTypeLabel(service.price_type)}
