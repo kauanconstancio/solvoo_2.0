@@ -11,6 +11,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useUserSubscription } from "@/hooks/useUserSubscription";
+import { useActiveCheckout } from "@/hooks/useActiveCheckout";
 
 interface SubscriptionPixData {
   pixId: string;
@@ -126,6 +127,20 @@ export const SubscriptionCheckoutDialog = ({
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const { toast } = useToast();
   const { checkPaymentStatus } = useUserSubscription();
+  const { saveCheckout, clearCheckout } = useActiveCheckout();
+
+  // Save checkout when pixData is available
+  useEffect(() => {
+    if (open && pixData && pixData.brCode) {
+      saveCheckout({
+        url: `pix://${pixData.pixId}`,
+        description: `Assinatura: ${pixData.planName}`,
+        amount: pixData.planPrice,
+        expiresAt: pixData.expiresAt,
+        type: 'subscription',
+      });
+    }
+  }, [open, pixData, saveCheckout]);
 
   // Check payment status
   const checkStatus = useCallback(async () => {
@@ -140,18 +155,20 @@ export const SubscriptionCheckoutDialog = ({
 
       if (isPaid) {
         setPaymentStatus("paid");
+        clearCheckout(); // Clear active checkout
         setShowSuccessPopup(true);
         onOpenChange(false);
         onPaymentConfirmed?.();
       } else if (status === "EXPIRED") {
         setPaymentStatus("expired");
+        clearCheckout(); // Clear expired checkout
       }
     } catch (error) {
       console.error("Error checking payment status:", error);
     } finally {
       setIsCheckingStatus(false);
     }
-  }, [pixData?.subscriptionId, pixData?.pixId, paymentStatus, onOpenChange, onPaymentConfirmed, checkPaymentStatus]);
+  }, [pixData?.subscriptionId, pixData?.pixId, paymentStatus, onOpenChange, onPaymentConfirmed, checkPaymentStatus, clearCheckout]);
 
   // Poll for payment status every 5 seconds
   useEffect(() => {
