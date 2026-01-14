@@ -90,13 +90,14 @@ serve(async (req) => {
       throw new Error("CPF não cadastrado");
     }
 
-    // Check if slot is already occupied
+    // Check if slot is already occupied (only by confirmed or completed appointments)
+    // Appointments with status 'awaiting_payment' or 'pending' don't block the slot
     const { data: existingAppointments, error: appointmentCheckError } = await supabaseAdmin
       .from("appointments")
-      .select("id, scheduled_time, duration_minutes")
+      .select("id, scheduled_time, duration_minutes, status")
       .eq("professional_id", professionalId)
       .eq("scheduled_date", scheduledDate)
-      .neq("status", "cancelled");
+      .in("status", ["confirmed", "completed"]); // Only check confirmed/completed appointments
 
     if (appointmentCheckError) {
       logStep("Error checking existing appointments", { error: appointmentCheckError.message });
@@ -108,7 +109,7 @@ serve(async (req) => {
     const reqStartMinutes = reqHours * 60 + reqMinutes;
     const reqEndMinutes = reqStartMinutes + (durationMinutes || 60);
 
-    // Check for conflicts
+    // Check for conflicts only with confirmed appointments
     for (const existing of existingAppointments || []) {
       const [exHours, exMinutes] = existing.scheduled_time.split(':').map(Number);
       const exStartMinutes = exHours * 60 + exMinutes;
@@ -120,7 +121,7 @@ serve(async (req) => {
                           (reqStartMinutes <= exStartMinutes && reqEndMinutes >= exEndMinutes);
 
       if (hasConflict) {
-        logStep("Time slot conflict detected", { existingAppointment: existing.id });
+        logStep("Time slot conflict detected with confirmed appointment", { existingAppointment: existing.id });
         throw new Error("Este horário já está ocupado. Por favor, escolha outro horário.");
       }
     }
@@ -188,7 +189,8 @@ serve(async (req) => {
 
     logStep("Quote created", { quoteId: quote.id });
 
-    // Create appointment linked to quote
+    // Create appointment linked to quote with awaiting_payment status
+    // The appointment will be confirmed by the trigger when payment is confirmed
     const { data: appointment, error: appointmentError } = await supabaseAdmin
       .from("appointments")
       .insert({
@@ -198,11 +200,11 @@ serve(async (req) => {
         conversation_id: conversationId,
         quote_id: quote.id,
         title: serviceTitle || service.title,
-        description: "Serviço agendado diretamente pelo cliente",
+        description: "Serviço agendado diretamente pelo cliente - aguardando pagamento",
         scheduled_date: scheduledDate,
         scheduled_time: scheduledTime,
         duration_minutes: durationMinutes || 60,
-        status: "pending",
+        status: "awaiting_payment", // New status - will be confirmed after payment
         client_confirmed: false,
         professional_confirmed: true,
         location: location || null,
@@ -215,7 +217,7 @@ serve(async (req) => {
       throw appointmentError;
     }
 
-    logStep("Appointment created", { appointmentId: appointment.id });
+    logStep("Appointment created with awaiting_payment status", { appointmentId: appointment.id });
 
     // Mark loyalty redemption as applied if exists
     if (loyaltyRedemptionId && discountApplied > 0) {
