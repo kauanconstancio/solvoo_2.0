@@ -1,4 +1,4 @@
-import { Star, MapPin, Heart, BadgeCheck, Zap, FileText } from "lucide-react";
+import { Star, MapPin, Heart, BadgeCheck, Zap, FileText, Percent } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,11 @@ interface ServiceCardProps {
   verified?: boolean;
   providerName?: string | null;
   slug?: string | null;
+  promotion?: {
+    discount_percentage: number | null;
+    promotional_price: string;
+    original_price: string;
+  } | null;
 }
 
 const ServiceCard = ({
@@ -39,6 +44,7 @@ const ServiceCard = ({
   verified = false,
   providerName = null,
   slug = null,
+  promotion = null,
 }: ServiceCardProps) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const displayImage =
@@ -48,6 +54,7 @@ const ServiceCard = ({
   const favorited = isFavorite(id);
   const serviceUrl = getServiceUrl({ id, slug });
   const isFixedPrice = priceType !== "negotiable";
+  const hasPromotion = !!promotion;
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -85,6 +92,14 @@ const ServiceCard = ({
               }`}
             />
           </Button>
+          {hasPromotion && promotion.discount_percentage && (
+            <div className="absolute top-3 left-3">
+              <Badge className="bg-destructive text-destructive-foreground font-bold text-xs px-2 py-1 flex items-center gap-1">
+                <Percent className="h-3 w-3" />
+                -{promotion.discount_percentage}%
+              </Badge>
+            </div>
+          )}
           <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
             <Badge className="bg-background/70 backdrop-blur text-foreground hover:bg-background/90">
               {categoryLabel}
@@ -146,9 +161,20 @@ const ServiceCard = ({
                   </span>
                 )}
               </div>
-              <p className="text-lg md:text-xl font-bold text-primary">
-                {price}
-              </p>
+              {hasPromotion ? (
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground line-through">
+                    {promotion.original_price}
+                  </p>
+                  <p className="text-lg md:text-xl font-bold text-destructive">
+                    {promotion.promotional_price}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-lg md:text-xl font-bold text-primary">
+                  {price}
+                </p>
+              )}
             </div>
             <Button className="hover:brightness-110 text-xs md:text-sm px-3 md:px-4 bg-primary text-primary-foreground">
               Ver Detalhes

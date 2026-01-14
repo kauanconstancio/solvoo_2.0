@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { serviceCategories } from "@/data/services";
 import { AnimateOnScroll } from "./AnimateOnScroll";
 import { useServicesRatings } from "@/hooks/useReviews";
+import { useActivePromotions } from "@/hooks/useActivePromotions";
 interface Service {
   id: string;
   title: string;
@@ -29,6 +30,7 @@ const ServicesList = () => {
 
   const serviceIds = useMemo(() => services.map((s) => s.id), [services]);
   const { ratingsMap } = useServicesRatings(serviceIds);
+  const { getPromotion } = useActivePromotions(serviceIds);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -170,6 +172,7 @@ const ServicesList = () => {
               <HorizontalScrollSection>
                 {filteredServices.map((service, index) => {
                   const serviceRating = ratingsMap[service.id];
+                  const servicePromotion = getPromotion(service.id);
                   return (
                     <AnimateOnScroll
                       key={service.id}
@@ -190,6 +193,11 @@ const ServicesList = () => {
                         slug={service.slug}
                         rating={serviceRating?.average_rating}
                         reviewCount={serviceRating?.review_count}
+                        promotion={servicePromotion ? {
+                          discount_percentage: servicePromotion.discount_percentage,
+                          promotional_price: servicePromotion.promotional_price,
+                          original_price: servicePromotion.original_price
+                        } : null}
                       />
                     </AnimateOnScroll>
                   );
