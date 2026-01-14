@@ -27,6 +27,8 @@ import {
   Laptop,
   Wallet,
   Briefcase,
+  History,
+  Tag,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useTheme } from "./ThemeProvider";
@@ -294,6 +296,18 @@ const BottomNavigation = () => {
                       <Button variant="ghost" className="w-full justify-start">
                         <Calendar className="h-4 w-4 mr-3" />
                         Calendário
+                      </Button>
+                    </Link>
+                    <Link to="/historico" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <History className="h-4 w-4 mr-3" />
+                        Histórico de Serviços
+                      </Button>
+                    </Link>
+                    <Link to="/promocoes" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Tag className="h-4 w-4 mr-3" />
+                        Minhas Promoções
                       </Button>
                     </Link>
                     {hasAnyRole && (

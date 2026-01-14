@@ -13,6 +13,8 @@ import {
   Wallet,
   Briefcase,
   Calendar,
+  History,
+  Tag,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -265,6 +267,24 @@ const Header = () => {
                   <Link to="/calendario">
                     <Calendar className="mr-2 h-4 w-4" />
                     Calendário
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer transition-smooth hover:bg-muted"
+                >
+                  <Link to="/historico">
+                    <History className="mr-2 h-4 w-4" />
+                    Histórico de Serviços
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="cursor-pointer transition-smooth hover:bg-muted"
+                >
+                  <Link to="/promocoes">
+                    <Tag className="mr-2 h-4 w-4" />
+                    Minhas Promoções
                   </Link>
                 </DropdownMenuItem>
                 {hasAnyRole && (
