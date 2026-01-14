@@ -10,22 +10,21 @@ import { SupportChatbot } from "./components/SupportChatbot";
 import BottomNavigation from "./components/BottomNavigation";
 import AnimatedRoutes from "./AppRoutes";
 import ActiveCheckoutPopup from "./components/ActiveCheckoutPopup";
-import { ActiveCheckoutProvider } from "./contexts/ActiveCheckoutContext";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  
+
   // Check if we're on a chat conversation page (not the chat list)
   const isConversationPage = location.pathname.match(/^\/chat\/[^/]+$/);
-  
+
   // Check if we're on a service details page
   const isServiceDetailsPage = location.pathname.match(/^\/servico\/.+$/);
-  
+
   // Hide bottom navigation on conversation and service details pages
   const hideBottomNav = isConversationPage || isServiceDetailsPage;
-  
+
   return (
     <>
       <ChatNotificationProvider />
@@ -43,15 +42,13 @@ const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <ActiveCheckoutProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </TooltipProvider>
-        </ActiveCheckoutProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </HelmetProvider>
