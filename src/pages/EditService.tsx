@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Camera,
   MapPin,
@@ -34,6 +35,8 @@ import {
   Wand2,
   BarChart3,
   AlertTriangle,
+  Tag,
+  Percent,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -84,6 +87,12 @@ const EditService = () => {
   const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [status, setStatus] = useState("active");
+  
+  // Discount fields
+  const [hasDiscount, setHasDiscount] = useState(false);
+  const [discountPercentage, setDiscountPercentage] = useState("");
+  const [discountEndsAt, setDiscountEndsAt] = useState("");
+  const [existingPromotionId, setExistingPromotionId] = useState<string | null>(null);
 
   const handleGenerateDescription = async () => {
     const generated = await generateDescription(title, category, subcategory);
@@ -138,7 +147,7 @@ const EditService = () => {
         setCategory(data.category);
         setSubcategory(data.subcategory || "");
         setDescription(data.description);
-        setPrice(data.price.replace("R$ ", ""));
+        setPrice(data.price.replace("R$ ", "").replace("A combinar", ""));
         setPriceType(data.price_type);
         setSelectedState(data.state);
         setSelectedCity(data.city);
@@ -146,6 +155,22 @@ const EditService = () => {
         setPhone(data.phone || "");
         setWhatsapp(data.whatsapp || "");
         setStatus(data.status);
+        
+        // Fetch existing promotion for this service
+        const { data: promotionData } = await supabase
+          .from("service_promotions")
+          .select("*")
+          .eq("service_id", id)
+          .eq("is_active", true)
+          .gte("ends_at", new Date().toISOString())
+          .maybeSingle();
+        
+        if (promotionData) {
+          setHasDiscount(true);
+          setDiscountPercentage(promotionData.discount_percentage?.toString() || "");
+          setDiscountEndsAt(promotionData.ends_at.split("T")[0]);
+          setExistingPromotionId(promotionData.id);
+        }
       } catch (error) {
         console.error("Error fetching service:", error);
         toast({
@@ -336,6 +361,46 @@ const EditService = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
+      
+      // Handle promotion
+      if (hasDiscount && price && discountPercentage && discountEndsAt) {
+        const discountPercent = parseFloat(discountPercentage);
+        const originalPrice = parseFloat(price);
+        const promotionalPrice = originalPrice * (1 - discountPercent / 100);
+        
+        if (existingPromotionId) {
+          // Update existing promotion
+          await supabase
+            .from("service_promotions")
+            .update({
+              discount_percentage: discountPercent,
+              original_price: `R$ ${originalPrice.toFixed(2)}`,
+              promotional_price: `R$ ${promotionalPrice.toFixed(2)}`,
+              ends_at: new Date(discountEndsAt + "T23:59:59").toISOString(),
+              is_active: true,
+            })
+            .eq("id", existingPromotionId);
+        } else {
+          // Create new promotion
+          await supabase
+            .from("service_promotions")
+            .insert({
+              service_id: id,
+              professional_id: user.id,
+              discount_percentage: discountPercent,
+              original_price: `R$ ${originalPrice.toFixed(2)}`,
+              promotional_price: `R$ ${promotionalPrice.toFixed(2)}`,
+              ends_at: new Date(discountEndsAt + "T23:59:59").toISOString(),
+              is_active: true,
+            });
+        }
+      } else if (!hasDiscount && existingPromotionId) {
+        // Deactivate existing promotion
+        await supabase
+          .from("service_promotions")
+          .update({ is_active: false })
+          .eq("id", existingPromotionId);
+      }
 
       toast({
         title: "Anúncio atualizado!",
@@ -712,6 +777,78 @@ const EditService = () => {
                   onApplyPrice={handleApplyPrice}
                   onClose={clearSuggestion}
                 />
+              )}
+              
+              {/* Discount Section */}
+              {priceType !== "negotiable" && price && (
+                <div className="border-t pt-6 mt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Tag className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <Label htmlFor="hasDiscount" className="font-medium cursor-pointer">
+                          Adicionar Desconto Promocional
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Atraia mais clientes com um preço promocional
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      id="hasDiscount"
+                      checked={hasDiscount}
+                      onCheckedChange={setHasDiscount}
+                    />
+                  </div>
+                  
+                  {hasDiscount && (
+                    <div className="grid md:grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50 border border-dashed">
+                      <div className="space-y-2">
+                        <Label htmlFor="discountPercentage" className="flex items-center gap-1">
+                          <Percent className="h-3 w-3" />
+                          Desconto (%)
+                        </Label>
+                        <Input
+                          id="discountPercentage"
+                          type="number"
+                          placeholder="Ex: 20"
+                          min="1"
+                          max="90"
+                          value={discountPercentage}
+                          onChange={(e) => setDiscountPercentage(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="discountEndsAt">Válido até</Label>
+                        <Input
+                          id="discountEndsAt"
+                          type="date"
+                          min={new Date().toISOString().split("T")[0]}
+                          value={discountEndsAt}
+                          onChange={(e) => setDiscountEndsAt(e.target.value)}
+                        />
+                      </div>
+                      
+                      {discountPercentage && price && (
+                        <div className="md:col-span-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Preço promocional:</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm line-through text-muted-foreground">
+                                R$ {parseFloat(price).toFixed(2)}
+                              </span>
+                              <Badge variant="default" className="text-base font-bold">
+                                R$ {(parseFloat(price) * (1 - parseFloat(discountPercentage) / 100)).toFixed(2)}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
