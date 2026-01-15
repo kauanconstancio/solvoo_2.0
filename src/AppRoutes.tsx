@@ -44,12 +44,12 @@ import AdminPayoutReport from "./pages/admin/AdminPayoutReport";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminExports from "./pages/admin/AdminExports";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminLoyalty from "./pages/admin/AdminLoyalty";
+import AdminGamification from "./pages/admin/AdminGamification";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import ServiceHistoryPage from "./pages/ServiceHistoryPage";
 import PromotionsPage from "./pages/PromotionsPage";
-import LoyaltyPage from "./pages/LoyaltyPage";
+import AchievementsPage from "./pages/AchievementsPage";
 import PageTransition from "./components/PageTransition";
 
 const AnimatedRoutes = () => {
@@ -349,11 +349,11 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/fidelidade"
+          path="/conquistas"
           element={
             <ProtectedRoute>
               <PageTransition>
-                <LoyaltyPage />
+                <AchievementsPage />
               </PageTransition>
             </ProtectedRoute>
           }
@@ -499,11 +499,11 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/admin/fidelidade"
+          path="/admin/gamificacao"
           element={
             <AdminProtectedRoute requiredPermission="admin">
               <PageTransition>
-                <AdminLoyalty />
+                <AdminGamification />
               </PageTransition>
             </AdminProtectedRoute>
           }

@@ -15,7 +15,7 @@ import {
   Calendar,
   History,
   Tag,
-  Award,
+  Trophy,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ import { toast } from "sonner";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { NotificationCenter } from "./NotificationCenter";
-import { useUserLoyaltyPoints } from "@/hooks/useLoyalty";
+import { useProfessionalStats } from "@/hooks/useProfessionalGamification";
 import {
   Tooltip,
   TooltipContent,
@@ -55,18 +55,12 @@ interface Profile {
 const Header = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isProfessional, setIsProfessional] = useState(false);
   const navigate = useNavigate();
   const { unreadCount } = useUnreadMessages();
   const { hasAnyRole } = useUserRole();
   const { theme, setTheme } = useTheme();
-  const { points } = useUserLoyaltyPoints();
-
-  const formatPoints = (value: number) => {
-    if (value >= 1000) {
-      return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
-    }
-    return value.toString();
-  };
+  const { stats } = useProfessionalStats();
 
   useEffect(() => {
     const {
@@ -77,6 +71,7 @@ const Header = () => {
         fetchProfile(session.user.id);
       } else {
         setProfile(null);
+        setIsProfessional(false);
       }
     });
 
@@ -93,12 +88,13 @@ const Header = () => {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("full_name, avatar_url")
+      .select("full_name, avatar_url, account_type")
       .eq("user_id", userId)
       .single();
 
     if (data) {
       setProfile(data);
+      setIsProfessional(data.account_type === 'profissional');
     }
   };
 
@@ -209,26 +205,35 @@ const Header = () => {
             )}
           </Link>
           
-          {/* Badge de Pontos de Fidelidade */}
-          {user && (
+          {/* Badge de Nível do Profissional */}
+          {user && isProfessional && stats?.current_level && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link to="/fidelidade" className="hidden lg:block">
+                  <Link to="/conquistas" className="hidden lg:block">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-9 px-3 gap-1.5 bg-primary/10 hover:bg-primary hover:text-primary-foreground transition-smooth"
+                      className="h-9 px-3 gap-1.5 transition-smooth"
+                      style={{ 
+                        backgroundColor: `${stats.current_level.color}20`,
+                      }}
                     >
-                      <Award className="h-4 w-4 text-primary group-hover:text-primary-foreground" />
-                      <span className="text-sm font-semibold text-primary">
-                        {formatPoints(points?.total_points || 0)}
+                      <Trophy 
+                        className="h-4 w-4" 
+                        style={{ color: stats.current_level.color }}
+                      />
+                      <span 
+                        className="text-sm font-semibold"
+                        style={{ color: stats.current_level.color }}
+                      >
+                        {stats.current_level.name}
                       </span>
                     </Button>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Seus pontos de fidelidade</p>
+                  <p>Seu nível de profissional</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -329,15 +334,17 @@ const Header = () => {
                     Minhas Promoções
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="cursor-pointer transition-smooth hover:bg-muted"
-                >
-                  <Link to="/fidelidade">
-                    <Award className="mr-2 h-4 w-4" />
-                    Programa de Fidelidade
-                  </Link>
-                </DropdownMenuItem>
+                {isProfessional && (
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer transition-smooth hover:bg-muted"
+                  >
+                    <Link to="/conquistas">
+                      <Trophy className="mr-2 h-4 w-4" />
+                      Conquistas e Ranking
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 {hasAnyRole && (
                   <DropdownMenuItem
                     asChild
