@@ -179,7 +179,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+              className="hidden lg:flex"
             >
               <Heart className="h-5 w-5" />
             </Button>
@@ -188,7 +188,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+              className="hidden lg:flex"
             >
               <MessageSquare className="h-5 w-5" />
             </Button>
@@ -207,7 +207,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-border hover:bg-primary hover:text-primary-foreground hover:border-transparent transition-smooth focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="hidden lg:flex items-center gap-2 h-10 px-2 rounded-full border-2 border-border focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
@@ -361,7 +361,7 @@ const Header = () => {
             <Link to="/auth">
               <Button
                 variant="outline"
-                className="hidden lg:flex hover:bg-primary hover:text-primary-foreground transition-smooth"
+                className="hidden lg:flex"
               >
                 <User className="h-4 w-4 mr-2" />
                 Entrar

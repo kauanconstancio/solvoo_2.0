@@ -234,7 +234,7 @@ export const NotificationCenter = () => {
     <Button
       variant="ghost"
       size="icon"
-      className="relative hover:bg-primary/10 hover:text-primary transition-all duration-200"
+      className="relative"
     >
       <Bell className="h-5 w-5" />
       {unreadCount > 0 && (
