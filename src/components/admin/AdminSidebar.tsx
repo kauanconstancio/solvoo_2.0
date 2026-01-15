@@ -112,8 +112,8 @@ export const AdminSidebar = () => {
       permission: canManageRoles,
     },
     {
-      label: 'Fidelidade',
-      href: '/admin/fidelidade',
+      label: 'Gamificação',
+      href: '/admin/gamificacao',
       icon: <Award className="h-5 w-5" />,
       permission: canManageRoles,
     },
