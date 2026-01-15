@@ -44,12 +44,10 @@ import AdminPayoutReport from "./pages/admin/AdminPayoutReport";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminExports from "./pages/admin/AdminExports";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminGamification from "./pages/admin/AdminGamification";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import ScheduleConfigPage from "./pages/ScheduleConfigPage";
 import ServiceHistoryPage from "./pages/ServiceHistoryPage";
 import PromotionsPage from "./pages/PromotionsPage";
-import AchievementsPage from "./pages/AchievementsPage";
 import PageTransition from "./components/PageTransition";
 
 const AnimatedRoutes = () => {
@@ -349,16 +347,6 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/conquistas"
-          element={
-            <ProtectedRoute>
-              <PageTransition>
-                <AchievementsPage />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/admin"
           element={
             <AdminProtectedRoute>
@@ -494,16 +482,6 @@ const AnimatedRoutes = () => {
             <AdminProtectedRoute requiredPermission="admin">
               <PageTransition>
                 <AdminPayoutReport />
-              </PageTransition>
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/gamificacao"
-          element={
-            <AdminProtectedRoute requiredPermission="admin">
-              <PageTransition>
-                <AdminGamification />
               </PageTransition>
             </AdminProtectedRoute>
           }
