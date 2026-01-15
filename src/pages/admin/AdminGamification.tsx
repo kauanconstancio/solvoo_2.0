@@ -2,9 +2,11 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Users, TrendingUp, Award, Target } from 'lucide-react';
+import { Trophy, Users, TrendingUp, Award, Target, BarChart3 } from 'lucide-react';
 import { useAdminGamification } from '@/hooks/useAdminGamification';
 import { ProfessionalRanking } from '@/components/ProfessionalRanking';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 
 const AdminGamification = () => {
   const { stats, levels, badges, goals, isLoading } = useAdminGamification();
@@ -81,6 +83,59 @@ const AdminGamification = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Level Distribution Chart */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-blue-500" />
+            Distribuição de Profissionais por Nível
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ChartContainer
+              config={
+                stats?.levelDistribution.reduce((acc, item) => {
+                  acc[item.level] = { label: item.level, color: item.color };
+                  return acc;
+                }, {} as Record<string, { label: string; color: string }>) || {}
+              }
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={stats?.levelDistribution || []} 
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <XAxis 
+                    dataKey="level" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    allowDecimals={false}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    formatter={(value: number) => [`${value} profissionais`, 'Quantidade']}
+                  />
+                  <Bar 
+                    dataKey="count" 
+                    radius={[4, 4, 0, 0]}
+                  >
+                    {(stats?.levelDistribution || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Levels */}
