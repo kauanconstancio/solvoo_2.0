@@ -417,105 +417,6 @@ export type Database = {
         }
         Relationships: []
       }
-      loyalty_config: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          min_points_redemption: number
-          point_value_in_reais: number
-          points_per_real: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          min_points_redemption?: number
-          point_value_in_reais?: number
-          points_per_real?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          min_points_redemption?: number
-          point_value_in_reais?: number
-          points_per_real?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      loyalty_redemptions: {
-        Row: {
-          created_at: string
-          discount_value: number
-          expires_at: string
-          id: string
-          points_used: number
-          quote_id: string | null
-          status: string
-          used_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          discount_value: number
-          expires_at?: string
-          id?: string
-          points_used: number
-          quote_id?: string | null
-          status?: string
-          used_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          discount_value?: number
-          expires_at?: string
-          id?: string
-          points_used?: number
-          quote_id?: string | null
-          status?: string
-          used_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      loyalty_transactions: {
-        Row: {
-          created_at: string
-          description: string
-          id: string
-          points: number
-          reference_id: string | null
-          reference_type: string | null
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description: string
-          id?: string
-          points: number
-          reference_id?: string | null
-          reference_type?: string | null
-          type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string
-          id?: string
-          points?: number
-          reference_id?: string | null
-          reference_type?: string | null
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       mass_notifications: {
         Row: {
           created_at: string
@@ -666,6 +567,229 @@ export type Database = {
         }
         Relationships: []
       }
+      professional_achievements_log: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          description: string | null
+          id: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          description?: string | null
+          id?: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          description?: string | null
+          id?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      professional_badge_awards: {
+        Row: {
+          awarded_at: string | null
+          badge_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string | null
+          badge_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string | null
+          badge_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_badge_awards_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "professional_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_badges: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean | null
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
+      professional_goal_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_value: number | null
+          goal_id: string
+          id: string
+          reward_claimed_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_value?: number | null
+          goal_id: string
+          id?: string
+          reward_claimed_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_value?: number | null
+          goal_id?: string
+          id?: string
+          reward_claimed_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_goal_progress_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "professional_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_goals: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          goal_type: string
+          id: string
+          is_active: boolean | null
+          reward_type: string | null
+          reward_value: string | null
+          start_date: string | null
+          target_value: number
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_type: string
+          id?: string
+          is_active?: boolean | null
+          reward_type?: string | null
+          reward_value?: string | null
+          start_date?: string | null
+          target_value: number
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          goal_type?: string
+          id?: string
+          is_active?: boolean | null
+          reward_type?: string | null
+          reward_value?: string | null
+          start_date?: string | null
+          target_value?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      professional_levels: {
+        Row: {
+          benefits: Json | null
+          color: string
+          commission_discount: number | null
+          created_at: string | null
+          icon_url: string | null
+          id: string
+          min_revenue: number
+          min_services: number
+          name: string
+          priority_boost: number | null
+          slug: string
+          sort_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          benefits?: Json | null
+          color?: string
+          commission_discount?: number | null
+          created_at?: string | null
+          icon_url?: string | null
+          id?: string
+          min_revenue?: number
+          min_services?: number
+          name: string
+          priority_boost?: number | null
+          slug: string
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Update: {
+          benefits?: Json | null
+          color?: string
+          commission_discount?: number | null
+          created_at?: string | null
+          icon_url?: string | null
+          id?: string
+          min_revenue?: number
+          min_services?: number
+          name?: string
+          priority_boost?: number | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       professional_schedules: {
         Row: {
           created_at: string
@@ -692,6 +816,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      professional_stats: {
+        Row: {
+          best_month_revenue: number
+          created_at: string | null
+          current_level_id: string | null
+          current_month_revenue: number
+          current_month_services: number
+          id: string
+          streak_months: number | null
+          total_revenue: number
+          total_services: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          best_month_revenue?: number
+          created_at?: string | null
+          current_level_id?: string | null
+          current_month_revenue?: number
+          current_month_services?: number
+          id?: string
+          streak_months?: number | null
+          total_revenue?: number
+          total_services?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          best_month_revenue?: number
+          created_at?: string | null
+          current_level_id?: string | null
+          current_month_revenue?: number
+          current_month_services?: number
+          id?: string
+          streak_months?: number | null
+          total_revenue?: number
+          total_services?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_stats_current_level_id_fkey"
+            columns: ["current_level_id"]
+            isOneToOne: false
+            referencedRelation: "professional_levels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1287,33 +1461,6 @@ export type Database = {
           price?: number
           slug?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      user_loyalty_points: {
-        Row: {
-          created_at: string
-          id: string
-          lifetime_points: number
-          total_points: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          lifetime_points?: number
-          total_points?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          lifetime_points?: number
-          total_points?: number
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
