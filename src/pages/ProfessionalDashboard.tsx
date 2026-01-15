@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AnimatedMetricCard } from "@/components/AnimatedMetricCard";
-import { ProfessionalLevelCard } from "@/components/ProfessionalLevelCard";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -263,11 +262,6 @@ const ProfessionalDashboard = () => {
             </Card>
           ) : (
             <>
-              {/* Professional Level Card */}
-              <div className="mb-8">
-                <ProfessionalLevelCard />
-              </div>
-
               {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <AnimatedMetricCard

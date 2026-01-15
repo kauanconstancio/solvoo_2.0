@@ -15,7 +15,6 @@ import {
   Calendar,
   History,
   Tag,
-  Trophy,
 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
@@ -39,7 +38,6 @@ import { toast } from "sonner";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { NotificationCenter } from "./NotificationCenter";
-import { useProfessionalStats } from "@/hooks/useProfessionalGamification";
 import {
   Tooltip,
   TooltipContent,
@@ -60,7 +58,6 @@ const Header = () => {
   const { unreadCount } = useUnreadMessages();
   const { hasAnyRole } = useUserRole();
   const { theme, setTheme } = useTheme();
-  const { stats } = useProfessionalStats();
 
   useEffect(() => {
     const {
@@ -205,40 +202,6 @@ const Header = () => {
             )}
           </Link>
           
-          {/* Badge de Nível do Profissional */}
-          {user && isProfessional && stats?.current_level && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link to="/conquistas" className="hidden lg:block">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 px-3 gap-1.5 transition-smooth"
-                      style={{ 
-                        backgroundColor: `${stats.current_level.color}20`,
-                      }}
-                    >
-                      <Trophy 
-                        className="h-4 w-4" 
-                        style={{ color: stats.current_level.color }}
-                      />
-                      <span 
-                        className="text-sm font-semibold"
-                        style={{ color: stats.current_level.color }}
-                      >
-                        {stats.current_level.name}
-                      </span>
-                    </Button>
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Seu nível de profissional</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -334,17 +297,6 @@ const Header = () => {
                     Minhas Promoções
                   </Link>
                 </DropdownMenuItem>
-                {isProfessional && (
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer transition-smooth hover:bg-muted"
-                  >
-                    <Link to="/conquistas">
-                      <Trophy className="mr-2 h-4 w-4" />
-                      Conquistas e Ranking
-                    </Link>
-                  </DropdownMenuItem>
-                )}
                 {hasAnyRole && (
                   <DropdownMenuItem
                     asChild
