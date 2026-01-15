@@ -24,9 +24,6 @@ serve(async (req) => {
       durationMinutes,
       serviceTitle,
       price,
-      originalPrice,
-      discountApplied,
-      loyaltyRedemptionId,
       location
     } = await req.json();
     
@@ -34,7 +31,7 @@ serve(async (req) => {
       throw new Error("Missing required fields");
     }
 
-    logStep("Starting direct booking", { serviceId, scheduledDate, scheduledTime, loyaltyRedemptionId });
+    logStep("Starting direct booking", { serviceId, scheduledDate, scheduledTime });
 
     // Authenticate the user
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -219,32 +216,12 @@ serve(async (req) => {
 
     logStep("Appointment created with awaiting_payment status", { appointmentId: appointment.id });
 
-    // Mark loyalty redemption as applied if exists
-    if (loyaltyRedemptionId && discountApplied > 0) {
-      const { error: redemptionError } = await supabaseAdmin
-        .from("loyalty_redemptions")
-        .update({ 
-          status: "applied",
-          quote_id: quote.id,
-          used_at: new Date().toISOString()
-        })
-        .eq("id", loyaltyRedemptionId);
-
-      if (redemptionError) {
-        logStep("Error updating loyalty redemption", { error: redemptionError.message });
-        // Don't throw, just log - booking is already created
-      } else {
-        logStep("Loyalty redemption applied", { redemptionId: loyaltyRedemptionId, discount: discountApplied });
-      }
-    }
-
     // Send automatic message in chat
     const locationText = location ? `\n📍 Local: ${location}` : '';
-    const discountText = discountApplied > 0 ? `\n🎁 Desconto fidelidade: -R$ ${discountApplied.toFixed(2).replace(".", ",")}` : '';
     await supabaseAdmin.from("messages").insert({
       conversation_id: conversationId,
       sender_id: userId,
-      content: `📅 Novo agendamento solicitado!\n\n🗓 Data: ${scheduledDate}\n⏰ Horário: ${scheduledTime}${locationText}${discountText}\n💰 Valor: R$ ${price.toFixed(2).replace(".", ",")}\n\n⏳ Aguardando pagamento...`,
+      content: `📅 Novo agendamento solicitado!\n\n🗓 Data: ${scheduledDate}\n⏰ Horário: ${scheduledTime}${locationText}\n💰 Valor: R$ ${price.toFixed(2).replace(".", ",")}\n\n⏳ Aguardando pagamento...`,
       message_type: "text",
     });
 

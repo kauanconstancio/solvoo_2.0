@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarCheck, Clock, Loader2, MapPin, Timer, CreditCard, Sparkles, CheckCircle2, Search, Award, X } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { CalendarCheck, Clock, Loader2, MapPin, Timer, CreditCard, Sparkles, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -15,14 +15,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PixBookingCheckoutDialog } from './PixBookingCheckoutDialog';
 import { BookingSuccessPopup } from './BookingSuccessPopup';
 import { CpfCollectionDialog } from './CpfCollectionDialog';
 import { AddressMapPreview } from './AddressMapPreview';
-import { useLoyaltyRedemptions } from '@/hooks/useLoyalty';
 
 interface TimeSlot {
   id: string;
@@ -60,12 +58,10 @@ export function DirectBookingDialog({
 }: DirectBookingDialogProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { pendingRedemption, refetch: refetchRedemptions } = useLoyaltyRedemptions();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPixDialog, setShowPixDialog] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showCpfDialog, setShowCpfDialog] = useState(false);
-  const [applyDiscount, setApplyDiscount] = useState(true);
   const [cep, setCep] = useState('');
   const [isLoadingCep, setIsLoadingCep] = useState(false);
   const [cepError, setCepError] = useState('');
@@ -85,8 +81,6 @@ export function DirectBookingDialog({
     expiresAt: string;
     title: string;
     price: number;
-    originalPrice: number;
-    discountApplied: number;
     appointmentId: string;
   } | null>(null);
   const [createdAppointmentId, setCreatedAppointmentId] = useState<string | null>(null);
@@ -130,12 +124,7 @@ export function DirectBookingDialog({
   };
 
   const priceValue = parsePrice(service.price);
-  
-  // Calculate discount
-  const discountValue = (applyDiscount && pendingRedemption) 
-    ? Math.min(pendingRedemption.discount_value, priceValue) 
-    : 0;
-  const finalPrice = priceValue - discountValue;
+  const finalPrice = priceValue;
 
   // Build full location string from address data
   const getFullLocation = (): string => {
@@ -276,9 +265,6 @@ export function DirectBookingDialog({
           durationMinutes: duration,
           serviceTitle: service.title,
           price: finalPrice,
-          originalPrice: priceValue,
-          discountApplied: discountValue,
-          loyaltyRedemptionId: (applyDiscount && pendingRedemption) ? pendingRedemption.id : null,
           location: fullLocation || null
         }
       });
@@ -311,15 +297,8 @@ export function DirectBookingDialog({
         expiresAt: pixResponse.expiresAt,
         title: pixResponse.title,
         price: finalPrice,
-        originalPrice: priceValue,
-        discountApplied: discountValue,
         appointmentId: bookingResponse.appointmentId,
       });
-
-      // Refetch redemptions to update state after applying discount
-      if (discountValue > 0) {
-        refetchRedemptions();
-      }
 
       onOpenChange(false);
       setShowPixDialog(true);
@@ -534,70 +513,10 @@ export function DirectBookingDialog({
                 Valor
               </h4>
               
-              {/* Loyalty Discount Section */}
-              {pendingRedemption && (
-                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">Desconto de Fidelidade</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => setApplyDiscount(!applyDiscount)}
-                    >
-                      {applyDiscount ? (
-                        <X className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                      )}
-                    </Button>
-                  </div>
-                  {applyDiscount ? (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {pendingRedemption.points_used} pontos resgatados
-                      </span>
-                      <span className="text-green-600 font-medium">
-                        -{formatPrice(Math.min(pendingRedemption.discount_value, priceValue))}
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">
-                      Clique para aplicar o desconto de {formatPrice(pendingRedemption.discount_value)}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* No discount available - show CTA */}
-              {!pendingRedemption && (
-                <Link to="/fidelidade" className="block">
-                  <div className="p-3 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors cursor-pointer">
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Resgate pontos e ganhe desconto
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              )}
-
-              {/* Price breakdown */}
-              <div className="space-y-1">
-                {discountValue > 0 && (
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Subtotal</span>
-                    <span className="line-through">{formatPrice(priceValue)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-semibold text-lg">
-                  <span>Total a pagar</span>
-                  <span className="text-primary">{formatPrice(finalPrice)}</span>
-                </div>
+              {/* Price display */}
+              <div className="flex justify-between font-semibold text-lg">
+                <span>Total a pagar</span>
+                <span className="text-primary">{formatPrice(finalPrice)}</span>
               </div>
             </div>
           </div>
