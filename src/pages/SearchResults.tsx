@@ -138,10 +138,10 @@ const SearchResults = () => {
         const servicesWithProfiles: ServiceFromDB[] = await Promise.all(
           (servicesData || []).map(async (service) => {
             const { data: profileData } = await supabase
-              .from("profiles")
+              .from("profiles_public" as any)
               .select("full_name")
               .eq("user_id", service.user_id)
-              .maybeSingle();
+              .maybeSingle() as { data: { full_name: string } | null };
             
             return {
               id: service.id,

@@ -61,9 +61,9 @@ export const useReviews = (serviceId?: string) => {
       // Fetch profiles for each reviewer
       const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
       const { data: profilesData } = await supabase
-        .from("profiles")
+        .from("profiles_public" as any)
         .select("user_id, full_name, avatar_url")
-        .in("user_id", userIds);
+        .in("user_id", userIds) as { data: { user_id: string; full_name: string; avatar_url: string }[] | null };
 
       const profilesMap = new Map(
         (profilesData || []).map((p) => [p.user_id, p])
@@ -202,9 +202,9 @@ export const useProviderRating = (userId: string | null) => {
       // Fetch profiles for each reviewer
       const userIds = [...new Set(reviewsData.map((r) => r.user_id))];
       const { data: profilesData } = await supabase
-        .from("profiles")
+        .from("profiles_public" as any)
         .select("user_id, full_name, avatar_url")
-        .in("user_id", userIds);
+        .in("user_id", userIds) as { data: { user_id: string; full_name: string; avatar_url: string }[] | null };
 
       const profilesMap = new Map(
         (profilesData || []).map((p) => [p.user_id, p])

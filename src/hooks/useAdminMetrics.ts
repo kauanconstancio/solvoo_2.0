@@ -32,8 +32,8 @@ export const useAdminMetrics = () => {
       
       // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('account_type, created_at');
+        .from('profiles_public' as any)
+        .select('account_type, created_at') as { data: { account_type: string; created_at: string }[] | null; error: any };
       
       if (profilesError) throw profilesError;
 

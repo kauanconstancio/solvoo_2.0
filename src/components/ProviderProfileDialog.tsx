@@ -94,12 +94,12 @@ const ProviderProfileDialog = ({
       try {
         // Fetch provider profile
         const { data: profileData } = await supabase
-          .from("profiles")
+          .from("profiles_public" as any)
           .select(
             "user_id, full_name, city, state, avatar_url, bio, created_at"
           )
           .eq("user_id", userId)
-          .maybeSingle();
+          .maybeSingle() as { data: { user_id: string; full_name: string; city: string; state: string; avatar_url: string; bio: string; created_at: string } | null };
 
         setProvider(profileData);
 

@@ -25,11 +25,11 @@ export const usePlatformMetrics = () => {
     let cancelled = false;
 
     const getCount = async (
-      table: 'profiles' | 'services' | 'quotes',
-      apply?: (q: ReturnType<typeof supabase.from>) => any
+      table: string,
+      apply?: (q: any) => any
     ) => {
       // Use GET + range(0,0) (more reliable than HEAD for count parsing)
-      let q: any = supabase.from(table).select('id', { count: 'exact' }).range(0, 0);
+      let q: any = (supabase.from as any)(table).select('*', { count: 'exact', head: true });
       if (apply) q = apply(q);
 
       const { count, error } = await q;
@@ -47,8 +47,8 @@ export const usePlatformMetrics = () => {
           ratingsRes,
           amountRes,
         ] = await Promise.all([
-          getCount('profiles', (q: any) => q.eq('account_type', 'profissional')),
-          getCount('profiles'),
+          getCount('profiles_public', (q: any) => q.eq('account_type', 'profissional')),
+          getCount('profiles_public'),
           getCount('services', (q: any) => q.eq('status', 'active')),
           getCount('quotes', (q: any) => q.in('status', ['accepted', 'completed'])),
           supabase.from('reviews').select('rating'),

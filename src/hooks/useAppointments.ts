@@ -83,15 +83,15 @@ export function useAppointments(conversationId?: string) {
         (data || []).map(async (apt) => {
           const [clientProfile, professionalProfile, serviceData] = await Promise.all([
             supabase
-              .from("profiles")
+              .from("profiles_public" as any)
               .select("full_name, avatar_url")
               .eq("user_id", apt.client_id)
-              .maybeSingle(),
+              .maybeSingle() as unknown as Promise<{ data: { full_name: string; avatar_url: string } | null }>,
             supabase
-              .from("profiles")
+              .from("profiles_public" as any)
               .select("full_name, avatar_url")
               .eq("user_id", apt.professional_id)
-              .maybeSingle(),
+              .maybeSingle() as unknown as Promise<{ data: { full_name: string; avatar_url: string } | null }>,
             apt.service_id
               ? supabase
                   .from("services")

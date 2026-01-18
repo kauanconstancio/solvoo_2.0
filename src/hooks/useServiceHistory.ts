@@ -79,9 +79,9 @@ export const useServiceHistory = () => {
       ];
 
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('user_id, full_name, avatar_url')
-        .in('user_id', professionalIds);
+        .in('user_id', professionalIds) as { data: { user_id: string; full_name: string; avatar_url: string }[] | null };
 
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
