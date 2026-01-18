@@ -70,10 +70,10 @@ export const useConversationsWithCache = () => {
         
         const [profileResult, serviceResult, messagesResult, unreadResult] = await Promise.all([
           supabase
-            .from('profiles')
+            .from('profiles_public' as any)
             .select('user_id, full_name, avatar_url')
             .eq('user_id', otherUserId)
-            .maybeSingle(),
+            .maybeSingle() as unknown as Promise<{ data: { user_id: string; full_name: string; avatar_url: string } | null }>,
           conv.service_id 
             ? supabase
                 .from('services')

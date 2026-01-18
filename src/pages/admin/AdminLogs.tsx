@@ -58,9 +58,9 @@ export const AdminLogs = () => {
 
       const adminIds = [...new Set((data || []).map(l => l.admin_id))];
       const { data: profilesData } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('user_id, full_name, avatar_url')
-        .in('user_id', adminIds);
+        .in('user_id', adminIds) as { data: { user_id: string; full_name: string; avatar_url: string }[] | null };
 
       const logsWithProfiles = (data || []).map(log => ({
         ...log,

@@ -236,7 +236,7 @@ const ChatConversation = () => {
 
         // Fetch professional profile
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("profiles_public")
           .select("user_id, full_name, avatar_url")
           .eq("user_id", professionalId)
           .maybeSingle();
@@ -279,10 +279,10 @@ const ChatConversation = () => {
         setClientId(conv.client_id);
 
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("profiles_public" as any)
           .select("user_id, full_name, avatar_url")
           .eq("user_id", otherUserId)
-          .maybeSingle();
+          .maybeSingle() as { data: { user_id: string; full_name: string; avatar_url: string } | null };
 
         setOtherUser(profile);
 

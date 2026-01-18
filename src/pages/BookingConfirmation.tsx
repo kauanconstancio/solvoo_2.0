@@ -89,10 +89,10 @@ export default function BookingConfirmation() {
 
         // Fetch professional details
         const { data: professional } = await supabase
-          .from('profiles')
+          .from('profiles_public' as any)
           .select('full_name, avatar_url, city, state')
           .eq('user_id', data.professional_id)
-          .single();
+          .single() as { data: { full_name: string; avatar_url: string; city: string; state: string } | null };
 
         setAppointment({
           ...data,

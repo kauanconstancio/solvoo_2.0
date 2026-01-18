@@ -850,6 +850,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "reviews_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       schedule_blocks: {
@@ -1138,6 +1145,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "services_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       subscription_plans: {
@@ -1345,7 +1359,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          account_type: string | null
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          created_at: string | null
+          full_name: string | null
+          state: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_type?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          state?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_type?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          state?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_slug: { Args: { title: string }; Returns: string }
