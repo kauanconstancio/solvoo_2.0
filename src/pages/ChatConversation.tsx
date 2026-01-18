@@ -124,6 +124,9 @@ const ChatConversation = () => {
     messages,
     quotes,
     isLoading: isLoadingChat,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     sendMessage,
     sendFile,
     clearConversation,
@@ -400,7 +403,7 @@ const ChatConversation = () => {
     }
   }, [messages, conversationId, markAsRead, currentUserId]);
 
-  // Handle scroll to show/hide scroll-to-bottom button
+  // Handle scroll to show/hide scroll-to-bottom button and load more
   const handleScroll = () => {
     if (!messagesContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
@@ -411,6 +414,11 @@ const ChatConversation = () => {
     // Clear unread counter when user scrolls to bottom
     if (isNearBottom) {
       setUnreadWhileScrolled(0);
+    }
+    
+    // Load more when scrolling near the top
+    if (scrollTop < 200 && hasMore && !isLoadingMore) {
+      loadMore();
     }
   };
 
@@ -1063,6 +1071,14 @@ const ChatConversation = () => {
           </Button>
         )}
         <div className="max-w-4xl mx-auto px-2 md:px-4 py-3 md:py-4 space-y-2 md:space-y-3">
+          {/* Loading more indicator */}
+          {isLoadingMore && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-sm text-muted-foreground">Carregando mensagens anteriores...</span>
+            </div>
+          )}
+          
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 md:py-24 px-4">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 md:mb-6">

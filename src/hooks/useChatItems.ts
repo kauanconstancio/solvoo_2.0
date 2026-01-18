@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Message, ReplyToMessage } from './useChat';
@@ -19,6 +19,9 @@ interface UseChatItemsReturn {
   messages: Message[];
   quotes: Quote[];
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  loadMore: () => Promise<void>;
   sendMessage: (
     content: string,
     messageType?: string,
@@ -61,13 +64,17 @@ interface PixPaymentData {
 }
 
 const PLATFORM_FEE_RATE = 0.10;
+const MESSAGE_PAGE_SIZE = 50;
 
 export const useChatItems = (conversationId: string | undefined): UseChatItemsReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [clearedAt, setClearedAt] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const oldestMessageRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   // Get current user
@@ -90,7 +97,24 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
     };
   }, []);
 
-  // Fetch both messages and quotes simultaneously
+  // Enrich messages with replies
+  const enrichWithReplies = useCallback(async (msgs: any[]): Promise<Message[]> => {
+    return Promise.all(
+      msgs.map(async (msg) => {
+        if (msg.reply_to_id) {
+          const { data: replyMsg } = await supabase
+            .from('messages')
+            .select('id, content, sender_id, message_type, file_name')
+            .eq('id', msg.reply_to_id)
+            .maybeSingle();
+          return { ...msg, reply_to: replyMsg };
+        }
+        return msg;
+      })
+    );
+  }, []);
+
+  // Fetch initial data (latest messages + all quotes)
   const fetchAll = useCallback(async () => {
     if (!conversationId) {
       setIsLoading(false);
@@ -108,19 +132,31 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
         return;
       }
 
-      // Fetch clearance, messages and quotes in parallel
-      const [clearanceResult, messagesResult, quotesResult] = await Promise.all([
-        supabase
-          .from('conversation_clearances')
-          .select('cleared_at')
-          .eq('conversation_id', conversationId)
-          .eq('user_id', userId)
-          .maybeSingle(),
-        supabase
-          .from('messages')
-          .select('*')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true }),
+      // Fetch clearance first
+      const { data: clearance } = await supabase
+        .from('conversation_clearances')
+        .select('cleared_at')
+        .eq('conversation_id', conversationId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const userClearedAt = clearance?.cleared_at || null;
+      setClearedAt(userClearedAt);
+
+      // Fetch latest messages (paginated) and all quotes in parallel
+      let messagesQuery = supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE);
+
+      if (userClearedAt) {
+        messagesQuery = messagesQuery.gt('created_at', userClearedAt);
+      }
+
+      const [messagesResult, quotesResult] = await Promise.all([
+        messagesQuery,
         supabase
           .from('quotes')
           .select('*')
@@ -128,33 +164,18 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
           .order('created_at', { ascending: true }),
       ]);
 
-      const userClearedAt = clearanceResult.data?.cleared_at || null;
-      setClearedAt(userClearedAt);
-
       // Process messages
       if (messagesResult.error) throw messagesResult.error;
       
-      let filteredMessages = messagesResult.data || [];
-      if (userClearedAt) {
-        filteredMessages = filteredMessages.filter(
-          (msg) => new Date(msg.created_at) > new Date(userClearedAt)
-        );
+      const sortedMessages = (messagesResult.data || []).reverse();
+      const messagesWithReplies = await enrichWithReplies(sortedMessages);
+      
+      setMessages(messagesWithReplies);
+      setHasMore(sortedMessages.length === MESSAGE_PAGE_SIZE);
+      
+      if (sortedMessages.length > 0) {
+        oldestMessageRef.current = sortedMessages[0].created_at;
       }
-
-      // Fetch reply_to messages for those that have replies
-      const messagesWithReplies = await Promise.all(
-        filteredMessages.map(async (msg) => {
-          if (msg.reply_to_id) {
-            const { data: replyMsg } = await supabase
-              .from('messages')
-              .select('id, content, sender_id, message_type, file_name')
-              .eq('id', msg.reply_to_id)
-              .maybeSingle();
-            return { ...msg, reply_to: replyMsg };
-          }
-          return msg;
-        })
-      );
 
       // Process quotes
       if (quotesResult.error) throw quotesResult.error;
@@ -227,9 +248,51 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
     } finally {
       setIsLoading(false);
     }
-  }, [conversationId, userId, toast]);
+  }, [conversationId, userId, enrichWithReplies, toast]);
 
+  // Load more (older) messages
+  const loadMore = useCallback(async () => {
+    if (!conversationId || !userId || isLoadingMore || !hasMore || !oldestMessageRef.current) return;
+
+    setIsLoadingMore(true);
+    try {
+      let query = supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .lt('created_at', oldestMessageRef.current)
+        .order('created_at', { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE);
+
+      if (clearedAt) {
+        query = query.gt('created_at', clearedAt);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      const sortedData = (data || []).reverse();
+      const enriched = await enrichWithReplies(sortedData);
+      
+      setMessages(prev => [...enriched, ...prev]);
+      setHasMore(sortedData.length === MESSAGE_PAGE_SIZE);
+      
+      if (sortedData.length > 0) {
+        oldestMessageRef.current = sortedData[0].created_at;
+      }
+    } catch (error: any) {
+      console.error('Error loading more messages:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [conversationId, userId, isLoadingMore, hasMore, clearedAt, enrichWithReplies]);
+
+  // Reset state when conversation changes
   useEffect(() => {
+    setMessages([]);
+    setQuotes([]);
+    setHasMore(true);
+    oldestMessageRef.current = null;
     fetchAll();
   }, [fetchAll]);
 
@@ -741,6 +804,9 @@ export const useChatItems = (conversationId: string | undefined): UseChatItemsRe
     messages,
     quotes,
     isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
     sendMessage,
     sendFile,
     clearConversation,
