@@ -7,6 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -20,85 +22,38 @@ interface UserProfile {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/support-chatbot`;
 
-// Simple markdown parser
-const renderMarkdown = (text: string) => {
-  // Process line by line
-  const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
-  let listItems: string[] = [];
-  let inList = false;
-
-  const processInline = (line: string) => {
-    // Bold: **text** or __text__
-    line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    line = line.replace(/__(.*?)__/g, '<strong>$1</strong>');
-    // Italic: *text* or _text_
-    line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    line = line.replace(/_([^_]+)_/g, '<em>$1</em>');
-    // Code: `text`
-    line = line.replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-xs">$1</code>');
-    // Links: [text](url)
-    line = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-primary underline">$1</a>');
-    return line;
-  };
-
-  const flushList = () => {
-    if (listItems.length > 0) {
-      elements.push(
-        <ul key={`list-${elements.length}`} className="list-disc list-inside space-y-1 my-2">
-          {listItems.map((item, i) => (
-            <li key={i} dangerouslySetInnerHTML={{ __html: processInline(item) }} />
-          ))}
-        </ul>
-      );
-      listItems = [];
-    }
-    inList = false;
-  };
-
-  lines.forEach((line, index) => {
-    // Headers
-    if (line.startsWith('### ')) {
-      flushList();
-      elements.push(
-        <h4 key={index} className="font-semibold text-sm mt-2" dangerouslySetInnerHTML={{ __html: processInline(line.slice(4)) }} />
-      );
-    } else if (line.startsWith('## ')) {
-      flushList();
-      elements.push(
-        <h3 key={index} className="font-semibold mt-2" dangerouslySetInnerHTML={{ __html: processInline(line.slice(3)) }} />
-      );
-    } else if (line.startsWith('# ')) {
-      flushList();
-      elements.push(
-        <h2 key={index} className="font-bold mt-2" dangerouslySetInnerHTML={{ __html: processInline(line.slice(2)) }} />
-      );
-    }
-    // List items
-    else if (line.match(/^[-*]\s/)) {
-      inList = true;
-      listItems.push(line.slice(2));
-    } else if (line.match(/^\d+\.\s/)) {
-      inList = true;
-      listItems.push(line.replace(/^\d+\.\s/, ''));
-    }
-    // Empty line
-    else if (line.trim() === '') {
-      flushList();
-      elements.push(<br key={index} />);
-    }
-    // Regular paragraph
-    else {
-      flushList();
-      elements.push(
-        <p key={index} className="my-1" dangerouslySetInnerHTML={{ __html: processInline(line) }} />
-      );
-    }
-  });
-
-  flushList();
-  return <div className="space-y-1">{elements}</div>;
-};
+// Safe markdown renderer using react-markdown
+const SafeMarkdown = ({ content }: { content: string }) => (
+  <ReactMarkdown
+    remarkPlugins={[remarkGfm]}
+    components={{
+      h1: ({ children }) => <h2 className="font-bold mt-2">{children}</h2>,
+      h2: ({ children }) => <h3 className="font-semibold mt-2">{children}</h3>,
+      h3: ({ children }) => <h4 className="font-semibold text-sm mt-2">{children}</h4>,
+      p: ({ children }) => <p className="my-1">{children}</p>,
+      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
+      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>,
+      li: ({ children }) => <li>{children}</li>,
+      strong: ({ children }) => <strong>{children}</strong>,
+      em: ({ children }) => <em>{children}</em>,
+      code: ({ children }) => (
+        <code className="bg-muted px-1 py-0.5 rounded text-xs">{children}</code>
+      ),
+      a: ({ href, children }) => (
+        <a 
+          href={href} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-primary underline"
+        >
+          {children}
+        </a>
+      ),
+    }}
+  >
+    {content}
+  </ReactMarkdown>
+);
 
 export const SupportChatbot = () => {
   const location = useLocation();
@@ -321,7 +276,7 @@ export const SupportChatbot = () => {
                           : "bg-muted text-foreground rounded-bl-sm"
                       )}
                     >
-                      {message.role === 'assistant' ? renderMarkdown(message.content) : message.content}
+                      {message.role === 'assistant' ? <SafeMarkdown content={message.content} /> : message.content}
                     </div>
                     {message.role === 'user' && (
                       <Avatar className="h-8 w-8 flex-shrink-0">
